@@ -62,7 +62,10 @@ public class FichaTecnicaService {
         // Remover ficha INATIVA antiga se existir (constraint UNIQUE em prato_id)
         repository.findByPratoId(request.getPratoId())
                 .filter(f -> f.getStatus() == StatusGeral.INATIVO)
-                .ifPresent(repository::delete);
+                .ifPresent(f -> {
+                    repository.delete(f);
+                    repository.flush();
+                });
 
         Prato prato = pratoService.findActiveOrInactiveById(request.getPratoId());
 
