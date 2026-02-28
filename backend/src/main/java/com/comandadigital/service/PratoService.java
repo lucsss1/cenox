@@ -29,7 +29,7 @@ public class PratoService {
 
     @Transactional(readOnly = true)
     public Page<PratoResponse> listar(Pageable pageable) {
-        return repository.findByStatus(StatusGeral.ATIVO, pageable)
+        return repository.findAll(pageable)
                 .map(mapper::toResponse);
     }
 
@@ -47,7 +47,7 @@ public class PratoService {
 
     @Transactional(readOnly = true)
     public PratoResponse buscarPorId(Long id) {
-        Prato prato = findActiveById(id);
+        Prato prato = findActiveOrInactiveById(id);
         return mapper.toResponse(prato);
     }
 
