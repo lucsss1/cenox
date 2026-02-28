@@ -59,6 +59,11 @@ public class FichaTecnicaService {
             throw new BusinessException("Ja existe ficha tecnica para este prato");
         }
 
+        // Remover ficha INATIVA antiga se existir (constraint UNIQUE em prato_id)
+        repository.findByPratoId(request.getPratoId())
+                .filter(f -> f.getStatus() == StatusGeral.INATIVO)
+                .ifPresent(repository::delete);
+
         Prato prato = pratoService.findActiveOrInactiveById(request.getPratoId());
 
         FichaTecnica ficha = FichaTecnica.builder()
