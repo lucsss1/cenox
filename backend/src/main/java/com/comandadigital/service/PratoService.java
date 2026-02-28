@@ -8,6 +8,7 @@ import com.comandadigital.enums.StatusGeral;
 import com.comandadigital.exception.BusinessException;
 import com.comandadigital.exception.ResourceNotFoundException;
 import com.comandadigital.mapper.PratoMapper;
+import com.comandadigital.repository.FichaTecnicaRepository;
 import com.comandadigital.repository.PratoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -24,6 +25,7 @@ import java.util.stream.Collectors;
 public class PratoService {
 
     private final PratoRepository repository;
+    private final FichaTecnicaRepository fichaTecnicaRepository;
     private final PratoMapper mapper;
     private final CategoriaService categoriaService;
 
@@ -99,9 +101,18 @@ public class PratoService {
 
     @Transactional
     public void desativar(Long id) {
-        Prato prato = findActiveById(id);
-        prato.setStatus(StatusGeral.INATIVO);
-        repository.save(prato);
+        Prato prato = findActiveOrInactiveById(id);
+
+        if (prato.getStatus() == StatusGeral.INATIVO) {
+            // INATIVO -> delete permanente
+            fichaTecnicaRepository.findByPratoId(id)
+                    .ifPresent(fichaTecnicaRepository::delete);
+            repository.delete(prato);
+        } else {
+            // ATIVO -> soft delete (INATIVO)
+            prato.setStatus(StatusGeral.INATIVO);
+            repository.save(prato);
+        }
     }
 
     @Transactional(readOnly = true)

@@ -108,9 +108,11 @@ public class FichaTecnicaService {
         ficha.setStatus(StatusGeral.INATIVO);
         repository.save(ficha);
 
-        // Desativar prato associado (regra: prato so ATIVO com ficha tecnica)
+        // Desativar prato e limpar custos (regra: prato so ATIVO com ficha tecnica)
         Prato prato = ficha.getPrato();
         prato.setStatus(StatusGeral.INATIVO);
+        prato.setCustoProducao(null);
+        prato.setFoodCost(null);
         pratoRepository.save(prato);
     }
 

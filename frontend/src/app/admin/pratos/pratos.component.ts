@@ -42,7 +42,8 @@ import { Prato, Categoria } from '../../shared/models/models';
               <td style="white-space:nowrap;">
                 <button class="btn btn-warning btn-sm" (click)="editar(p)"><i class="fas fa-edit"></i></button>
                 <button class="btn btn-success btn-sm" *ngIf="p.status === 'INATIVO' && p.temFichaTecnica" (click)="ativar(p.id)" title="Ativar"><i class="fas fa-check"></i></button>
-                <button class="btn btn-danger btn-sm" *ngIf="p.status === 'ATIVO'" (click)="desativar(p.id)"><i class="fas fa-trash"></i></button>
+                <button class="btn btn-danger btn-sm" *ngIf="p.status === 'ATIVO'" (click)="desativar(p.id)" title="Desativar"><i class="fas fa-ban"></i></button>
+                <button class="btn btn-danger btn-sm" *ngIf="p.status === 'INATIVO'" (click)="excluir(p.id)" title="Excluir"><i class="fas fa-trash"></i></button>
               </td>
             </tr>
             <tr *ngIf="pratos.length === 0"><td colspan="9" style="text-align:center;color:var(--gray-500);">Nenhum prato encontrado</td></tr>
@@ -158,6 +159,13 @@ export class PratosComponent implements OnInit {
     if (!confirm('Desativar este prato?')) return;
     this.api.deletePrato(id).subscribe({
       next: () => { this.toast.success('Prato desativado!'); this.carregar(this.currentPage); }
+    });
+  }
+
+  excluir(id: number): void {
+    if (!confirm('Excluir permanentemente este prato?')) return;
+    this.api.deletePrato(id).subscribe({
+      next: () => { this.toast.success('Prato excluido!'); this.carregar(this.currentPage); }
     });
   }
 }

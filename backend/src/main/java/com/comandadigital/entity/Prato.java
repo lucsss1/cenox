@@ -69,6 +69,6 @@ public class Prato {
     }
 
     public boolean temFichaTecnica() {
-        return this.fichaTecnica != null;
+        return this.fichaTecnica != null && this.fichaTecnica.getStatus() == StatusGeral.ATIVO;
     }
 }

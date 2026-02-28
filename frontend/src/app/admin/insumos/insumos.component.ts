@@ -25,8 +25,8 @@ import { Insumo } from '../../shared/models/models';
               <td>{{i.id}}</td>
               <td><strong>{{i.nome}}</strong></td>
               <td>{{i.unidadeMedida}}</td>
-              <td>{{i.quantidadeEstoque | number:'1.3-3'}}</td>
-              <td>{{i.estoqueMinimo | number:'1.3-3'}}</td>
+              <td>{{i.quantidadeEstoque | number:'1.0-3'}}</td>
+              <td>{{i.estoqueMinimo | number:'1.0-3'}}</td>
               <td>{{i.custoMedio ? 'R$ ' + (i.custoMedio | number:'1.2-2') : '-'}}</td>
               <td>
                 <span [class]="i.abaixoEstoqueMinimo ? 'badge badge-danger' : 'badge badge-success'">
