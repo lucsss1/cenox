@@ -84,7 +84,7 @@ export class CategoriasComponent implements OnInit {
     this.currentPage = page; this.loading = true;
     this.api.getCategorias(page).subscribe({
       next: (p) => { this.categorias = p.content; this.totalPages = p.totalPages; this.pages = Array.from({length: p.totalPages}, (_, i) => i); this.loading = false; },
-      error: () => { this.loading = false; }
+      error: (err) => { console.error('Erro ao carregar categorias:', err); this.toast.error('Erro ao carregar categorias'); this.loading = false; }
     });
   }
 
@@ -105,7 +105,7 @@ export class CategoriasComponent implements OnInit {
       : this.api.createCategoria(this.form.value);
     obs.subscribe({
       next: () => { this.toast.success('Categoria salva!'); this.fecharModal(); this.carregar(this.currentPage); },
-      error: () => {}
+      error: (err) => { console.error('Erro ao salvar categoria:', err); this.toast.error('Erro ao salvar categoria'); }
     });
   }
 
