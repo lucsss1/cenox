@@ -19,7 +19,7 @@ import { Compra, Fornecedor, Insumo } from '../../shared/models/models';
       <div class="loading" *ngIf="loading"><div class="spinner"></div></div>
       <div class="table-container" *ngIf="!loading">
         <table>
-          <thead><tr><th>ID</th><th>Fornecedor</th><th>Data</th><th>NF</th><th>Itens</th><th>Total</th></tr></thead>
+          <thead><tr><th>ID</th><th>Fornecedor</th><th>Data</th><th>NF</th><th>Itens</th><th>Total</th><th>Acoes</th></tr></thead>
           <tbody>
             <tr *ngFor="let c of compras">
               <td>{{c.id}}</td>
@@ -28,8 +28,12 @@ import { Compra, Fornecedor, Insumo } from '../../shared/models/models';
               <td>{{c.notaFiscal || '-'}}</td>
               <td>{{c.itens.length}} itens</td>
               <td><strong>R$ {{c.valorTotal | number:'1.2-2'}}</strong></td>
+              <td>
+                <button class="btn btn-warning btn-sm" (click)="editar(c)" title="Editar"><i class="fas fa-edit"></i></button>
+                <button class="btn btn-danger btn-sm" (click)="excluir(c.id)" title="Excluir"><i class="fas fa-trash"></i></button>
+              </td>
             </tr>
-            <tr *ngIf="compras.length === 0"><td colspan="6" style="text-align:center;color:var(--gray-500);">Nenhuma compra registrada</td></tr>
+            <tr *ngIf="compras.length === 0"><td colspan="7" style="text-align:center;color:var(--gray-500);">Nenhuma compra registrada</td></tr>
           </tbody>
         </table>
       </div>
@@ -43,7 +47,7 @@ import { Compra, Fornecedor, Insumo } from '../../shared/models/models';
     <div class="modal-overlay" *ngIf="showModal" (click)="fecharModal()">
       <div class="modal-content" (click)="$event.stopPropagation()" style="max-width:700px;">
         <div class="modal-header">
-          <h3>Registrar Compra</h3>
+          <h3>{{editando ? 'Editar' : 'Registrar'}} Compra</h3>
           <button class="modal-close" (click)="fecharModal()">&times;</button>
         </div>
         <form [formGroup]="form" (ngSubmit)="salvar()">
@@ -65,32 +69,37 @@ import { Compra, Fornecedor, Insumo } from '../../shared/models/models';
             </div>
           </div>
 
-          <h4 style="margin:12px 0 8px;">Itens da Compra</h4>
-          <div formArrayName="itens">
-            <div *ngFor="let item of itensArray.controls; let i=index" [formGroupName]="i" style="display:flex;gap:8px;margin-bottom:8px;align-items:end;">
-              <div class="form-group" style="flex:2;margin:0;">
-                <label *ngIf="i===0">Insumo</label>
-                <select class="form-control" formControlName="insumoId">
-                  <option value="">Sel...</option>
-                  <option *ngFor="let ins of insumos" [value]="ins.id">{{ins.nome}} ({{ins.unidadeMedida}})</option>
-                </select>
+          <div *ngIf="!editando">
+            <h4 style="margin:12px 0 8px;">Itens da Compra</h4>
+            <div formArrayName="itens">
+              <div *ngFor="let item of itensArray.controls; let i=index" [formGroupName]="i" style="display:flex;gap:8px;margin-bottom:8px;align-items:end;">
+                <div class="form-group" style="flex:2;margin:0;">
+                  <label *ngIf="i===0">Insumo</label>
+                  <select class="form-control" formControlName="insumoId">
+                    <option value="">Sel...</option>
+                    <option *ngFor="let ins of insumos" [value]="ins.id">{{ins.nome}} ({{ins.unidadeMedida}})</option>
+                  </select>
+                </div>
+                <div class="form-group" style="flex:1;margin:0;">
+                  <label *ngIf="i===0">Quantidade</label>
+                  <input type="number" class="form-control" formControlName="quantidade" step="0.001">
+                </div>
+                <div class="form-group" style="flex:1;margin:0;">
+                  <label *ngIf="i===0">Preco Unit.</label>
+                  <input type="number" class="form-control" formControlName="precoUnitario" step="0.01">
+                </div>
+                <button type="button" class="btn btn-danger btn-sm" (click)="removerItem(i)"><i class="fas fa-times"></i></button>
               </div>
-              <div class="form-group" style="flex:1;margin:0;">
-                <label *ngIf="i===0">Quantidade</label>
-                <input type="number" class="form-control" formControlName="quantidade" step="0.001">
-              </div>
-              <div class="form-group" style="flex:1;margin:0;">
-                <label *ngIf="i===0">Preco Unit.</label>
-                <input type="number" class="form-control" formControlName="precoUnitario" step="0.01">
-              </div>
-              <button type="button" class="btn btn-danger btn-sm" (click)="removerItem(i)"><i class="fas fa-times"></i></button>
             </div>
+            <button type="button" class="btn btn-secondary btn-sm" (click)="adicionarItem()"><i class="fas fa-plus"></i> Item</button>
           </div>
-          <button type="button" class="btn btn-secondary btn-sm" (click)="adicionarItem()"><i class="fas fa-plus"></i> Item</button>
+          <p *ngIf="editando" style="margin:12px 0;color:var(--gray-500);font-size:0.9em;">
+            <i class="fas fa-info-circle"></i> Os itens nao podem ser editados pois impactam estoque e custos. Para corrigir itens, desative esta compra e registre uma nova.
+          </p>
 
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" (click)="fecharModal()">Cancelar</button>
-            <button type="submit" class="btn btn-primary" [disabled]="form.invalid || itensArray.length === 0">Registrar</button>
+            <button type="submit" class="btn btn-primary" [disabled]="form.invalid || (!editando && itensArray.length === 0)">{{editando ? 'Salvar' : 'Registrar'}}</button>
           </div>
         </form>
       </div>
@@ -104,6 +113,8 @@ export class ComprasComponent implements OnInit {
   loading = true;
   currentPage = 0; totalPages = 0; pages: number[] = [];
   showModal = false;
+  editando = false;
+  editId = 0;
   form: FormGroup;
 
   get itensArray(): FormArray { return this.form.get('itens') as FormArray; }
@@ -132,6 +143,7 @@ export class ComprasComponent implements OnInit {
   }
 
   abrirModal(): void {
+    this.editando = false; this.editId = 0;
     this.form.reset(); this.itensArray.clear(); this.adicionarItem(); this.showModal = true;
   }
   fecharModal(): void { this.showModal = false; }
@@ -145,19 +157,54 @@ export class ComprasComponent implements OnInit {
   }
   removerItem(i: number): void { this.itensArray.removeAt(i); }
 
-  salvar(): void {
-    if (this.form.invalid) return;
-    const val = {
-      ...this.form.value,
-      fornecedorId: +this.form.value.fornecedorId,
-      itens: this.form.value.itens.map((i: any) => ({ ...i, insumoId: +i.insumoId }))
-    };
-    this.api.createCompra(val).subscribe({
-      next: () => {
-        this.toast.success('Compra registrada! Estoque e custos atualizados.');
-        this.fecharModal(); this.carregar(this.currentPage);
-      },
+  editar(c: Compra): void {
+    this.editando = true;
+    this.editId = c.id;
+    this.itensArray.clear();
+    this.form.patchValue({
+      fornecedorId: c.fornecedorId,
+      dataCompra: c.dataCompra,
+      notaFiscal: c.notaFiscal
+    });
+    this.showModal = true;
+  }
+
+  excluir(id: number): void {
+    if (!confirm('Desativar esta compra?')) return;
+    this.api.deleteCompra(id).subscribe({
+      next: () => { this.toast.success('Compra desativada!'); this.carregar(this.currentPage); },
       error: () => {}
     });
+  }
+
+  salvar(): void {
+    if (this.form.invalid) return;
+    if (this.editando) {
+      const val = {
+        ...this.form.value,
+        fornecedorId: +this.form.value.fornecedorId,
+        itens: []
+      };
+      this.api.updateCompra(this.editId, val).subscribe({
+        next: () => {
+          this.toast.success('Compra atualizada!');
+          this.fecharModal(); this.carregar(this.currentPage);
+        },
+        error: () => {}
+      });
+    } else {
+      const val = {
+        ...this.form.value,
+        fornecedorId: +this.form.value.fornecedorId,
+        itens: this.form.value.itens.map((i: any) => ({ ...i, insumoId: +i.insumoId }))
+      };
+      this.api.createCompra(val).subscribe({
+        next: () => {
+          this.toast.success('Compra registrada! Estoque e custos atualizados.');
+          this.fecharModal(); this.carregar(this.currentPage);
+        },
+        error: () => {}
+      });
+    }
   }
 }

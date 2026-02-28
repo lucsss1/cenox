@@ -62,7 +62,10 @@ export class ApiService {
 
   // Compras
   getCompras(page: number): Observable<M.Page<M.Compra>> { return this.http.get<M.Page<M.Compra>>(`${this.api}/compras`, { params: this.pageParams(page) }); }
+  getCompra(id: number): Observable<M.Compra> { return this.http.get<M.Compra>(`${this.api}/compras/${id}`); }
   createCompra(r: M.CompraRequest): Observable<M.Compra> { return this.http.post<M.Compra>(`${this.api}/compras`, r); }
+  updateCompra(id: number, r: M.CompraRequest): Observable<M.Compra> { return this.http.put<M.Compra>(`${this.api}/compras/${id}`, r); }
+  deleteCompra(id: number): Observable<void> { return this.http.delete<void>(`${this.api}/compras/${id}`); }
 
   // Usuarios
   getUsuarios(page: number): Observable<M.Page<M.Usuario>> { return this.http.get<M.Page<M.Usuario>>(`${this.api}/usuarios`, { params: this.pageParams(page) }); }

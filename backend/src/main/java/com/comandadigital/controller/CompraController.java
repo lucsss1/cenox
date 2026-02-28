@@ -37,6 +37,12 @@ public class CompraController {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.registrar(request));
     }
 
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'GERENTE')")
+    public ResponseEntity<CompraResponse> atualizar(@PathVariable Long id, @Valid @RequestBody CompraRequest request) {
+        return ResponseEntity.ok(service.atualizar(id, request));
+    }
+
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> desativar(@PathVariable Long id) {

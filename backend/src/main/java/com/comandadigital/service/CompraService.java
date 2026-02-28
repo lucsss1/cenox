@@ -104,6 +104,23 @@ public class CompraService {
         return mapper.toResponse(compra);
     }
 
+    /**
+     * Atualiza dados da compra (fornecedor, data, nota fiscal).
+     * Itens nao sao alterados pois impactam estoque e custo medio.
+     */
+    @Transactional
+    public CompraResponse atualizar(Long id, CompraRequest request) {
+        Compra compra = findActiveById(id);
+        Fornecedor fornecedor = fornecedorService.findActiveById(request.getFornecedorId());
+
+        compra.setFornecedor(fornecedor);
+        compra.setDataCompra(request.getDataCompra());
+        compra.setNotaFiscal(request.getNotaFiscal());
+
+        compra = repository.save(compra);
+        return mapper.toResponse(compra);
+    }
+
     @Transactional
     public void desativar(Long id) {
         Compra compra = findActiveById(id);
