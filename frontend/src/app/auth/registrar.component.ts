@@ -12,6 +12,7 @@ import { ToastService } from '../shared/services/toast.service';
   template: `
     <div class="auth-container">
       <div class="auth-card">
+        <div class="auth-icon"><i class="fas fa-fire"></i></div>
         <h2>Criar Conta</h2>
         <p class="auth-sub">Cadastre-se para fazer pedidos</p>
         <form [formGroup]="form" (ngSubmit)="onSubmit()">
@@ -41,12 +42,19 @@ import { ToastService } from '../shared/services/toast.service';
   `,
   styles: [`
     .auth-container { display: flex; justify-content: center; align-items: center; min-height: 80vh; }
-    .auth-card { background: white; padding: 32px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.07); width: 100%; max-width: 400px; }
-    .auth-card h2 { text-align: center; margin-bottom: 4px; }
-    .auth-sub { text-align: center; color: var(--gray-500); margin-bottom: 24px; font-size: 14px; }
-    .btn-block { width: 100%; justify-content: center; padding: 10px; font-size: 15px; }
-    .auth-footer { text-align: center; margin-top: 16px; font-size: 14px; color: var(--gray-500); }
-    .auth-footer a { color: var(--primary); text-decoration: none; font-weight: 500; }
+    .auth-card {
+      background: #1A1A1A; padding: 36px; border-radius: 16px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.4); width: 100%; max-width: 420px;
+      border: 1px solid #2A2A2A;
+    }
+    .auth-icon { text-align: center; margin-bottom: 8px; }
+    .auth-icon i { font-size: 36px; color: #DC2626; }
+    .auth-card h2 { text-align: center; margin-bottom: 4px; color: #F9FAFB; font-size: 24px; }
+    .auth-sub { text-align: center; color: #6B7280; margin-bottom: 28px; font-size: 14px; }
+    .btn-block { width: 100%; justify-content: center; padding: 12px; font-size: 15px; margin-top: 4px; }
+    .auth-footer { text-align: center; margin-top: 20px; font-size: 14px; color: #6B7280; }
+    .auth-footer a { color: #DC2626; text-decoration: none; font-weight: 600; }
+    .auth-footer a:hover { text-decoration: underline; }
   `]
 })
 export class RegistrarComponent {
