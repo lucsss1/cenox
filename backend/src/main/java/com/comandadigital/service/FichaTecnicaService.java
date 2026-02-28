@@ -55,7 +55,7 @@ public class FichaTecnicaService {
 
     @Transactional
     public FichaTecnicaResponse criar(FichaTecnicaRequest request) {
-        if (repository.existsByPratoId(request.getPratoId())) {
+        if (repository.existsByPratoIdAndStatus(request.getPratoId(), StatusGeral.ATIVO)) {
             throw new BusinessException("Ja existe ficha tecnica para este prato");
         }
 

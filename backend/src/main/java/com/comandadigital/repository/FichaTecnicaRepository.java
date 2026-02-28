@@ -14,7 +14,7 @@ public interface FichaTecnicaRepository extends JpaRepository<FichaTecnica, Long
 
     Optional<FichaTecnica> findByPratoId(Long pratoId);
 
-    boolean existsByPratoId(Long pratoId);
+    boolean existsByPratoIdAndStatus(Long pratoId, StatusGeral status);
 
     Page<FichaTecnica> findByStatus(StatusGeral status, Pageable pageable);
 }
