@@ -16,7 +16,7 @@ import { CartItem } from '../../shared/models/models';
       <h2><i class="fas fa-shopping-cart"></i> Meu Carrinho</h2>
 
       <div *ngIf="itens.length === 0" class="empty-cart">
-        <i class="fas fa-shopping-cart" style="font-size:48px;color:var(--gray-300);"></i>
+        <i class="fas fa-shopping-cart"></i>
         <p>Seu carrinho esta vazio</p>
         <a routerLink="/cardapio" class="btn btn-primary">Ver Cardapio</a>
       </div>
@@ -76,13 +76,17 @@ import { CartItem } from '../../shared/models/models';
   `,
   styles: [`
     .carrinho { max-width: 900px; margin: 0 auto; }
-    .carrinho h2 { margin-bottom: 20px; }
+    .carrinho h2 { margin-bottom: 24px; color: #F9FAFB; font-weight: 700; }
+    .carrinho h2 i { color: #DC2626; }
     .empty-cart { text-align: center; padding: 60px 20px; }
-    .empty-cart p { color: var(--gray-500); margin: 12px 0; }
+    .empty-cart i { font-size: 48px; color: #333; display: block; }
+    .empty-cart p { color: #6B7280; margin: 16px 0; }
     .cart-summary { margin-top: 16px; }
-    .cart-total { display: flex; justify-content: space-between; align-items: center; margin: 16px 0; padding-top: 12px; border-top: 2px solid var(--gray-200); }
-    .total-valor { font-size: 24px; font-weight: 700; color: var(--success); }
-    .btn-block { width: 100%; justify-content: center; padding: 12px; font-size: 16px; }
+    .cart-total { display: flex; justify-content: space-between; align-items: center; margin: 16px 0; padding-top: 16px; border-top: 2px solid #DC2626; }
+    .cart-total span:first-child { font-size: 16px; font-weight: 600; color: #9CA3AF; }
+    .total-valor { font-size: 26px; font-weight: 700; color: #4ADE80; }
+    .btn-block { width: 100%; justify-content: center; padding: 14px; font-size: 16px; }
+    .btn-success.btn-block:hover { box-shadow: 0 0 20px rgba(22,163,74,0.3); }
   `]
 })
 export class CarrinhoComponent {

@@ -11,7 +11,7 @@ Chart.register(...registerables);
   standalone: true,
   imports: [CommonModule],
   template: `
-    <h2 style="margin-bottom:20px;"><i class="fas fa-chart-line"></i> Dashboard</h2>
+    <h2 class="dash-title"><i class="fas fa-chart-line"></i> Dashboard</h2>
 
     <div class="loading" *ngIf="loading"><div class="spinner"></div></div>
 
@@ -63,7 +63,7 @@ Chart.register(...registerables);
       <!-- Alerts -->
       <div class="alerts-grid">
         <div class="card" *ngIf="data.pratosFoodCostAlto.length > 0">
-          <div class="card-header" style="color:var(--danger);"><i class="fas fa-exclamation-circle"></i> Pratos com Food Cost > 35%</div>
+          <div class="card-header alert-header-danger"><i class="fas fa-exclamation-circle"></i> Pratos com Food Cost > 35%</div>
           <table>
             <thead><tr><th>Prato</th><th>Food Cost</th><th>Custo</th><th>Preco</th></tr></thead>
             <tbody>
@@ -78,7 +78,7 @@ Chart.register(...registerables);
         </div>
 
         <div class="card" *ngIf="data.insumosEstoqueBaixo.length > 0">
-          <div class="card-header" style="color:var(--warning);"><i class="fas fa-boxes"></i> Insumos com Estoque Baixo</div>
+          <div class="card-header alert-header-warning"><i class="fas fa-boxes"></i> Insumos com Estoque Baixo</div>
           <table>
             <thead><tr><th>Insumo</th><th>Estoque</th><th>Minimo</th></tr></thead>
             <tbody>
@@ -94,19 +94,31 @@ Chart.register(...registerables);
     </div>
   `,
   styles: [`
-    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 20px; }
-    .kpi-card { display: flex; align-items: center; gap: 16px; padding: 20px; border-radius: 12px; color: white; }
-    .kpi-green { background: linear-gradient(135deg, #22c55e, #16a34a); }
-    .kpi-blue { background: linear-gradient(135deg, #3b82f6, #2563eb); }
-    .kpi-purple { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
-    .kpi-red { background: linear-gradient(135deg, #ef4444, #dc2626); }
-    .kpi-icon { font-size: 28px; opacity: 0.8; }
-    .kpi-info { display: flex; flex-direction: column; }
-    .kpi-label { font-size: 12px; opacity: 0.9; }
-    .kpi-value { font-size: 24px; font-weight: 700; }
+    .dash-title { margin-bottom: 24px; color: #F9FAFB; font-weight: 700; }
+    .dash-title i { color: #DC2626; }
 
-    .charts-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 20px; }
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .kpi-card {
+      display: flex; align-items: center; gap: 16px; padding: 22px;
+      border-radius: 14px; color: white; border: 1px solid #222;
+    }
+    .kpi-green { background: linear-gradient(135deg, #111 0%, #0A2E1A 100%); border-color: #16A34A; }
+    .kpi-green .kpi-icon { color: #4ADE80; }
+    .kpi-blue { background: linear-gradient(135deg, #111 0%, #0A1A2E 100%); border-color: #2563EB; }
+    .kpi-blue .kpi-icon { color: #60A5FA; }
+    .kpi-purple { background: linear-gradient(135deg, #111 0%, #1A0A2E 100%); border-color: #7C3AED; }
+    .kpi-purple .kpi-icon { color: #A78BFA; }
+    .kpi-red { background: linear-gradient(135deg, #111 0%, #2E0A0A 100%); border-color: #DC2626; }
+    .kpi-red .kpi-icon { color: #FCA5A5; }
+    .kpi-icon { font-size: 30px; }
+    .kpi-info { display: flex; flex-direction: column; }
+    .kpi-label { font-size: 12px; color: #9CA3AF; text-transform: uppercase; letter-spacing: 0.05em; }
+    .kpi-value { font-size: 26px; font-weight: 700; margin-top: 2px; }
+
+    .charts-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 24px; }
     .alerts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .alert-header-danger { color: #FCA5A5; }
+    .alert-header-warning { color: #FCD34D; }
 
     @media (max-width: 768px) {
       .charts-grid, .alerts-grid { grid-template-columns: 1fr; }
@@ -161,8 +173,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         datasets: [{
           label: 'Faturamento (R$)',
           data: valores,
-          borderColor: '#22c55e',
-          backgroundColor: 'rgba(34,197,94,0.1)',
+          borderColor: '#DC2626',
+          backgroundColor: 'rgba(220,38,38,0.1)',
           fill: true,
           tension: 0.4
         }]
@@ -170,7 +182,10 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       options: {
         responsive: true,
         plugins: { legend: { display: false } },
-        scales: { y: { beginAtZero: true } }
+        scales: {
+          y: { beginAtZero: true, ticks: { color: '#6B7280' }, grid: { color: '#222' } },
+          x: { ticks: { color: '#6B7280' }, grid: { color: '#222' } }
+        }
       }
     });
   }
@@ -183,7 +198,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     const statusData = this.data.pedidosPorStatus;
     const labels = Object.keys(statusData);
     const valores = Object.values(statusData);
-    const colors = ['#f59e0b', '#3b82f6', '#22c55e', '#10b981', '#ef4444'];
+    const colors = ['#FCD34D', '#60A5FA', '#4ADE80', '#DC2626', '#F87171'];
 
     new Chart(ctx, {
       type: 'doughnut',
@@ -196,7 +211,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       },
       options: {
         responsive: true,
-        plugins: { legend: { position: 'bottom' } }
+        plugins: { legend: { position: 'bottom', labels: { color: '#9CA3AF' } } }
       }
     });
   }

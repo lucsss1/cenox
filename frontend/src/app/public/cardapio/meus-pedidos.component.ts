@@ -13,7 +13,7 @@ import { Pedido } from '../../shared/models/models';
 
       <div class="loading" *ngIf="loading"><div class="spinner"></div></div>
 
-      <div *ngIf="!loading && pedidos.length === 0" style="text-align:center;padding:40px;color:var(--gray-500);">
+      <div *ngIf="!loading && pedidos.length === 0" class="empty-state">
         <p>Voce ainda nao tem pedidos.</p>
       </div>
 
@@ -51,16 +51,19 @@ import { Pedido } from '../../shared/models/models';
   `,
   styles: [`
     .meus-pedidos { max-width: 800px; margin: 0 auto; }
-    .meus-pedidos h2 { margin-bottom: 20px; }
+    .meus-pedidos h2 { margin-bottom: 24px; color: #F9FAFB; font-weight: 700; }
+    .meus-pedidos h2 i { color: #DC2626; }
+    .empty-state { text-align: center; padding: 40px; color: #6B7280; }
     .pedido-card { margin-bottom: 12px; }
     .pedido-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-    .pedido-header .badge { margin-left: 8px; }
-    .pedido-data { font-size: 13px; color: var(--gray-500); }
-    .pedido-itens { border-top: 1px solid var(--gray-200); padding-top: 8px; }
-    .pedido-item { display: flex; justify-content: space-between; padding: 4px 0; font-size: 14px; }
-    .pedido-footer { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--gray-200); padding-top: 8px; margin-top: 8px; }
-    .pedido-obs { font-size: 13px; color: var(--gray-500); }
-    .pedido-total { font-size: 16px; color: var(--success); }
+    .pedido-header strong { color: #F3F4F6; }
+    .pedido-header .badge { margin-left: 10px; }
+    .pedido-data { font-size: 13px; color: #6B7280; }
+    .pedido-itens { border-top: 1px solid #2A2A2A; padding-top: 10px; }
+    .pedido-item { display: flex; justify-content: space-between; padding: 5px 0; font-size: 14px; color: #D1D5DB; }
+    .pedido-footer { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #2A2A2A; padding-top: 10px; margin-top: 10px; }
+    .pedido-obs { font-size: 13px; color: #6B7280; }
+    .pedido-total { font-size: 17px; color: #4ADE80; }
   `]
 })
 export class MeusPedidosComponent implements OnInit {

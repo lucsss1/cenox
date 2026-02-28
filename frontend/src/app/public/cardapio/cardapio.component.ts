@@ -13,7 +13,7 @@ import { Prato, Categoria } from '../../shared/models/models';
   template: `
     <div class="cardapio">
       <div class="cardapio-header">
-        <h1><i class="fas fa-utensils"></i> Nosso Cardapio</h1>
+        <h1><i class="fas fa-fire"></i> Nosso Cardapio</h1>
         <p>Escolha seus pratos favoritos</p>
       </div>
 
@@ -55,30 +55,45 @@ import { Prato, Categoria } from '../../shared/models/models';
         <button (click)="carregarPagina(currentPage + 1)" [disabled]="currentPage === totalPages - 1">Proximo</button>
       </div>
 
-      <div *ngIf="!loading && pratos.length === 0" style="text-align:center;padding:40px;color:var(--gray-500);">
-        <i class="fas fa-utensils" style="font-size:48px;margin-bottom:12px;"></i>
+      <div *ngIf="!loading && pratos.length === 0" class="empty-state">
+        <i class="fas fa-utensils"></i>
         <p>Nenhum prato disponivel no momento.</p>
       </div>
     </div>
   `,
   styles: [`
-    .cardapio-header { text-align: center; padding: 30px 0 20px; }
-    .cardapio-header h1 { font-size: 28px; color: var(--dark); }
-    .cardapio-header p { color: var(--gray-500); margin-top: 4px; }
-    .categorias-filter { display: flex; gap: 8px; justify-content: center; margin-bottom: 24px; flex-wrap: wrap; }
-    .filter-btn { padding: 6px 16px; border: 1px solid var(--gray-300); background: white; border-radius: 20px; cursor: pointer; font-size: 13px; transition: all 0.2s; }
-    .filter-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+    .cardapio-header { text-align: center; padding: 30px 0 24px; }
+    .cardapio-header h1 { font-size: 30px; color: #F9FAFB; font-weight: 700; }
+    .cardapio-header h1 i { color: #DC2626; }
+    .cardapio-header p { color: #6B7280; margin-top: 6px; font-size: 15px; }
+    .categorias-filter { display: flex; gap: 8px; justify-content: center; margin-bottom: 28px; flex-wrap: wrap; }
+    .filter-btn {
+      padding: 8px 20px; border: 1px solid #333; background: #1A1A1A;
+      border-radius: 24px; cursor: pointer; font-size: 13px; color: #9CA3AF;
+      transition: all 0.2s; font-weight: 500;
+    }
+    .filter-btn:hover { border-color: #DC2626; color: #F9FAFB; }
+    .filter-btn.active { background: #DC2626; color: white; border-color: #DC2626; box-shadow: 0 0 15px rgba(220,38,38,0.3); }
     .pratos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
-    .prato-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); transition: transform 0.2s; }
-    .prato-card:hover { transform: translateY(-2px); }
-    .prato-img { height: 140px; background: linear-gradient(135deg, var(--primary), #7c3aed); display: flex; align-items: center; justify-content: center; }
-    .prato-img i { font-size: 48px; color: rgba(255,255,255,0.5); }
-    .prato-info { padding: 16px; }
-    .prato-categoria { font-size: 11px; color: var(--primary); font-weight: 600; text-transform: uppercase; }
-    .prato-info h3 { font-size: 16px; margin: 4px 0; }
-    .prato-desc { font-size: 13px; color: var(--gray-500); margin-bottom: 12px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .prato-card {
+      background: #1A1A1A; border-radius: 14px; overflow: hidden;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.3); transition: all 0.3s;
+      border: 1px solid #222;
+    }
+    .prato-card:hover { transform: translateY(-4px); box-shadow: 0 8px 25px rgba(220,38,38,0.15); border-color: #333; }
+    .prato-img {
+      height: 150px; background: linear-gradient(135deg, #DC2626 0%, #7F1D1D 50%, #0A0A0A 100%);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .prato-img i { font-size: 48px; color: rgba(255,255,255,0.25); }
+    .prato-info { padding: 18px; }
+    .prato-categoria { font-size: 11px; color: #DC2626; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+    .prato-info h3 { font-size: 17px; margin: 6px 0; color: #F3F4F6; }
+    .prato-desc { font-size: 13px; color: #6B7280; margin-bottom: 14px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     .prato-footer { display: flex; justify-content: space-between; align-items: center; }
-    .prato-preco { font-size: 18px; font-weight: 700; color: var(--success); }
+    .prato-preco { font-size: 20px; font-weight: 700; color: #4ADE80; }
+    .empty-state { text-align: center; padding: 60px 20px; color: #6B7280; }
+    .empty-state i { font-size: 48px; margin-bottom: 12px; color: #333; display: block; }
   `]
 })
 export class CardapioComponent implements OnInit {
