@@ -64,7 +64,9 @@ Sistema completo de gerenciamento de restaurante com cardapio digital, gestao de
 <img width="648" height="155" alt="image" src="https://github.com/user-attachments/assets/d9ad3621-63f8-41da-b18b-e5aca6a5a0b0" />
 
 4. Após isso, na mesma tela encontre a varíavel chamada "Path", selecione-a e clique em "Editar", adicione o mesmo caminho da pasta "apache-maven-3.9.12" e escreva "\bin" no final, exemplo: "C:\Users\usuario\Downloads\apache-maven-3.9.12-bin\apache-maven-3.9.12\bin", clicar em "OK".
+
 <img width="586" height="232" alt="image" src="https://github.com/user-attachments/assets/bfe7557c-88ef-4a8c-aa0c-edbde9f925ab" />
+
 
 
 5. Verificar a instalação completa do Maven abrindo o CMD e digitando "mvn -version".
@@ -72,7 +74,7 @@ Sistema completo de gerenciamento de restaurante com cardapio digital, gestao de
 
 - Primeiro: mvn clean install -DskipTests
 - Segundo: mvn spring-boot:run (esse serve para rodar o backend).
-- 
+
 7. Concluído. O backend estara disponivel em: **http://localhost:8080** (As migrations Flyway criam automaticamente todas as tabelas e o usuario seed.)
 
 
