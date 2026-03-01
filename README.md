@@ -31,6 +31,11 @@ Sistema completo de gerenciamento de restaurante com cardapio digital, gestao de
 
 
 
+## PRIMEIROS PASSOS
+
+1. Abrir o CMD e clonar esse repositório com o comando: git clone https://github.com/lucsss1/comanda-digital.git
+
+
 ## COMO RODAR O BACKEND
 
 # Configuracao do Banco de Dados
