@@ -60,8 +60,12 @@ Sistema completo de gerenciamento de restaurante com cardapio digital, gestao de
 
 <img width="407" height="458" alt="image" src="https://github.com/user-attachments/assets/7b9348cd-d330-4a2a-be97-05623e824029" />
 
-3. Na parte de "Varíavel do ambiente", clicar em "Nova". No campo "Nome da variável" escrever M2_HOME, em "Valor da variável", copiar o caminho completo da pasta "apache-maven-3.9.12". Clicar em OK.
+3. Na parte de "Varíavel do ambiente", clicar em "Nova". No campo "Nome da variável" escrever M2_HOME, em "Valor da variável", copiar o caminho completo da pasta "apache-maven-3.9.12". Clicar em OK:
+<img width="648" height="155" alt="image" src="https://github.com/user-attachments/assets/d9ad3621-63f8-41da-b18b-e5aca6a5a0b0" />
+
 4. Após isso, na mesma tela encontre a varíavel chamada "Path", selecione-a e clique em "Editar", adicione o mesmo caminho da pasta "apache-maven-3.9.12" e escreva "\bin" no final, exemplo: "C:\Users\usuario\Downloads\apache-maven-3.9.12-bin\apache-maven-3.9.12\bin", clicar em "OK".
+<img width="586" height="232" alt="image" src="https://github.com/user-attachments/assets/bfe7557c-88ef-4a8c-aa0c-edbde9f925ab" />
+
 5. Verificar a instalação completa do Maven abrindo o CMD e digitando "mvn -version".
 6. No CMD, ir para a pasta comanda-digital/backend e digitar os comandos abaixo:
 Primeiro: mvn clean install -DskipTests
