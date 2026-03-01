@@ -29,60 +29,56 @@ Sistema completo de gerenciamento de restaurante com cardapio digital, gestao de
 - **Node.js 18+** e **npm 9+**
 - **Angular CLI 17+** (`npm install -g @angular/cli`)
 
-## Configuracao do Banco de Dados
 
-1. Inicie o MySQL e crie o banco (o Spring cria automaticamente se `createDatabaseIfNotExist=true`):
 
-```sql
-CREATE DATABASE comanda_digital CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-```
+## COMO RODAR O BACKEND
 
-2. Configure as credenciais em `backend/src/main/resources/application.yml`:
+# Configuracao do Banco de Dados
 
-```yaml
-spring:
-  datasource:
-    url: jdbc:mysql://localhost:3306/comanda_digital
-    username: root
-    password: root
-```
+1. Instalar o MySQL pelo link: https://dev.mysql.com/downloads/installer/, selecionando a opção abaixo:
+<img width="966" height="609" alt="image" src="https://github.com/user-attachments/assets/bed99e50-8b12-4cdb-9eb6-4eb17ed74436" />
 
-## Como Rodar o Backend
+2. Abrir o instalador e seguir com as configurações padrões, somente dando "Próximo".
+3. Na parte de escolher uma senha para o usuário "root", a senha deverá ser "root", caso contrário o sistema não irá rodar.
+4. MySQL instalado.
 
-```bash
-cd comanda-digital/backend
+# Configuracao do Java
 
-# Instalar dependencias e rodar
-mvn clean install -DskipTests
-mvn spring-boot:run
-```
+1. Instalar o Java (JDK versão 17) a partir do link https://www.oracle.com/java/technologies/downloads/ e descendo a tela até encontrar a instalação da versão 17. 
+2. Selecionar Windows e instalar a "x64 MSI Installer"
+3. Após a instalação, verificar digitando no CMD o comando java -version. Caso retorne a versão do java, a instalação foi concluída.
 
-O backend estara disponivel em: **http://localhost:8080**
+# Configuracao do Maven
 
-As migrations Flyway criam automaticamente todas as tabelas e o usuario seed.
+1. Próximos passos, instalar Maven, acessar o link: https://maven.apache.org/download.cgi e fazer o download da versão "apache-maven-3.9.12-bin.zip". Após instalar, descompactar a pasta.
+2. Após isso, clicar na tecla "Windows" do teclado e digitar "Editar as variáveis de sistema", na tela que abriu, clicar em "Variáveis do ambiente":
 
-## Como Rodar o Frontend
+<img width="407" height="458" alt="image" src="https://github.com/user-attachments/assets/7b9348cd-d330-4a2a-be97-05623e824029" />
 
-```bash
-cd comanda-digital/frontend
+3. Na parte de "Varíavel do ambiente", clicar em "Nova". No campo "Nome da variável" escrever M2_HOME, em "Valor da variável", copiar o caminho completo da pasta "apache-maven-3.9.12". Clicar em OK.
+4. Após isso, na mesma tela encontre a varíavel chamada "Path", selecione-a e clique em "Editar", adicione o mesmo caminho da pasta "apache-maven-3.9.12" e escreva "\bin" no final, exemplo: "C:\Users\usuario\Downloads\apache-maven-3.9.12-bin\apache-maven-3.9.12\bin", clicar em "OK".
+5. Verificar a instalação completa do Maven abrindo o CMD e digitando "mvn -version".
+6. No CMD, ir para a pasta comanda-digital/backend e digitar os comandos abaixo:
+Primeiro: mvn clean install -DskipTests
+Segundo: mvn spring-boot:run (esse serve para rodar o backend).
+7. Concluído. O backend estara disponivel em: **http://localhost:8080** (As migrations Flyway criam automaticamente todas as tabelas e o usuario seed.)
 
-# Instalar dependencias
-npm install
 
-# Rodar em modo desenvolvimento
-ng serve
-```
+## COMO RODAR O FRONTEND
 
-O frontend estara disponivel em: **http://localhost:4200**
+1. Instalar o Node.js a partir do link: https://nodejs.org/en/download.
+2. Em seguida, verificar a instalação dele abrindo o CMD e digitando node -v, para verificar a versão.
+3. No CMD, ir para a pasta cd comanda-digital/frontend e digitar os seguintes comandos abaixo:
+Primeiro: npm install -g @angular/cli (Isso irá instalar as dependencias)
+Segundo: ng serve (irá rodar o angular)
+4. Concluído. O frontend estara disponivel em: **http://localhost:4200**
 
 ## Swagger / API Docs
-
 Acesse a documentacao da API em:
 - **http://localhost:8080/swagger-ui.html**
 - **http://localhost:8080/api-docs**
 
 ## Usuario Seed
-
 | Campo | Valor |
 |-------|-------|
 | Email | `admin@email.com` |
@@ -90,7 +86,6 @@ Acesse a documentacao da API em:
 | Perfil | ADMIN |
 
 ## Perfis (RBAC)
-
 | Perfil | Permissoes |
 |--------|-----------|
 | **ADMIN** | Acesso total: usuarios, categorias, pratos, fichas, insumos, fornecedores, compras, pedidos, dashboard |
@@ -99,7 +94,6 @@ Acesse a documentacao da API em:
 | **CLIENTE** | Cardapio publico, carrinho, fazer pedidos, ver seus pedidos |
 
 ## Modulos
-
 1. **Autenticacao** - Login JWT, registro de clientes
 2. **Cardapio Publico** - Listagem de pratos ativos com ficha tecnica
 3. **Carrinho** - Adicionar pratos, definir quantidade, finalizar pedido
@@ -111,7 +105,6 @@ Acesse a documentacao da API em:
 9. **Dashboard** - KPIs, graficos de faturamento, alertas de food cost e estoque
 
 ## Regras de Negocio Implementadas
-
 - Prato so pode ser ATIVO se possuir ficha tecnica
 - Food cost > 35% gera alerta no dashboard
 - Pedido so e aceito se houver estoque suficiente para todos os insumos
@@ -125,7 +118,6 @@ Acesse a documentacao da API em:
 - DTO obrigatorio - entidades nunca expostas nos controllers
 
 ## Fluxo Completo de Integracao
-
 1. Cliente se registra e faz login
 2. Cliente navega pelo cardapio e adiciona pratos ao carrinho
 3. Cliente finaliza pedido (validacao de estoque)
