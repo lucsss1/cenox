@@ -79,7 +79,8 @@ Segundo: mvn spring-boot:run (esse serve para rodar o backend).
 2. Em seguida, verificar a instalação dele abrindo o CMD e digitando node -v, para verificar a versão.
 3. No CMD, ir para a pasta cd comanda-digital/frontend e digitar os seguintes comandos abaixo:
 Primeiro: npm install -g @angular/cli (Isso irá instalar as dependencias)
-Segundo: ng serve (irá rodar o angular)
+Segundo: Rodar npm install
+Terceiro: ng serve (irá rodar o angular)
 4. Concluído. O frontend estara disponivel em: **http://localhost:4200**
 
 ## Swagger / API Docs
