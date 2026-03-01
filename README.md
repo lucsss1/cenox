@@ -38,7 +38,7 @@ Sistema completo de gerenciamento de restaurante com cardapio digital, gestao de
 
 ## COMO RODAR O BACKEND
 
-# Configuracao do Banco de Dados
+### Configuracao do Banco de Dados
 
 1. Instalar o MySQL pelo link: https://dev.mysql.com/downloads/installer/, selecionando a opção abaixo:
 <img width="966" height="609" alt="image" src="https://github.com/user-attachments/assets/bed99e50-8b12-4cdb-9eb6-4eb17ed74436" />
@@ -47,13 +47,13 @@ Sistema completo de gerenciamento de restaurante com cardapio digital, gestao de
 3. Na parte de escolher uma senha para o usuário "root", a senha deverá ser "root", caso contrário o sistema não irá rodar.
 4. MySQL instalado.
 
-# Configuracao do Java
+### Configuracao do Java
 
 1. Instalar o Java (JDK versão 17) a partir do link https://www.oracle.com/java/technologies/downloads/ e descendo a tela até encontrar a instalação da versão 17. 
 2. Selecionar Windows e instalar a "x64 MSI Installer"
 3. Após a instalação, verificar digitando no CMD o comando java -version. Caso retorne a versão do java, a instalação foi concluída.
 
-# Configuracao do Maven
+### Configuracao do Maven
 
 1. Próximos passos, instalar Maven, acessar o link: https://maven.apache.org/download.cgi e fazer o download da versão "apache-maven-3.9.12-bin.zip". Após instalar, descompactar a pasta.
 2. Após isso, clicar na tecla "Windows" do teclado e digitar "Editar as variáveis de sistema", na tela que abriu, clicar em "Variáveis do ambiente":
