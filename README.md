@@ -66,10 +66,13 @@ Sistema completo de gerenciamento de restaurante com cardapio digital, gestao de
 4. Após isso, na mesma tela encontre a varíavel chamada "Path", selecione-a e clique em "Editar", adicione o mesmo caminho da pasta "apache-maven-3.9.12" e escreva "\bin" no final, exemplo: "C:\Users\usuario\Downloads\apache-maven-3.9.12-bin\apache-maven-3.9.12\bin", clicar em "OK".
 <img width="586" height="232" alt="image" src="https://github.com/user-attachments/assets/bfe7557c-88ef-4a8c-aa0c-edbde9f925ab" />
 
+
 5. Verificar a instalação completa do Maven abrindo o CMD e digitando "mvn -version".
 6. No CMD, ir para a pasta comanda-digital/backend e digitar os comandos abaixo:
-Primeiro: mvn clean install -DskipTests
-Segundo: mvn spring-boot:run (esse serve para rodar o backend).
+
+- Primeiro: mvn clean install -DskipTests
+- Segundo: mvn spring-boot:run (esse serve para rodar o backend).
+- 
 7. Concluído. O backend estara disponivel em: **http://localhost:8080** (As migrations Flyway criam automaticamente todas as tabelas e o usuario seed.)
 
 
@@ -78,9 +81,11 @@ Segundo: mvn spring-boot:run (esse serve para rodar o backend).
 1. Instalar o Node.js a partir do link: https://nodejs.org/en/download.
 2. Em seguida, verificar a instalação dele abrindo o CMD e digitando node -v, para verificar a versão.
 3. No CMD, ir para a pasta cd comanda-digital/frontend e digitar os seguintes comandos abaixo:
-Primeiro: npm install -g @angular/cli (Isso irá instalar as dependencias)
-Segundo: Rodar npm install
-Terceiro: ng serve (irá rodar o angular)
+
+- Primeiro: npm install -g @angular/cli (Isso irá instalar as dependencias)
+- Segundo: Rodar npm install
+- Terceiro: ng serve (irá rodar o angular)
+
 4. Concluído. O frontend estara disponivel em: **http://localhost:4200**
 
 ## Swagger / API Docs
