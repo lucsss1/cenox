@@ -23,4 +23,5 @@ public class DashboardResponse {
     private List<PratoResponse> pratosFoodCostAlto;
     private List<InsumoResponse> insumosEstoqueBaixo;
     private List<FaturamentoDiarioResponse> faturamentoDiario;
+    private List<TopPratosResponse> topPratos;
 }

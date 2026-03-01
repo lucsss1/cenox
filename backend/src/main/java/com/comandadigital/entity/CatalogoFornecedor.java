@@ -1,21 +1,19 @@
 package com.comandadigital.entity;
 
-import com.comandadigital.enums.StatusCompra;
+import com.comandadigital.enums.UnidadeMedida;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
-@Table(name = "compras")
+@Table(name = "catalogo_fornecedor",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"fornecedor_id", "insumo_id"}))
 @Getter @Setter
 @NoArgsConstructor @AllArgsConstructor
 @Builder
-public class Compra {
+public class CatalogoFornecedor {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,22 +23,16 @@ public class Compra {
     @JoinColumn(name = "fornecedor_id", nullable = false)
     private Fornecedor fornecedor;
 
-    @Column(name = "data_compra", nullable = false)
-    private LocalDate dataCompra;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "insumo_id", nullable = false)
+    private Insumo insumo;
 
-    @Column(name = "nota_fiscal", length = 50)
-    private String notaFiscal;
-
-    @Column(name = "valor_total", nullable = false, precision = 10, scale = 2)
-    private BigDecimal valorTotal;
-
-    @OneToMany(mappedBy = "compra", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
-    private List<ItemCompra> itens = new ArrayList<>();
+    @Column(nullable = false, precision = 10, scale = 4)
+    private BigDecimal preco;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
-    private StatusCompra status;
+    @Column(name = "unidade_venda", nullable = false, length = 5)
+    private UnidadeMedida unidadeVenda;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -52,7 +44,6 @@ public class Compra {
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
-        if (this.status == null) this.status = StatusCompra.RASCUNHO;
     }
 
     @PreUpdate

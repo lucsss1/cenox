@@ -45,6 +45,9 @@ import { Pedido } from '../../shared/models/models';
                   'badge-success': p.statusPedido === 'PRONTO' || p.statusPedido === 'ENTREGUE',
                   'badge-danger': p.statusPedido === 'CANCELADO'
                 }">{{p.statusPedido}}</span>
+                <div *ngIf="p.motivoCancelamento" style="font-size:11px;color:#FCA5A5;margin-top:4px;">
+                  <i class="fas fa-info-circle"></i> {{p.motivoCancelamento}}
+                </div>
               </td>
               <td style="font-size:12px;">{{p.createdAt | date:'dd/MM/yy HH:mm'}}</td>
               <td style="white-space:nowrap;">
@@ -57,8 +60,8 @@ import { Pedido } from '../../shared/models/models';
                 <button *ngIf="p.statusPedido === 'PRONTO'" class="btn btn-success btn-sm" (click)="alterarStatus(p.id, 'ENTREGUE')" title="Entregar">
                   <i class="fas fa-hand-holding"></i> Entregar
                 </button>
-                <button *ngIf="canCancel(p)" class="btn btn-danger btn-sm" (click)="alterarStatus(p.id, 'CANCELADO')" title="Cancelar">
-                  <i class="fas fa-times"></i>
+                <button *ngIf="canCancel(p)" class="btn btn-danger btn-sm" (click)="abrirCancelamento(p)" title="Cancelar">
+                  <i class="fas fa-times"></i> Cancelar
                 </button>
               </td>
             </tr>
@@ -72,6 +75,28 @@ import { Pedido } from '../../shared/models/models';
         <button (click)="carregar(currentPage + 1)" [disabled]="currentPage === totalPages - 1">Proximo</button>
       </div>
     </div>
+
+    <!-- Modal de Cancelamento -->
+    <div class="modal-overlay" *ngIf="showCancelModal" (click)="fecharCancelamento()">
+      <div class="modal-content" (click)="$event.stopPropagation()" style="max-width:450px;">
+        <div class="modal-header">
+          <h3>Cancelar Pedido #{{cancelPedidoId}}</h3>
+          <button class="modal-close" (click)="fecharCancelamento()">&times;</button>
+        </div>
+        <div class="form-group">
+          <label>Motivo do cancelamento *</label>
+          <textarea class="form-control" [(ngModel)]="motivoCancelamento" rows="3"
+                    placeholder="Informe o motivo do cancelamento..."></textarea>
+        </div>
+        <p *ngIf="cancelEstorno" style="font-size:0.85em;color:#FCD34D;margin:8px 0;">
+          <i class="fas fa-exclamation-triangle"></i> O estoque dos insumos sera estornado automaticamente.
+        </p>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" (click)="fecharCancelamento()">Voltar</button>
+          <button class="btn btn-danger" [disabled]="!motivoCancelamento.trim()" (click)="confirmarCancelamento()">Confirmar Cancelamento</button>
+        </div>
+      </div>
+    </div>
   `
 })
 export class PedidosAdminComponent implements OnInit {
@@ -79,6 +104,11 @@ export class PedidosAdminComponent implements OnInit {
   loading = true;
   filtroStatus = '';
   currentPage = 0; totalPages = 0; pages: number[] = [];
+
+  showCancelModal = false;
+  cancelPedidoId = 0;
+  cancelEstorno = false;
+  motivoCancelamento = '';
 
   constructor(private api: ApiService, private toast: ToastService, private auth: AuthService) {}
 
@@ -104,6 +134,31 @@ export class PedidosAdminComponent implements OnInit {
 
   canCancel(p: Pedido): boolean {
     if (p.statusPedido === 'ENTREGUE' || p.statusPedido === 'CANCELADO') return false;
+    // Antes de EM_PREPARO: qualquer um. Depois: so ADMIN/GERENTE
+    if (p.statusPedido === 'PENDENTE') return true;
     return this.auth.hasAnyRole(['ADMIN', 'GERENTE']);
+  }
+
+  abrirCancelamento(p: Pedido): void {
+    this.cancelPedidoId = p.id;
+    this.cancelEstorno = p.statusPedido === 'EM_PREPARO' || p.statusPedido === 'PRONTO';
+    this.motivoCancelamento = '';
+    this.showCancelModal = true;
+  }
+
+  fecharCancelamento(): void {
+    this.showCancelModal = false;
+  }
+
+  confirmarCancelamento(): void {
+    if (!this.motivoCancelamento.trim()) return;
+    this.api.alterarStatusPedido(this.cancelPedidoId, 'CANCELADO', this.motivoCancelamento).subscribe({
+      next: () => {
+        this.toast.success('Pedido cancelado com estorno de estoque!');
+        this.fecharCancelamento();
+        this.carregar(this.currentPage);
+      },
+      error: () => {}
+    });
   }
 }

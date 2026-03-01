@@ -3,6 +3,7 @@ package com.comandadigital.service;
 import com.comandadigital.dto.response.MovimentacaoEstoqueResponse;
 import com.comandadigital.entity.Insumo;
 import com.comandadigital.entity.MovimentacaoEstoque;
+import com.comandadigital.enums.MotivoSaida;
 import com.comandadigital.enums.TipoMovimentacao;
 import com.comandadigital.exception.BusinessException;
 import com.comandadigital.repository.InsumoRepository;
@@ -54,6 +55,42 @@ public class EstoqueService {
                 .tipo(TipoMovimentacao.SAIDA)
                 .quantidade(quantidade)
                 .motivo(motivo)
+                .build();
+        movimentacaoRepository.save(movimentacao);
+    }
+
+    @Transactional
+    public void registrarEstorno(Insumo insumo, BigDecimal quantidade, String motivo) {
+        insumo.setQuantidadeEstoque(insumo.getQuantidadeEstoque().add(quantidade));
+        insumoRepository.save(insumo);
+
+        MovimentacaoEstoque movimentacao = MovimentacaoEstoque.builder()
+                .insumo(insumo)
+                .tipo(TipoMovimentacao.ESTORNO)
+                .quantidade(quantidade)
+                .motivo(motivo)
+                .build();
+        movimentacaoRepository.save(movimentacao);
+    }
+
+    @Transactional
+    public void registrarSaidaManual(Insumo insumo, BigDecimal quantidade, MotivoSaida motivoSaida) {
+        if (insumo.getQuantidadeEstoque().compareTo(quantidade) < 0) {
+            throw new BusinessException(
+                    "Estoque insuficiente para o insumo: " + insumo.getNome() +
+                    ". Disponivel: " + insumo.getQuantidadeEstoque() +
+                    ", Solicitado: " + quantidade
+            );
+        }
+
+        insumo.setQuantidadeEstoque(insumo.getQuantidadeEstoque().subtract(quantidade));
+        insumoRepository.save(insumo);
+
+        MovimentacaoEstoque movimentacao = MovimentacaoEstoque.builder()
+                .insumo(insumo)
+                .tipo(TipoMovimentacao.SAIDA)
+                .quantidade(quantidade)
+                .motivo("Saida manual - " + motivoSaida.name())
                 .build();
         movimentacaoRepository.save(movimentacao);
     }

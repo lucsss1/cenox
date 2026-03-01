@@ -1,7 +1,8 @@
 import { Component, OnInit, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../shared/services/api.service';
-import { Dashboard } from '../../shared/models/models';
+import { Dashboard, TopPratos } from '../../shared/models/models';
 import { Chart, registerables } from 'chart.js';
 
 Chart.register(...registerables);
@@ -9,7 +10,7 @@ Chart.register(...registerables);
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   template: `
     <h2 class="dash-title"><i class="fas fa-chart-line"></i> Dashboard</h2>
 
@@ -60,8 +61,20 @@ Chart.register(...registerables);
         </div>
       </div>
 
-      <!-- Alerts -->
-      <div class="alerts-grid">
+      <!-- Top 5 + Alerts Row -->
+      <div class="charts-grid">
+        <div class="card">
+          <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
+            <span><i class="fas fa-trophy" style="color:#FCD34D;"></i> Top 5 Pratos Mais Vendidos</span>
+            <div style="display:flex;gap:6px;align-items:center;">
+              <input type="date" class="form-control" [(ngModel)]="topInicio" style="width:auto;padding:4px 8px;font-size:12px;">
+              <input type="date" class="form-control" [(ngModel)]="topFim" style="width:auto;padding:4px 8px;font-size:12px;">
+              <button class="btn btn-primary btn-sm" (click)="carregarTopPratos()">Filtrar</button>
+            </div>
+          </div>
+          <canvas #topPratosChart></canvas>
+          <p *ngIf="topPratos.length === 0" style="text-align:center;color:var(--gray-500);padding:20px;">Nenhum prato vendido no periodo</p>
+        </div>
         <div class="card" *ngIf="data.pratosFoodCostAlto.length > 0">
           <div class="card-header alert-header-danger"><i class="fas fa-exclamation-circle"></i> Pratos com Food Cost > 35%</div>
           <table>
@@ -76,8 +89,11 @@ Chart.register(...registerables);
             </tbody>
           </table>
         </div>
+      </div>
 
-        <div class="card" *ngIf="data.insumosEstoqueBaixo.length > 0">
+      <!-- Alerts -->
+      <div class="alerts-grid" *ngIf="data.insumosEstoqueBaixo.length > 0">
+        <div class="card">
           <div class="card-header alert-header-warning"><i class="fas fa-boxes"></i> Insumos com Estoque Baixo</div>
           <table>
             <thead><tr><th>Insumo</th><th>Estoque</th><th>Minimo</th></tr></thead>
@@ -116,7 +132,7 @@ Chart.register(...registerables);
     .kpi-value { font-size: 26px; font-weight: 700; margin-top: 2px; }
 
     .charts-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 24px; }
-    .alerts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .alerts-grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
     .alert-header-danger { color: #FCA5A5; }
     .alert-header-warning { color: #FCD34D; }
 
@@ -128,17 +144,27 @@ Chart.register(...registerables);
 export class DashboardComponent implements OnInit, AfterViewInit {
   @ViewChild('faturamentoChart') faturamentoRef!: ElementRef<HTMLCanvasElement>;
   @ViewChild('statusChart') statusRef!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('topPratosChart') topPratosRef!: ElementRef<HTMLCanvasElement>;
 
   data: Dashboard | null = null;
   loading = true;
   private chartsReady = false;
+  private topChart: Chart | null = null;
+  topPratos: TopPratos[] = [];
+  topInicio = '';
+  topFim = '';
 
-  constructor(private api: ApiService) {}
+  constructor(private api: ApiService) {
+    const now = new Date();
+    this.topFim = now.toISOString().split('T')[0];
+    this.topInicio = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+  }
 
   ngOnInit(): void {
     this.api.getDashboard().subscribe({
       next: (d) => {
         this.data = d;
+        this.topPratos = d.topPratos || [];
         this.loading = false;
         if (this.chartsReady) this.renderCharts();
       },
@@ -151,10 +177,21 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     if (this.data) this.renderCharts();
   }
 
+  carregarTopPratos(): void {
+    if (!this.topInicio || !this.topFim) return;
+    this.api.getTopPratos(this.topInicio, this.topFim).subscribe({
+      next: (tp) => {
+        this.topPratos = tp;
+        this.renderTopPratosChart();
+      }
+    });
+  }
+
   private renderCharts(): void {
     setTimeout(() => {
       this.renderFaturamentoChart();
       this.renderStatusChart();
+      this.renderTopPratosChart();
     }, 100);
   }
 
@@ -212,6 +249,41 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       options: {
         responsive: true,
         plugins: { legend: { position: 'bottom', labels: { color: '#9CA3AF' } } }
+      }
+    });
+  }
+
+  private renderTopPratosChart(): void {
+    if (!this.topPratosRef || this.topPratos.length === 0) return;
+    const ctx = this.topPratosRef.nativeElement.getContext('2d');
+    if (!ctx) return;
+
+    if (this.topChart) this.topChart.destroy();
+
+    const labels = this.topPratos.map(t => t.pratoNome);
+    const valores = this.topPratos.map(t => t.quantidadeVendida);
+    const colors = ['#DC2626', '#F87171', '#FCA5A5', '#FECACA', '#FEE2E2'];
+
+    this.topChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Qtd Vendida',
+          data: valores,
+          backgroundColor: colors.slice(0, labels.length),
+          borderRadius: 6,
+          barThickness: 40
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { beginAtZero: true, ticks: { color: '#6B7280', stepSize: 1 }, grid: { color: '#222' } },
+          y: { ticks: { color: '#9CA3AF' }, grid: { display: false } }
+        }
       }
     });
   }

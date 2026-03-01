@@ -2,6 +2,7 @@ package com.comandadigital.controller;
 
 import com.comandadigital.dto.request.CompraRequest;
 import com.comandadigital.dto.response.CompraResponse;
+import com.comandadigital.enums.StatusCompra;
 import com.comandadigital.service.CompraService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -33,14 +34,21 @@ public class CompraController {
 
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'GERENTE')")
-    public ResponseEntity<CompraResponse> registrar(@Valid @RequestBody CompraRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(service.registrar(request));
+    public ResponseEntity<CompraResponse> criar(@Valid @RequestBody CompraRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(service.criar(request));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'GERENTE')")
     public ResponseEntity<CompraResponse> atualizar(@PathVariable Long id, @Valid @RequestBody CompraRequest request) {
         return ResponseEntity.ok(service.atualizar(id, request));
+    }
+
+    @PatchMapping("/{id}/status")
+    @PreAuthorize("hasAnyRole('ADMIN', 'GERENTE')")
+    public ResponseEntity<CompraResponse> alterarStatus(
+            @PathVariable Long id, @RequestParam StatusCompra status) {
+        return ResponseEntity.ok(service.alterarStatus(id, status));
     }
 
     @DeleteMapping("/{id}")

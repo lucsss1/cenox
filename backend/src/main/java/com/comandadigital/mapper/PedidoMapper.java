@@ -19,6 +19,7 @@ public class PedidoMapper {
                 .statusPedido(entity.getStatusPedido())
                 .total(entity.getTotal())
                 .observacao(entity.getObservacao())
+                .motivoCancelamento(entity.getMotivoCancelamento())
                 .itens(entity.getItens().stream()
                         .map(this::toItemResponse)
                         .collect(Collectors.toList()))

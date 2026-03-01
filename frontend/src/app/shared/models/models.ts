@@ -52,6 +52,7 @@ export interface FichaTecnicaRequest {
 export interface Pedido {
   id: number; clienteId: number; clienteNome: string;
   statusPedido: string; total: number; observacao: string;
+  motivoCancelamento: string;
   itens: ItemPedido[]; createdAt: string;
 }
 export interface ItemPedido {
@@ -87,12 +88,32 @@ export interface CompraRequest {
   itens: { insumoId: number; quantidade: number; precoUnitario: number; }[];
 }
 
+export interface CatalogoFornecedor {
+  id: number; fornecedorId: number; fornecedorNome: string;
+  insumoId: number; insumoNome: string;
+  preco: number; unidadeVenda: string;
+}
+export interface CatalogoFornecedorRequest {
+  insumoId: number; preco: number; unidadeVenda: string;
+}
+
+export interface HistoricoPreco {
+  id: number; insumoId: number; insumoNome: string;
+  fornecedorId: number; fornecedorNome: string;
+  preco: number; dataRegistro: string;
+}
+
+export interface TopPratos {
+  pratoId: number; pratoNome: string; quantidadeVendida: number;
+}
+
 export interface Dashboard {
   faturamentoMensal: number; totalPedidosMes: number;
   pratosAtivos: number; insumosAbaixoMinimo: number;
   totalComprasMes: number; pedidosPorStatus: { [key: string]: number };
   pratosFoodCostAlto: Prato[]; insumosEstoqueBaixo: Insumo[];
   faturamentoDiario: { data: string; valor: number; }[];
+  topPratos: TopPratos[];
 }
 
 export interface Page<T> {

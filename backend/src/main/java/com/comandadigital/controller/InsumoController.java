@@ -1,8 +1,11 @@
 package com.comandadigital.controller;
 
 import com.comandadigital.dto.request.InsumoRequest;
+import com.comandadigital.dto.request.SaidaManualRequest;
 import com.comandadigital.dto.response.InsumoResponse;
 import com.comandadigital.dto.response.MovimentacaoEstoqueResponse;
+import com.comandadigital.entity.Insumo;
+import com.comandadigital.enums.MotivoSaida;
 import com.comandadigital.service.EstoqueService;
 import com.comandadigital.service.InsumoService;
 import jakarta.validation.Valid;
@@ -60,6 +63,16 @@ public class InsumoController {
     public ResponseEntity<InsumoResponse> atualizar(
             @PathVariable Long id, @Valid @RequestBody InsumoRequest request) {
         return ResponseEntity.ok(service.atualizar(id, request));
+    }
+
+    @PostMapping("/{id}/saida-manual")
+    @PreAuthorize("hasAnyRole('ADMIN', 'GERENTE')")
+    public ResponseEntity<Void> saidaManual(
+            @PathVariable Long id, @Valid @RequestBody SaidaManualRequest request) {
+        Insumo insumo = service.findActiveById(id);
+        MotivoSaida motivo = MotivoSaida.valueOf(request.getMotivo());
+        estoqueService.registrarSaidaManual(insumo, request.getQuantidade(), motivo);
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{id}")

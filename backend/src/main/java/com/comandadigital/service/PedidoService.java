@@ -5,7 +5,6 @@ import com.comandadigital.dto.request.PedidoRequest;
 import com.comandadigital.dto.response.PedidoResponse;
 import com.comandadigital.entity.*;
 import com.comandadigital.enums.Perfil;
-import com.comandadigital.enums.StatusGeral;
 import com.comandadigital.enums.StatusPedido;
 import com.comandadigital.exception.BusinessException;
 import com.comandadigital.exception.ResourceNotFoundException;
@@ -72,12 +71,10 @@ public class PedidoService {
         for (ItemPedidoRequest itemReq : request.getItens()) {
             Prato prato = pratoService.findActiveById(itemReq.getPratoId());
 
-            // Verifica se prato possui ficha tecnica (regra: so ATIVO com ficha)
             if (!prato.temFichaTecnica()) {
                 throw new BusinessException("Prato '" + prato.getNome() + "' nao possui ficha tecnica e nao pode ser pedido");
             }
 
-            // Verifica disponibilidade de estoque para todos os insumos da ficha
             FichaTecnica ficha = fichaTecnicaRepository.findByPratoId(prato.getId())
                     .orElseThrow(() -> new BusinessException("Ficha tecnica nao encontrada para o prato: " + prato.getNome()));
 
@@ -117,23 +114,39 @@ public class PedidoService {
     /**
      * Altera status do pedido com regras de negocio:
      * - PENDENTE -> EM_PREPARO: realiza baixa automatica do estoque
-     * - Cancelamento: restrito por perfil (ADMIN, GERENTE)
+     * - Cancelamento antes de EM_PREPARO: qualquer perfil pode cancelar
+     * - Cancelamento apos EM_PREPARO: somente GERENTE ou ADMIN
+     * - Cancelamento apos baixa de estoque: realiza estorno
+     * - Motivo obrigatorio para cancelamento
      */
     @Transactional
-    public PedidoResponse alterarStatus(Long id, StatusPedido novoStatus, Usuario usuarioLogado) {
+    public PedidoResponse alterarStatus(Long id, StatusPedido novoStatus, Usuario usuarioLogado, String motivoCancelamento) {
         Pedido pedido = findById(id);
         StatusPedido statusAtual = pedido.getStatusPedido();
 
         validarTransicaoStatus(statusAtual, novoStatus);
 
-        // Regra: cancelamento restrito a ADMIN e GERENTE
         if (novoStatus == StatusPedido.CANCELADO) {
-            if (usuarioLogado.getPerfil() != Perfil.ADMIN && usuarioLogado.getPerfil() != Perfil.GERENTE) {
-                throw new BusinessException("Apenas ADMIN e GERENTE podem cancelar pedidos");
+            if (motivoCancelamento == null || motivoCancelamento.isBlank()) {
+                throw new BusinessException("Motivo de cancelamento e obrigatorio");
+            }
+
+            // Apos EM_PREPARO, so GERENTE ou ADMIN pode cancelar
+            if (statusAtual != StatusPedido.PENDENTE) {
+                if (usuarioLogado.getPerfil() != Perfil.ADMIN && usuarioLogado.getPerfil() != Perfil.GERENTE) {
+                    throw new BusinessException("Apenas ADMIN e GERENTE podem cancelar pedidos apos inicio do preparo");
+                }
+            }
+
+            pedido.setMotivoCancelamento(motivoCancelamento);
+
+            // Se ja houve baixa de estoque (EM_PREPARO ou PRONTO), realizar estorno
+            if (statusAtual == StatusPedido.EM_PREPARO || statusAtual == StatusPedido.PRONTO) {
+                realizarEstornoEstoque(pedido);
             }
         }
 
-        // Regra: baixa automatica de estoque ao mudar para EM_PREPARO
+        // Baixa automatica de estoque ao mudar para EM_PREPARO
         if (novoStatus == StatusPedido.EM_PREPARO) {
             realizarBaixaEstoque(pedido);
         }
@@ -156,6 +169,24 @@ public class PedidoService {
                         itemFicha.getInsumo(),
                         qtdBaixa,
                         "Baixa automatica - Pedido #" + pedido.getId()
+                );
+            }
+        }
+    }
+
+    private void realizarEstornoEstoque(Pedido pedido) {
+        for (ItemPedido itemPedido : pedido.getItens()) {
+            FichaTecnica ficha = fichaTecnicaRepository.findByPratoId(itemPedido.getPrato().getId())
+                    .orElse(null);
+            if (ficha == null) continue;
+
+            for (ItemFichaTecnica itemFicha : ficha.getItens()) {
+                BigDecimal qtdEstorno = itemFicha.getQuantidadeBruta()
+                        .multiply(new BigDecimal(itemPedido.getQuantidade()));
+                estoqueService.registrarEstorno(
+                        itemFicha.getInsumo(),
+                        qtdEstorno,
+                        "Estorno - Cancelamento Pedido #" + pedido.getId()
                 );
             }
         }

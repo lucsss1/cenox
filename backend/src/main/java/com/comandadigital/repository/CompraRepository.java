@@ -1,7 +1,7 @@
 package com.comandadigital.repository;
 
 import com.comandadigital.entity.Compra;
-import com.comandadigital.enums.StatusGeral;
+import com.comandadigital.enums.StatusCompra;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -15,10 +15,12 @@ import java.time.LocalDate;
 @Repository
 public interface CompraRepository extends JpaRepository<Compra, Long> {
 
-    Page<Compra> findByStatus(StatusGeral status, Pageable pageable);
+    Page<Compra> findAllByOrderByCreatedAtDesc(Pageable pageable);
 
-    Page<Compra> findByFornecedorIdAndStatus(Long fornecedorId, StatusGeral status, Pageable pageable);
+    Page<Compra> findByStatus(StatusCompra status, Pageable pageable);
 
-    @Query("SELECT COALESCE(SUM(c.valorTotal), 0) FROM Compra c WHERE c.status = 'ATIVO' AND c.dataCompra BETWEEN :inicio AND :fim")
+    Page<Compra> findByFornecedorIdAndStatus(Long fornecedorId, StatusCompra status, Pageable pageable);
+
+    @Query("SELECT COALESCE(SUM(c.valorTotal), 0) FROM Compra c WHERE c.status = 'RECEBIDO' AND c.dataCompra BETWEEN :inicio AND :fim")
     BigDecimal totalComprasPeriodo(@Param("inicio") LocalDate inicio, @Param("fim") LocalDate fim);
 }

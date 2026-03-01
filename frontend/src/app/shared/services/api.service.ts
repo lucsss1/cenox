@@ -38,6 +38,7 @@ export class ApiService {
   createInsumo(r: M.InsumoRequest): Observable<M.Insumo> { return this.http.post<M.Insumo>(`${this.api}/insumos`, r); }
   updateInsumo(id: number, r: M.InsumoRequest): Observable<M.Insumo> { return this.http.put<M.Insumo>(`${this.api}/insumos/${id}`, r); }
   deleteInsumo(id: number): Observable<void> { return this.http.delete<void>(`${this.api}/insumos/${id}`); }
+  saidaManual(id: number, r: { quantidade: number; motivo: string }): Observable<void> { return this.http.post<void>(`${this.api}/insumos/${id}/saida-manual`, r); }
 
   // Fichas Tecnicas
   getFichasTecnicas(page: number): Observable<M.Page<M.FichaTecnica>> { return this.http.get<M.Page<M.FichaTecnica>>(`${this.api}/fichas-tecnicas`, { params: this.pageParams(page) }); }
@@ -51,7 +52,11 @@ export class ApiService {
   getMeusPedidos(page: number): Observable<M.Page<M.Pedido>> { return this.http.get<M.Page<M.Pedido>>(`${this.api}/pedidos/meus`, { params: this.pageParams(page) }); }
   getPedidosPorStatus(status: string, page: number): Observable<M.Page<M.Pedido>> { return this.http.get<M.Page<M.Pedido>>(`${this.api}/pedidos/status/${status}`, { params: this.pageParams(page) }); }
   createPedido(r: M.PedidoRequest): Observable<M.Pedido> { return this.http.post<M.Pedido>(`${this.api}/pedidos`, r); }
-  alterarStatusPedido(id: number, status: string): Observable<M.Pedido> { return this.http.patch<M.Pedido>(`${this.api}/pedidos/${id}/status?status=${status}`, {}); }
+  alterarStatusPedido(id: number, status: string, motivo?: string): Observable<M.Pedido> {
+    let params = `status=${status}`;
+    if (motivo) params += `&motivo=${encodeURIComponent(motivo)}`;
+    return this.http.patch<M.Pedido>(`${this.api}/pedidos/${id}/status?${params}`, {});
+  }
 
   // Fornecedores
   getFornecedores(page: number): Observable<M.Page<M.Fornecedor>> { return this.http.get<M.Page<M.Fornecedor>>(`${this.api}/fornecedores`, { params: this.pageParams(page) }); }
@@ -60,12 +65,21 @@ export class ApiService {
   updateFornecedor(id: number, r: M.FornecedorRequest): Observable<M.Fornecedor> { return this.http.put<M.Fornecedor>(`${this.api}/fornecedores/${id}`, r); }
   deleteFornecedor(id: number): Observable<void> { return this.http.delete<void>(`${this.api}/fornecedores/${id}`); }
 
-  // Compras
+  // Compras (Pedido de Compra)
   getCompras(page: number): Observable<M.Page<M.Compra>> { return this.http.get<M.Page<M.Compra>>(`${this.api}/compras`, { params: this.pageParams(page) }); }
   getCompra(id: number): Observable<M.Compra> { return this.http.get<M.Compra>(`${this.api}/compras/${id}`); }
   createCompra(r: M.CompraRequest): Observable<M.Compra> { return this.http.post<M.Compra>(`${this.api}/compras`, r); }
   updateCompra(id: number, r: M.CompraRequest): Observable<M.Compra> { return this.http.put<M.Compra>(`${this.api}/compras/${id}`, r); }
+  alterarStatusCompra(id: number, status: string): Observable<M.Compra> { return this.http.patch<M.Compra>(`${this.api}/compras/${id}/status?status=${status}`, {}); }
   deleteCompra(id: number): Observable<void> { return this.http.delete<void>(`${this.api}/compras/${id}`); }
+
+  // Catalogo Fornecedor
+  getCatalogoFornecedor(fornecedorId: number): Observable<M.CatalogoFornecedor[]> { return this.http.get<M.CatalogoFornecedor[]>(`${this.api}/catalogo/fornecedor/${fornecedorId}`); }
+  getCotacaoInsumo(insumoId: number): Observable<M.CatalogoFornecedor[]> { return this.http.get<M.CatalogoFornecedor[]>(`${this.api}/catalogo/cotacao/${insumoId}`); }
+  createCatalogo(fornecedorId: number, r: M.CatalogoFornecedorRequest): Observable<M.CatalogoFornecedor> { return this.http.post<M.CatalogoFornecedor>(`${this.api}/catalogo/fornecedor/${fornecedorId}`, r); }
+  updateCatalogo(id: number, r: M.CatalogoFornecedorRequest): Observable<M.CatalogoFornecedor> { return this.http.put<M.CatalogoFornecedor>(`${this.api}/catalogo/${id}`, r); }
+  deleteCatalogo(id: number): Observable<void> { return this.http.delete<void>(`${this.api}/catalogo/${id}`); }
+  getHistoricoPrecos(insumoId: number): Observable<M.HistoricoPreco[]> { return this.http.get<M.HistoricoPreco[]>(`${this.api}/catalogo/historico/${insumoId}`); }
 
   // Usuarios
   getUsuarios(page: number): Observable<M.Page<M.Usuario>> { return this.http.get<M.Page<M.Usuario>>(`${this.api}/usuarios`, { params: this.pageParams(page) }); }
@@ -74,4 +88,5 @@ export class ApiService {
 
   // Dashboard
   getDashboard(): Observable<M.Dashboard> { return this.http.get<M.Dashboard>(`${this.api}/dashboard`); }
+  getTopPratos(inicio: string, fim: string): Observable<M.TopPratos[]> { return this.http.get<M.TopPratos[]>(`${this.api}/dashboard/top-pratos?inicio=${inicio}&fim=${fim}`); }
 }
