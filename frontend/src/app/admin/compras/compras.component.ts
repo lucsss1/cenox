@@ -11,15 +11,15 @@ import { Compra, Fornecedor, Insumo } from '../../shared/models/models';
   imports: [CommonModule, ReactiveFormsModule],
   template: `
     <div class="page-header">
-      <h2><i class="fas fa-shopping-bag"></i> Compras</h2>
-      <button class="btn btn-primary" (click)="abrirModal()"><i class="fas fa-plus"></i> Registrar Compra</button>
+      <h2><i class="fas fa-shopping-bag"></i> Pedidos de Compra</h2>
+      <button class="btn btn-primary" (click)="abrirModal()"><i class="fas fa-plus"></i> Novo Pedido</button>
     </div>
 
     <div class="card">
       <div class="loading" *ngIf="loading"><div class="spinner"></div></div>
       <div class="table-container" *ngIf="!loading">
         <table>
-          <thead><tr><th>ID</th><th>Fornecedor</th><th>Data</th><th>NF</th><th>Itens</th><th>Total</th><th>Acoes</th></tr></thead>
+          <thead><tr><th>ID</th><th>Fornecedor</th><th>Data</th><th>NF</th><th>Itens</th><th>Total</th><th>Status</th><th>Acoes</th></tr></thead>
           <tbody>
             <tr *ngFor="let c of compras">
               <td>{{c.id}}</td>
@@ -29,11 +29,29 @@ import { Compra, Fornecedor, Insumo } from '../../shared/models/models';
               <td>{{c.itens.length}} itens</td>
               <td><strong>R$ {{c.valorTotal | number:'1.2-2'}}</strong></td>
               <td>
-                <button class="btn btn-warning btn-sm" (click)="editar(c)" title="Editar"><i class="fas fa-edit"></i></button>
-                <button class="btn btn-danger btn-sm" (click)="excluir(c.id)" title="Excluir"><i class="fas fa-trash"></i></button>
+                <span class="badge" [ngClass]="{
+                  'badge-warning': c.status === 'RASCUNHO',
+                  'badge-info': c.status === 'ENVIADO',
+                  'badge-success': c.status === 'RECEBIDO',
+                  'badge-danger': c.status === 'CANCELADO'
+                }">{{c.status}}</span>
+              </td>
+              <td style="white-space:nowrap;">
+                <button *ngIf="c.status === 'RASCUNHO'" class="btn btn-info btn-sm" (click)="alterarStatus(c.id, 'ENVIADO')" title="Enviar">
+                  <i class="fas fa-paper-plane"></i>
+                </button>
+                <button *ngIf="c.status === 'ENVIADO'" class="btn btn-success btn-sm" (click)="alterarStatus(c.id, 'RECEBIDO')" title="Receber">
+                  <i class="fas fa-check"></i> Receber
+                </button>
+                <button *ngIf="c.status === 'RASCUNHO'" class="btn btn-warning btn-sm" (click)="editar(c)" title="Editar">
+                  <i class="fas fa-edit"></i>
+                </button>
+                <button *ngIf="c.status !== 'RECEBIDO' && c.status !== 'CANCELADO'" class="btn btn-danger btn-sm" (click)="excluir(c.id)" title="Cancelar">
+                  <i class="fas fa-times"></i>
+                </button>
               </td>
             </tr>
-            <tr *ngIf="compras.length === 0"><td colspan="7" style="text-align:center;color:var(--gray-500);">Nenhuma compra registrada</td></tr>
+            <tr *ngIf="compras.length === 0"><td colspan="8" style="text-align:center;color:var(--gray-500);">Nenhum pedido de compra</td></tr>
           </tbody>
         </table>
       </div>
@@ -47,7 +65,7 @@ import { Compra, Fornecedor, Insumo } from '../../shared/models/models';
     <div class="modal-overlay" *ngIf="showModal" (click)="fecharModal()">
       <div class="modal-content" (click)="$event.stopPropagation()" style="max-width:700px;">
         <div class="modal-header">
-          <h3>{{editando ? 'Editar' : 'Registrar'}} Compra</h3>
+          <h3>{{editando ? 'Editar' : 'Novo'}} Pedido de Compra</h3>
           <button class="modal-close" (click)="fecharModal()">&times;</button>
         </div>
         <form [formGroup]="form" (ngSubmit)="salvar()">
@@ -70,7 +88,7 @@ import { Compra, Fornecedor, Insumo } from '../../shared/models/models';
           </div>
 
           <div *ngIf="!editando">
-            <h4 style="margin:12px 0 8px;">Itens da Compra</h4>
+            <h4 style="margin:12px 0 8px;">Itens do Pedido</h4>
             <div formArrayName="itens">
               <div *ngFor="let item of itensArray.controls; let i=index" [formGroupName]="i" style="display:flex;gap:8px;margin-bottom:8px;align-items:end;">
                 <div class="form-group" style="flex:2;margin:0;">
@@ -94,12 +112,12 @@ import { Compra, Fornecedor, Insumo } from '../../shared/models/models';
             <button type="button" class="btn btn-secondary btn-sm" (click)="adicionarItem()"><i class="fas fa-plus"></i> Item</button>
           </div>
           <p *ngIf="editando" style="margin:12px 0;color:var(--gray-500);font-size:0.9em;">
-            <i class="fas fa-info-circle"></i> Os itens nao podem ser editados pois impactam estoque e custos. Para corrigir itens, desative esta compra e registre uma nova.
+            <i class="fas fa-info-circle"></i> Os itens nao podem ser editados. Para corrigir, cancele e crie um novo pedido.
           </p>
 
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" (click)="fecharModal()">Cancelar</button>
-            <button type="submit" class="btn btn-primary" [disabled]="form.invalid || (!editando && itensArray.length === 0)">{{editando ? 'Salvar' : 'Registrar'}}</button>
+            <button type="submit" class="btn btn-primary" [disabled]="form.invalid || (!editando && itensArray.length === 0)">{{editando ? 'Salvar' : 'Criar Rascunho'}}</button>
           </div>
         </form>
       </div>
@@ -169,10 +187,23 @@ export class ComprasComponent implements OnInit {
     this.showModal = true;
   }
 
+  alterarStatus(id: number, status: string): void {
+    const msg = status === 'RECEBIDO' ? 'Confirmar recebimento? Isso atualizara o estoque e custos.' : 'Confirmar envio?';
+    if (!confirm(msg)) return;
+    this.api.alterarStatusCompra(id, status).subscribe({
+      next: () => {
+        const successMsg = status === 'RECEBIDO' ? 'Compra recebida! Estoque e custos atualizados.' : 'Status atualizado!';
+        this.toast.success(successMsg);
+        this.carregar(this.currentPage);
+      },
+      error: () => {}
+    });
+  }
+
   excluir(id: number): void {
-    if (!confirm('Desativar esta compra?')) return;
+    if (!confirm('Cancelar este pedido de compra?')) return;
     this.api.deleteCompra(id).subscribe({
-      next: () => { this.toast.success('Compra desativada!'); this.carregar(this.currentPage); },
+      next: () => { this.toast.success('Pedido de compra cancelado!'); this.carregar(this.currentPage); },
       error: () => {}
     });
   }
@@ -187,7 +218,7 @@ export class ComprasComponent implements OnInit {
       };
       this.api.updateCompra(this.editId, val).subscribe({
         next: () => {
-          this.toast.success('Compra atualizada!');
+          this.toast.success('Pedido atualizado!');
           this.fecharModal(); this.carregar(this.currentPage);
         },
         error: () => {}
@@ -200,7 +231,7 @@ export class ComprasComponent implements OnInit {
       };
       this.api.createCompra(val).subscribe({
         next: () => {
-          this.toast.success('Compra registrada! Estoque e custos atualizados.');
+          this.toast.success('Pedido de compra criado como RASCUNHO!');
           this.fecharModal(); this.carregar(this.currentPage);
         },
         error: () => {}

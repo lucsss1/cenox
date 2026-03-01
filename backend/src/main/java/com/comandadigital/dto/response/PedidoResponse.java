@@ -21,6 +21,7 @@ public class PedidoResponse {
     private StatusPedido statusPedido;
     private BigDecimal total;
     private String observacao;
+    private String motivoCancelamento;
     private List<ItemPedidoResponse> itens;
     private LocalDateTime createdAt;
 }

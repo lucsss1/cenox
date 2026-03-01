@@ -4,10 +4,12 @@ import com.comandadigital.dto.request.CompraRequest;
 import com.comandadigital.dto.request.ItemCompraRequest;
 import com.comandadigital.dto.response.CompraResponse;
 import com.comandadigital.entity.*;
-import com.comandadigital.enums.StatusGeral;
+import com.comandadigital.enums.StatusCompra;
+import com.comandadigital.exception.BusinessException;
 import com.comandadigital.exception.ResourceNotFoundException;
 import com.comandadigital.mapper.CompraMapper;
 import com.comandadigital.repository.CompraRepository;
+import com.comandadigital.repository.HistoricoPrecoRepository;
 import com.comandadigital.repository.InsumoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -17,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,27 +34,25 @@ public class CompraService {
     private final EstoqueService estoqueService;
     private final FichaTecnicaService fichaTecnicaService;
     private final InsumoRepository insumoRepository;
+    private final HistoricoPrecoRepository historicoPrecoRepository;
 
     @Transactional(readOnly = true)
     public Page<CompraResponse> listar(Pageable pageable) {
-        return repository.findByStatus(StatusGeral.ATIVO, pageable)
+        return repository.findAllByOrderByCreatedAtDesc(pageable)
                 .map(mapper::toResponse);
     }
 
     @Transactional(readOnly = true)
     public CompraResponse buscarPorId(Long id) {
-        Compra compra = findActiveById(id);
+        Compra compra = findById(id);
         return mapper.toResponse(compra);
     }
 
     /**
-     * Registra compra com:
-     * - Entrada no estoque de cada insumo
-     * - Atualizacao do custo medio ponderado
-     * - Recalculo automatico das fichas tecnicas e food cost
+     * Cria pedido de compra como RASCUNHO (sem impacto no estoque).
      */
     @Transactional
-    public CompraResponse registrar(CompraRequest request) {
+    public CompraResponse criar(CompraRequest request) {
         Fornecedor fornecedor = fornecedorService.findActiveById(request.getFornecedorId());
 
         Compra compra = Compra.builder()
@@ -60,6 +61,7 @@ public class CompraService {
                 .notaFiscal(request.getNotaFiscal())
                 .itens(new ArrayList<>())
                 .valorTotal(BigDecimal.ZERO)
+                .status(StatusCompra.RASCUNHO)
                 .build();
 
         BigDecimal valorTotal = BigDecimal.ZERO;
@@ -82,19 +84,6 @@ public class CompraService {
 
             itens.add(item);
             valorTotal = valorTotal.add(subtotal);
-
-            // Atualizar custo medio ponderado do insumo
-            atualizarCustoMedio(insumo, itemReq.getQuantidade(), itemReq.getPrecoUnitario());
-
-            // Registrar entrada no estoque
-            estoqueService.registrarEntrada(
-                    insumo,
-                    itemReq.getQuantidade(),
-                    "Compra - NF: " + (request.getNotaFiscal() != null ? request.getNotaFiscal() : "S/N")
-            );
-
-            // Recalcular fichas tecnicas que usam este insumo
-            fichaTecnicaService.recalcularFichasComInsumo(insumo.getId());
         }
 
         compra.setItens(itens);
@@ -104,15 +93,15 @@ public class CompraService {
         return mapper.toResponse(compra);
     }
 
-    /**
-     * Atualiza dados da compra (fornecedor, data, nota fiscal).
-     * Itens nao sao alterados pois impactam estoque e custo medio.
-     */
     @Transactional
     public CompraResponse atualizar(Long id, CompraRequest request) {
-        Compra compra = findActiveById(id);
-        Fornecedor fornecedor = fornecedorService.findActiveById(request.getFornecedorId());
+        Compra compra = findById(id);
 
+        if (compra.getStatus() == StatusCompra.RECEBIDO) {
+            throw new BusinessException("Compra ja recebida nao pode ser alterada");
+        }
+
+        Fornecedor fornecedor = fornecedorService.findActiveById(request.getFornecedorId());
         compra.setFornecedor(fornecedor);
         compra.setDataCompra(request.getDataCompra());
         compra.setNotaFiscal(request.getNotaFiscal());
@@ -121,17 +110,78 @@ public class CompraService {
         return mapper.toResponse(compra);
     }
 
+    /**
+     * Altera status do pedido de compra.
+     * RASCUNHO -> ENVIADO -> RECEBIDO
+     * Ao receber (RECEBIDO): atualiza estoque, custo medio e historico de precos.
+     */
+    @Transactional
+    public CompraResponse alterarStatus(Long id, StatusCompra novoStatus) {
+        Compra compra = findById(id);
+        StatusCompra statusAtual = compra.getStatus();
+
+        validarTransicaoStatusCompra(statusAtual, novoStatus);
+
+        if (novoStatus == StatusCompra.RECEBIDO) {
+            processarRecebimento(compra);
+        }
+
+        compra.setStatus(novoStatus);
+        compra = repository.save(compra);
+        return mapper.toResponse(compra);
+    }
+
+    private void processarRecebimento(Compra compra) {
+        for (ItemCompra item : compra.getItens()) {
+            Insumo insumo = item.getInsumo();
+
+            // Atualizar custo medio ponderado
+            atualizarCustoMedio(insumo, item.getQuantidade(), item.getPrecoUnitario());
+
+            // Registrar entrada no estoque
+            estoqueService.registrarEntrada(
+                    insumo,
+                    item.getQuantidade(),
+                    "Recebimento - Compra #" + compra.getId() +
+                    " NF: " + (compra.getNotaFiscal() != null ? compra.getNotaFiscal() : "S/N")
+            );
+
+            // Registrar historico de preco
+            HistoricoPreco historico = HistoricoPreco.builder()
+                    .insumo(insumo)
+                    .fornecedor(compra.getFornecedor())
+                    .preco(item.getPrecoUnitario())
+                    .dataRegistro(compra.getDataCompra() != null ? compra.getDataCompra() : LocalDate.now())
+                    .build();
+            historicoPrecoRepository.save(historico);
+
+            // Recalcular fichas tecnicas que usam este insumo
+            fichaTecnicaService.recalcularFichasComInsumo(insumo.getId());
+        }
+    }
+
+    private void validarTransicaoStatusCompra(StatusCompra atual, StatusCompra novo) {
+        boolean valido = switch (atual) {
+            case RASCUNHO -> novo == StatusCompra.ENVIADO || novo == StatusCompra.CANCELADO;
+            case ENVIADO -> novo == StatusCompra.RECEBIDO || novo == StatusCompra.CANCELADO;
+            case RECEBIDO, CANCELADO -> false;
+        };
+
+        if (!valido) {
+            throw new BusinessException("Transicao de status invalida: " + atual + " -> " + novo);
+        }
+    }
+
     @Transactional
     public void desativar(Long id) {
-        Compra compra = findActiveById(id);
-        compra.setStatus(StatusGeral.INATIVO);
+        Compra compra = findById(id);
+        if (compra.getStatus() == StatusCompra.RECEBIDO) {
+            throw new BusinessException("Compra ja recebida nao pode ser cancelada");
+        }
+        compra.setStatus(StatusCompra.CANCELADO);
         repository.save(compra);
     }
 
-    /**
-     * Custo medio ponderado:
-     * novoCusto = ((estoqueAtual * custoMedioAtual) + (qtdCompra * precoUnitario)) / (estoqueAtual + qtdCompra)
-     */
     private void atualizarCustoMedio(Insumo insumo, BigDecimal qtdCompra, BigDecimal precoUnitario) {
         BigDecimal custoAtual = insumo.getCustoMedio() != null ? insumo.getCustoMedio() : BigDecimal.ZERO;
         BigDecimal estoqueAtual = insumo.getQuantidadeEstoque();
@@ -148,9 +198,8 @@ public class CompraService {
         }
     }
 
-    public Compra findActiveById(Long id) {
+    public Compra findById(Long id) {
         return repository.findById(id)
-                .filter(c -> c.getStatus() == StatusGeral.ATIVO)
                 .orElseThrow(() -> new ResourceNotFoundException("Compra nao encontrada: " + id));
     }
 }

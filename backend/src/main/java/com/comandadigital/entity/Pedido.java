@@ -34,6 +34,9 @@ public class Pedido {
     @Column(columnDefinition = "TEXT")
     private String observacao;
 
+    @Column(name = "motivo_cancelamento")
+    private String motivoCancelamento;
+
     @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<ItemPedido> itens = new ArrayList<>();

@@ -56,11 +56,12 @@ public class PedidoController {
     }
 
     @PatchMapping("/{id}/status")
-    @PreAuthorize("hasAnyRole('ADMIN', 'GERENTE', 'COZINHEIRO')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'GERENTE', 'COZINHEIRO', 'CLIENTE')")
     public ResponseEntity<PedidoResponse> alterarStatus(
             @PathVariable Long id,
             @RequestParam StatusPedido status,
+            @RequestParam(required = false) String motivo,
             @AuthenticationPrincipal Usuario usuario) {
-        return ResponseEntity.ok(service.alterarStatus(id, status, usuario));
+        return ResponseEntity.ok(service.alterarStatus(id, status, usuario, motivo));
     }
 }

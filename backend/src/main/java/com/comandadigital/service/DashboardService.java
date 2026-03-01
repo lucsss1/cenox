@@ -6,6 +6,7 @@ import com.comandadigital.mapper.InsumoMapper;
 import com.comandadigital.mapper.PratoMapper;
 import com.comandadigital.repository.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,34 +37,24 @@ public class DashboardService {
         LocalDateTime inicioMesDt = inicioMes.atStartOfDay();
         LocalDateTime fimMesDt = hoje.atTime(LocalTime.MAX);
 
-        // Faturamento mensal (pedidos ENTREGUE)
         BigDecimal faturamento = pedidoRepository.faturamentoPeriodo(inicioMesDt, fimMesDt);
-
-        // Total pedidos do mes
         long totalPedidos = pedidoRepository.countPedidosPeriodo(inicioMesDt, fimMesDt);
-
-        // Pratos ativos
         long pratosAtivos = pratoRepository.countByStatus(StatusGeral.ATIVO);
 
-        // Insumos abaixo do minimo
         List<InsumoResponse> insumosEstoqueBaixo = insumoRepository.findInsumosAbaixoEstoqueMinimo()
                 .stream().map(insumoMapper::toResponse).collect(Collectors.toList());
 
-        // Total compras do mes
         BigDecimal totalCompras = compraRepository.totalComprasPeriodo(inicioMes, hoje);
 
-        // Pedidos por status
         Map<String, Long> pedidosPorStatus = new HashMap<>();
         pedidoRepository.countByStatusGroup().forEach(row -> {
             pedidosPorStatus.put(row[0].toString(), (Long) row[1]);
         });
 
-        // Pratos com food cost > 35%
         List<PratoResponse> foodCostAlto = pratoRepository
                 .findPratosComFoodCostAlto(new BigDecimal("35"))
                 .stream().map(pratoMapper::toResponse).collect(Collectors.toList());
 
-        // Faturamento diario (ultimos 30 dias)
         LocalDateTime inicio30 = hoje.minusDays(30).atStartOfDay();
         List<FaturamentoDiarioResponse> faturamentoDiario = pedidoRepository
                 .faturamentoDiario(inicio30, fimMesDt)
@@ -71,6 +62,17 @@ public class DashboardService {
                 .map(row -> FaturamentoDiarioResponse.builder()
                         .data(row[0].toString())
                         .valor((BigDecimal) row[1])
+                        .build())
+                .collect(Collectors.toList());
+
+        // Top 5 pratos mais vendidos no mes
+        List<TopPratosResponse> topPratos = pedidoRepository
+                .findTopPratosVendidos(inicioMesDt, fimMesDt, PageRequest.of(0, 5))
+                .stream()
+                .map(row -> TopPratosResponse.builder()
+                        .pratoId((Long) row[0])
+                        .pratoNome((String) row[1])
+                        .quantidadeVendida((Long) row[2])
                         .build())
                 .collect(Collectors.toList());
 
@@ -84,6 +86,20 @@ public class DashboardService {
                 .pratosFoodCostAlto(foodCostAlto)
                 .insumosEstoqueBaixo(insumosEstoqueBaixo)
                 .faturamentoDiario(faturamentoDiario)
+                .topPratos(topPratos)
                 .build();
+    }
+
+    @Transactional(readOnly = true)
+    public List<TopPratosResponse> getTopPratos(LocalDate inicio, LocalDate fim) {
+        return pedidoRepository
+                .findTopPratosVendidos(inicio.atStartOfDay(), fim.atTime(LocalTime.MAX), PageRequest.of(0, 5))
+                .stream()
+                .map(row -> TopPratosResponse.builder()
+                        .pratoId((Long) row[0])
+                        .pratoNome((String) row[1])
+                        .quantidadeVendida((Long) row[2])
+                        .build())
+                .collect(Collectors.toList());
     }
 }

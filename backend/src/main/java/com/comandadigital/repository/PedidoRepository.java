@@ -34,4 +34,9 @@ public interface PedidoRepository extends JpaRepository<Pedido, Long> {
 
     @Query("SELECT FUNCTION('DATE', p.createdAt), COALESCE(SUM(p.total), 0) FROM Pedido p WHERE p.statusPedido = 'ENTREGUE' AND p.createdAt BETWEEN :inicio AND :fim GROUP BY FUNCTION('DATE', p.createdAt) ORDER BY FUNCTION('DATE', p.createdAt)")
     List<Object[]> faturamentoDiario(@Param("inicio") LocalDateTime inicio, @Param("fim") LocalDateTime fim);
+
+    @Query("SELECT ip.prato.id, ip.prato.nome, SUM(ip.quantidade) as total FROM ItemPedido ip " +
+           "WHERE ip.pedido.statusPedido = 'ENTREGUE' AND ip.pedido.createdAt BETWEEN :inicio AND :fim " +
+           "GROUP BY ip.prato.id, ip.prato.nome ORDER BY total DESC")
+    List<Object[]> findTopPratosVendidos(@Param("inicio") LocalDateTime inicio, @Param("fim") LocalDateTime fim, Pageable pageable);
 }
