@@ -24,7 +24,7 @@ spring:
 
 jwt:
   secret: Y29tYW5kYURpZ2l0YWxTZWNyZXRLZXlKV1RUb2tlbjIwMjRTZWN1cml0eQ==
-  expiration: 86400000
+  expiration: 28800000
 
 springdoc:
   api-docs:
