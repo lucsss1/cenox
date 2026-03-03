@@ -1,0 +1,1331 @@
+================================================================================
+                    DOCUMENTACAO TECNICA COMPLETA
+                         COMANDA DIGITAL
+              Sistema de Gestao para Restaurantes
+================================================================================
+
+================================================================================
+1. VISAO GERAL DO SISTEMA
+================================================================================
+
+1.1 DESCRICAO DO PROJETO
+
+O Comanda Digital e um sistema completo de gestao para restaurantes, composto
+por uma API REST (backend) e uma aplicacao web SPA (frontend). O sistema abrange
+o ciclo completo de operacao de um restaurante: cardapio publico, pedidos de
+clientes, gestao de estoque, compras de fornecedores, fichas tecnicas com
+calculo de food cost, e dashboard gerencial com indicadores de desempenho.
+
+1.2 STACK TECNOLOGICA
+
+Backend:
+  - Java 17
+  - Spring Boot 3.2.5
+  - Spring Security com JWT (JJWT 0.12.5)
+  - Spring Data JPA / Hibernate
+  - Flyway (migracoes de banco)
+  - MySQL 8.0
+  - SpringDoc OpenAPI 2.5.0 (Swagger)
+  - Lombok
+  - Maven
+
+Frontend:
+  - Angular 17.3.0 (standalone components)
+  - TypeScript 5.4
+  - Chart.js 4.4.2
+  - RxJS 7.8
+
+Infraestrutura:
+  - Docker (multi-stage builds)
+  - Docker Compose (mysql + backend + frontend)
+  - Nginx (servidor do frontend em producao)
+
+1.3 ARQUITETURA
+
+O sistema segue a arquitetura em camadas:
+
+  Controller -> Service -> Repository -> Database
+
+  - Controller: recebe requisicoes HTTP, valida entrada via @Valid, delega ao Service
+  - Service: contem regras de negocio, validacoes, calculos, transacoes
+  - Repository: acesso ao banco via Spring Data JPA (queries derivadas e @Query)
+  - DTOs: objetos de transferencia separados para Request e Response
+  - Mappers: convertem Entity <-> DTO
+  - Entity: representam as tabelas do banco, nunca expostas diretamente na API
+
+1.4 AUTENTICACAO E AUTORIZACAO
+
+  - JWT com expiracao de 8 horas (28800000ms)
+  - Secret em Base64: Y29tYW5kYURpZ2l0YWxTZWNyZXRLZXlKV1RUb2tlbjIwMjRTZWN1cml0eQ==
+  - Algoritmo: HMAC-SHA
+  - Senha armazenada com BCrypt
+  - Sessoes STATELESS (sem cookies de sessao)
+  - Filtro JwtAuthFilter executa antes de UsernamePasswordAuthenticationFilter
+  - @PreAuthorize em todos os endpoints protegidos
+
+  Perfis de acesso:
+    - ADMIN: acesso total ao sistema
+    - GERENTE: gestao de pratos, insumos, fornecedores, compras, pedidos, dashboard
+    - COZINHEIRO: visualizacao e alteracao de status de pedidos, dashboard
+    - CLIENTE: cardapio publico, criacao de pedidos, visualizacao dos seus pedidos
+
+  Endpoints publicos (sem autenticacao):
+    - POST /api/auth/login
+    - POST /api/auth/registrar
+    - GET /api/cardapio/**
+    - GET /api/categorias/publico
+    - /swagger-ui/**, /api-docs/**, /swagger-ui.html
+
+1.5 CORS
+
+  - Origin permitida: http://localhost:4200
+  - Metodos: GET, POST, PUT, PATCH, DELETE, OPTIONS
+  - Headers: todos (*)
+  - Credentials: true
+
+1.6 CONFIGURACAO (application.yml)
+
+  server.port: 8080
+  spring.datasource.url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:comanda_digital}
+  spring.jpa.hibernate.ddl-auto: none
+  spring.flyway.enabled: true
+  spring.flyway.locations: classpath:db/migration
+  jwt.secret: Y29tYW5kYURpZ2l0YWxTZWNyZXRLZXlKV1RUb2tlbjIwMjRTZWN1cml0eQ==
+  jwt.expiration: 28800000
+  springdoc.swagger-ui.path: /swagger-ui.html
+  springdoc.api-docs.path: /api-docs
+
+
+================================================================================
+2. ESTRUTURA DO BACKEND
+================================================================================
+
+2.1 PACOTES
+
+  com.comandadigital
+    config/          -> SecurityConfig, JwtService, JwtAuthFilter, PasswordConfig
+    controller/      -> 12 controllers REST
+    dto/request/     -> 15 DTOs de entrada
+    dto/response/    -> 18 DTOs de saida
+    entity/          -> 14 entidades JPA
+    enums/           -> 7 enumeracoes
+    exception/       -> GlobalExceptionHandler + 3 excecoes customizadas
+    mapper/          -> 8 classes de conversao Entity <-> DTO
+    repository/      -> 11 interfaces JPA
+    service/         -> 12 classes de servico + JwtService
+
+--------------------------------------------------------------------------------
+2.2 ENTIDADES
+--------------------------------------------------------------------------------
+
+2.2.1 Usuario (tabela: usuarios)
+  Implementa UserDetails (Spring Security)
+  Campos:
+    - id: Long (PK, auto-increment)
+    - nome: String (obrigatorio, max 150)
+    - email: String (obrigatorio, unique, max 150)
+    - senha: String (obrigatorio, BCrypt)
+    - perfil: Perfil (ADMIN, GERENTE, COZINHEIRO, CLIENTE)
+    - status: StatusGeral (default ATIVO)
+    - createdAt: LocalDateTime (auto, nao-atualizavel)
+    - updatedAt: LocalDateTime (auto)
+  Metodos:
+    - getAuthorities(): retorna "ROLE_" + perfil
+    - isEnabled(): retorna true se status == ATIVO
+
+2.2.2 Categoria (tabela: categorias)
+  Campos:
+    - id: Long (PK)
+    - nome: String (obrigatorio, max 100)
+    - descricao: String (max 255)
+    - status: StatusGeral (default ATIVO)
+    - createdAt, updatedAt: LocalDateTime
+  Relacionamentos:
+    - pratos: OneToMany com Prato (mappedBy "categoria")
+
+2.2.3 Prato (tabela: pratos)
+  Campos:
+    - id: Long (PK)
+    - nome: String (obrigatorio, max 150)
+    - descricao: String (TEXT)
+    - precoVenda: BigDecimal (obrigatorio, precision 10, scale 2)
+    - custoProducao: BigDecimal (precision 10, scale 2)
+    - foodCost: BigDecimal (precision 5, scale 2)
+    - tempoPreparo: Integer
+    - imagemUrl: String (max 500)
+    - status: StatusGeral (default INATIVO)
+    - createdAt, updatedAt: LocalDateTime
+  Relacionamentos:
+    - categoria: ManyToOne com Categoria (obrigatorio)
+    - fichaTecnica: OneToOne com FichaTecnica (mappedBy "prato")
+  Metodos:
+    - temFichaTecnica(): retorna true se fichaTecnica != null e fichaTecnica.status == ATIVO
+
+2.2.4 FichaTecnica (tabela: fichas_tecnicas)
+  Campos:
+    - id: Long (PK)
+    - rendimento: Integer (obrigatorio)
+    - custoTotal: BigDecimal (precision 10, scale 2)
+    - custoPorPorcao: BigDecimal (precision 10, scale 2)
+    - status: StatusGeral (default ATIVO)
+    - createdAt, updatedAt: LocalDateTime
+  Relacionamentos:
+    - prato: OneToOne com Prato (unique, obrigatorio)
+    - itens: OneToMany com ItemFichaTecnica (cascade ALL, orphanRemoval)
+
+2.2.5 ItemFichaTecnica (tabela: itens_ficha_tecnica)
+  Campos:
+    - id: Long (PK)
+    - quantidadeBruta: BigDecimal (obrigatorio, precision 10, scale 3)
+    - fatorCorrecao: BigDecimal (obrigatorio, precision 5, scale 2)
+    - quantidadeLiquida: BigDecimal (obrigatorio, precision 10, scale 3)
+    - custoItem: BigDecimal (precision 10, scale 2)
+  Relacionamentos:
+    - fichaTecnica: ManyToOne com FichaTecnica (obrigatorio)
+    - insumo: ManyToOne com Insumo (obrigatorio)
+
+2.2.6 Insumo (tabela: insumos)
+  Campos:
+    - id: Long (PK)
+    - nome: String (obrigatorio, max 150)
+    - unidadeMedida: UnidadeMedida (KG, G, L, ML, UN)
+    - quantidadeEstoque: BigDecimal (obrigatorio, precision 10, scale 3, default 0)
+    - estoqueMinimo: BigDecimal (obrigatorio, precision 10, scale 3)
+    - custoMedio: BigDecimal (precision 10, scale 2)
+    - status: StatusGeral (default ATIVO)
+    - createdAt, updatedAt: LocalDateTime
+
+2.2.7 Pedido (tabela: pedidos)
+  Campos:
+    - id: Long (PK)
+    - statusPedido: StatusPedido (default PENDENTE)
+    - total: BigDecimal (obrigatorio, precision 10, scale 2)
+    - observacao: String (TEXT)
+    - motivoCancelamento: String (max 255)
+    - createdAt, updatedAt: LocalDateTime
+  Relacionamentos:
+    - cliente: ManyToOne com Usuario (obrigatorio)
+    - itens: OneToMany com ItemPedido (cascade ALL, orphanRemoval)
+
+2.2.8 ItemPedido (tabela: itens_pedido)
+  Campos:
+    - id: Long (PK)
+    - quantidade: Integer (obrigatorio)
+    - precoUnitario: BigDecimal (obrigatorio, precision 10, scale 2)
+    - subtotal: BigDecimal (obrigatorio, precision 10, scale 2)
+    - observacao: String (max 255)
+  Relacionamentos:
+    - pedido: ManyToOne com Pedido (obrigatorio)
+    - prato: ManyToOne com Prato (obrigatorio)
+
+2.2.9 Fornecedor (tabela: fornecedores)
+  Campos:
+    - id: Long (PK)
+    - razaoSocial: String (obrigatorio, max 200)
+    - cnpj: String (obrigatorio, unique, max 18)
+    - email: String (max 150)
+    - telefone: String (max 20)
+    - endereco: String (max 255)
+    - status: StatusGeral (default ATIVO)
+    - createdAt, updatedAt: LocalDateTime
+
+2.2.10 Compra (tabela: compras)
+  Campos:
+    - id: Long (PK)
+    - dataCompra: LocalDate (obrigatorio)
+    - notaFiscal: String (max 50)
+    - valorTotal: BigDecimal (obrigatorio, precision 10, scale 2)
+    - status: StatusCompra (default RASCUNHO)
+    - createdAt, updatedAt: LocalDateTime
+  Relacionamentos:
+    - fornecedor: ManyToOne com Fornecedor (obrigatorio)
+    - itens: OneToMany com ItemCompra (cascade ALL, orphanRemoval)
+
+2.2.11 ItemCompra (tabela: itens_compra)
+  Campos:
+    - id: Long (PK)
+    - quantidade: BigDecimal (obrigatorio, precision 10, scale 3)
+    - precoUnitario: BigDecimal (obrigatorio, precision 10, scale 2)
+    - subtotal: BigDecimal (obrigatorio, precision 10, scale 2)
+  Relacionamentos:
+    - compra: ManyToOne com Compra (obrigatorio)
+    - insumo: ManyToOne com Insumo (obrigatorio)
+
+2.2.12 MovimentacaoEstoque (tabela: movimentacoes_estoque)
+  Campos:
+    - id: Long (PK)
+    - tipo: TipoMovimentacao (ENTRADA, SAIDA, ESTORNO)
+    - quantidade: BigDecimal (obrigatorio, precision 10, scale 3)
+    - motivo: String (max 255)
+    - createdAt: LocalDateTime (auto)
+  Relacionamentos:
+    - insumo: ManyToOne com Insumo (obrigatorio)
+
+2.2.13 CatalogoFornecedor (tabela: catalogo_fornecedor)
+  Constraint unica: (fornecedor_id, insumo_id)
+  Campos:
+    - id: Long (PK)
+    - preco: BigDecimal (obrigatorio, precision 10, scale 4)
+    - unidadeVenda: UnidadeMedida (KG, G, L, ML, UN)
+    - createdAt, updatedAt: LocalDateTime
+  Relacionamentos:
+    - fornecedor: ManyToOne com Fornecedor (obrigatorio)
+    - insumo: ManyToOne com Insumo (obrigatorio)
+
+2.2.14 HistoricoPreco (tabela: historico_precos)
+  Campos:
+    - id: Long (PK)
+    - preco: BigDecimal (obrigatorio, precision 10, scale 4)
+    - dataRegistro: LocalDate (obrigatorio)
+    - createdAt: LocalDateTime (auto)
+  Relacionamentos:
+    - insumo: ManyToOne com Insumo (obrigatorio)
+    - fornecedor: ManyToOne com Fornecedor (obrigatorio)
+
+--------------------------------------------------------------------------------
+2.3 ENUMERACOES
+--------------------------------------------------------------------------------
+
+  Perfil:           ADMIN, GERENTE, COZINHEIRO, CLIENTE
+  StatusGeral:      ATIVO, INATIVO
+  StatusPedido:     PENDENTE, EM_PREPARO, PRONTO, ENTREGUE, CANCELADO
+  StatusCompra:     RASCUNHO, ENVIADO, RECEBIDO, CANCELADO
+  TipoMovimentacao: ENTRADA, SAIDA, ESTORNO
+  UnidadeMedida:    KG, G, L, ML, UN
+  MotivoSaida:      DESPERDICIO, VENCIMENTO, QUEBRA, USO_INTERNO
+
+--------------------------------------------------------------------------------
+2.4 CONTROLLERS E ENDPOINTS
+--------------------------------------------------------------------------------
+
+2.4.1 AuthController (/api/auth) - PUBLICO
+  POST /login          -> LoginResponse        | Body: LoginRequest
+  POST /registrar      -> UsuarioResponse (201) | Body: UsuarioRequest
+
+2.4.2 CardapioController (/api/cardapio) - PUBLICO
+  GET /                -> Page<PratoResponse>   | Params: Pageable
+  GET /categoria/{id}  -> Page<PratoResponse>   | Params: categoriaId, Pageable
+
+2.4.3 CategoriaController (/api/categorias)
+  GET /publico         -> List<CategoriaResponse>      | PUBLICO
+  GET /                -> Page<CategoriaResponse>      | ADMIN, GERENTE | Pageable
+  GET /{id}            -> CategoriaResponse            | ADMIN, GERENTE
+  POST /               -> CategoriaResponse (201)      | ADMIN, GERENTE | Body: CategoriaRequest
+  PUT /{id}            -> CategoriaResponse            | ADMIN, GERENTE | Body: CategoriaRequest
+  DELETE /{id}         -> 204 No Content               | ADMIN, GERENTE
+
+2.4.4 PratoController (/api/pratos)
+  GET /                -> Page<PratoResponse>          | ADMIN, GERENTE | Pageable
+  GET /{id}            -> PratoResponse                | ADMIN, GERENTE
+  POST /               -> PratoResponse (201)          | ADMIN, GERENTE | Body: PratoRequest
+  PUT /{id}            -> PratoResponse                | ADMIN, GERENTE | Body: PratoRequest
+  PATCH /{id}/ativar   -> 204 No Content               | ADMIN, GERENTE
+  DELETE /{id}         -> 204 No Content               | ADMIN, GERENTE
+
+2.4.5 FichaTecnicaController (/api/fichas-tecnicas)
+  GET /                -> Page<FichaTecnicaResponse>   | ADMIN, GERENTE | Pageable
+  GET /{id}            -> FichaTecnicaResponse         | ADMIN, GERENTE
+  GET /prato/{pratoId} -> FichaTecnicaResponse         | ADMIN, GERENTE
+  POST /               -> FichaTecnicaResponse (201)   | ADMIN, GERENTE | Body: FichaTecnicaRequest
+  PUT /{id}            -> FichaTecnicaResponse         | ADMIN, GERENTE | Body: FichaTecnicaRequest
+  DELETE /{id}         -> 204 No Content               | ADMIN, GERENTE
+
+2.4.6 InsumoController (/api/insumos)
+  GET /                    -> Page<InsumoResponse>                 | ADMIN, GERENTE | Pageable
+  GET /{id}                -> InsumoResponse                      | ADMIN, GERENTE
+  GET /estoque-baixo       -> List<InsumoResponse>                | ADMIN, GERENTE
+  GET /{id}/movimentacoes  -> Page<MovimentacaoEstoqueResponse>   | ADMIN, GERENTE | Pageable
+  POST /                   -> InsumoResponse (201)                | ADMIN, GERENTE | Body: InsumoRequest
+  PUT /{id}                -> InsumoResponse                      | ADMIN, GERENTE | Body: InsumoRequest
+  POST /{id}/saida-manual  -> 204 No Content                     | ADMIN, GERENTE | Body: SaidaManualRequest
+  DELETE /{id}             -> 204 No Content                     | ADMIN, GERENTE
+
+2.4.7 FornecedorController (/api/fornecedores)
+  GET /                -> Page<FornecedorResponse>     | ADMIN, GERENTE | Pageable
+  GET /todos           -> List<FornecedorResponse>     | ADMIN, GERENTE
+  GET /{id}            -> FornecedorResponse           | ADMIN, GERENTE
+  POST /               -> FornecedorResponse (201)     | ADMIN, GERENTE | Body: FornecedorRequest
+  PUT /{id}            -> FornecedorResponse           | ADMIN, GERENTE | Body: FornecedorRequest
+  DELETE /{id}         -> 204 No Content               | ADMIN, GERENTE
+
+2.4.8 CatalogoFornecedorController (/api/catalogo)
+  GET /fornecedor/{id}  -> List<CatalogoFornecedorResponse>  | ADMIN, GERENTE
+  GET /cotacao/{id}     -> List<CatalogoFornecedorResponse>  | ADMIN, GERENTE
+  GET /historico/{id}   -> List<HistoricoPrecoResponse>      | ADMIN, GERENTE
+  POST /fornecedor/{id} -> CatalogoFornecedorResponse (201)  | ADMIN, GERENTE | Body: CatalogoFornecedorRequest
+  PUT /{id}             -> CatalogoFornecedorResponse        | ADMIN, GERENTE | Body: CatalogoFornecedorRequest
+  DELETE /{id}          -> 204 No Content                    | ADMIN, GERENTE
+
+2.4.9 CompraController (/api/compras)
+  GET /                -> Page<CompraResponse>         | ADMIN, GERENTE | Pageable
+  GET /{id}            -> CompraResponse               | ADMIN, GERENTE
+  POST /               -> CompraResponse (201)         | ADMIN, GERENTE | Body: CompraRequest
+  PUT /{id}            -> CompraResponse               | ADMIN, GERENTE | Body: CompraRequest
+  PATCH /{id}/status   -> CompraResponse               | ADMIN, GERENTE | Param: StatusCompra
+  DELETE /{id}         -> 204 No Content               | ADMIN
+
+2.4.10 PedidoController (/api/pedidos)
+  GET /                -> Page<PedidoResponse>         | ADMIN, GERENTE, COZINHEIRO | Pageable
+  GET /meus            -> Page<PedidoResponse>         | CLIENTE | Pageable
+  GET /status/{status} -> Page<PedidoResponse>         | ADMIN, GERENTE, COZINHEIRO | Pageable
+  GET /{id}            -> PedidoResponse               | ADMIN, GERENTE, COZINHEIRO, CLIENTE
+  POST /               -> PedidoResponse (201)         | CLIENTE | Body: PedidoRequest
+  PATCH /{id}/status   -> PedidoResponse               | ADMIN, GERENTE, COZINHEIRO, CLIENTE | Params: status, motivo(opcional)
+
+2.4.11 UsuarioController (/api/usuarios)
+  GET /                -> Page<UsuarioResponse>        | ADMIN, GERENTE | Pageable
+  GET /{id}            -> UsuarioResponse              | ADMIN, GERENTE
+  POST /               -> UsuarioResponse (201)        | ADMIN | Body: UsuarioRequest
+  PUT /{id}            -> UsuarioResponse              | ADMIN | Body: UsuarioUpdateRequest
+  DELETE /{id}         -> 204 No Content               | ADMIN
+
+2.4.12 DashboardController (/api/dashboard)
+  GET /                -> DashboardResponse            | ADMIN, GERENTE
+  GET /top-pratos      -> List<TopPratosResponse>      | ADMIN, GERENTE | Params: inicio, fim (LocalDate)
+
+--------------------------------------------------------------------------------
+2.5 SERVICES (REGRAS DE NEGOCIO)
+--------------------------------------------------------------------------------
+
+2.5.1 AuthService
+  - login(LoginRequest): autentica via AuthenticationManager, busca usuario ATIVO,
+    gera token JWT, retorna LoginResponse com token tipo Bearer e dados do usuario
+  - registrar(UsuarioRequest): valida email unico, codifica senha com BCrypt,
+    forca perfil CLIENTE, salva e retorna UsuarioResponse
+
+2.5.2 UsuarioService (implementa UserDetailsService)
+  - loadUserByUsername(email): busca usuario ATIVO por email para Spring Security
+  - listar(Pageable): lista usuarios ATIVOS com paginacao
+  - buscarPorId(id): busca usuario ATIVO por ID
+  - criar(UsuarioRequest): valida email unico, codifica senha, salva
+  - atualizar(id, UsuarioUpdateRequest): atualiza nome, email, perfil; senha
+    somente se fornecida e nao vazia
+  - desativar(id): soft delete (status = INATIVO)
+
+2.5.3 CategoriaService
+  - listar(Pageable): lista categorias ATIVAS com paginacao
+  - listarTodas(): lista todas categorias ATIVAS sem paginacao (para dropdowns)
+  - buscarPorId(id): busca categoria ATIVA por ID
+  - criar(CategoriaRequest): cria categoria com status ATIVO
+  - atualizar(id, CategoriaRequest): atualiza nome e descricao
+  - desativar(id): soft delete (status = INATIVO)
+
+2.5.4 InsumoService
+  - listar(Pageable): lista insumos ATIVOS com paginacao
+  - buscarPorId(id): busca insumo ATIVO por ID
+  - criar(InsumoRequest): cria insumo com status ATIVO e estoque 0
+  - atualizar(id, InsumoRequest): atualiza nome, unidade, estoque minimo, custo medio
+  - desativar(id): soft delete (status = INATIVO)
+  - listarAbaixoEstoqueMinimo(): lista insumos ATIVOS com quantidadeEstoque <= estoqueMinimo
+
+2.5.5 FornecedorService
+  - listar(Pageable): lista fornecedores ATIVOS com paginacao
+  - listarTodos(): lista todos fornecedores ATIVOS sem paginacao (para dropdowns)
+  - buscarPorId(id): busca fornecedor ATIVO por ID
+  - criar(FornecedorRequest): valida CNPJ unico, cria com status ATIVO
+  - atualizar(id, FornecedorRequest): atualiza todos os campos
+  - desativar(id): soft delete (status = INATIVO)
+
+2.5.6 PratoService
+  - listar(Pageable): lista TODOS os pratos (ativos e inativos) para admin
+  - listarCardapioPublico(Pageable): lista somente pratos ATIVOS com ficha tecnica
+  - listarPorCategoria(categoriaId, Pageable): lista pratos ATIVOS por categoria
+  - buscarPorId(id): busca prato independente de status
+  - criar(PratoRequest): valida categoria ativa, cria prato com status INATIVO
+  - atualizar(id, PratoRequest): atualiza campos, recalcula foodCost se custoProducao existe
+  - ativar(id): ativa prato SOMENTE se temFichaTecnica() retorna true
+  - desativar(id): se INATIVO -> deleta permanentemente (com ficha tecnica);
+                    se ATIVO -> soft delete (status = INATIVO)
+  - listarFoodCostAlto(): lista pratos ATIVOS com foodCost > 35%
+
+2.5.7 FichaTecnicaService
+  - listar(Pageable): lista fichas tecnicas ATIVAS com paginacao
+  - buscarPorId(id): busca ficha ATIVA por ID
+  - buscarPorPrato(pratoId): busca ficha pelo ID do prato
+  - criar(FichaTecnicaRequest): valida que nao existe ficha ativa para o prato,
+    processa itens (validando fatorCorrecao >= 1.0), calcula custos, atualiza prato
+  - atualizar(id, FichaTecnicaRequest): limpa itens, reprocessa e recalcula tudo
+  - desativar(id): desativa ficha E desativa prato associado, limpa custoProducao e foodCost
+  - recalcularFichasComInsumo(insumoId): recalcula todas fichas ATIVAS que usam o insumo
+
+  Calculos da Ficha Tecnica:
+    - quantidadeLiquida = quantidadeBruta / fatorCorrecao
+    - custoItem = quantidadeBruta * insumo.custoMedio
+    - custoTotal = soma de todos custoItem
+    - custoPorPorcao = custoTotal / rendimento
+    - foodCost = (custoPorPorcao / precoVenda) * 100
+
+2.5.8 PedidoService
+  - listar(Pageable): lista todos os pedidos
+  - listarPorCliente(clienteId, Pageable): lista pedidos de um cliente
+  - listarPorStatus(status, Pageable): lista pedidos por status
+  - buscarPorId(id): busca pedido por ID
+  - criar(PedidoRequest, Usuario): valida cada prato (ativo + com ficha tecnica),
+    verifica disponibilidade de estoque de todos os insumos necessarios,
+    calcula subtotais e total, cria pedido com status PENDENTE
+  - alterarStatus(id, novoStatus, usuario, motivoCancelamento):
+    valida transicao de status, executa acoes automaticas
+
+  Transicoes validas de status do pedido:
+    PENDENTE    -> EM_PREPARO | CANCELADO
+    EM_PREPARO  -> PRONTO     | CANCELADO
+    PRONTO      -> ENTREGUE
+    ENTREGUE    -> (nenhuma)
+    CANCELADO   -> (nenhuma)
+
+  Acoes automaticas:
+    - PENDENTE -> EM_PREPARO: baixa automatica no estoque (registrarSaida para cada
+      insumo da ficha tecnica * quantidade do item)
+    - Cancelamento apos EM_PREPARO: estorno automatico no estoque (registrarEstorno)
+    - Cancelamento apos EM_PREPARO: requer perfil ADMIN ou GERENTE
+    - Cancelamento sempre requer motivoCancelamento nao vazio
+
+2.5.9 EstoqueService
+  - registrarEntrada(insumo, quantidade, motivo): soma ao estoque, cria MovimentacaoEstoque ENTRADA
+  - registrarSaida(insumo, quantidade, motivo): valida estoque suficiente, subtrai, cria SAIDA
+  - registrarEstorno(insumo, quantidade, motivo): soma ao estoque, cria ESTORNO
+  - registrarSaidaManual(insumo, quantidade, motivoSaida): valida estoque, subtrai,
+    cria SAIDA com motivo "Saida manual - {motivo}"
+  - verificarDisponibilidade(insumo, quantidadeNecessaria): retorna boolean
+  - listarMovimentacoes(insumoId, Pageable): lista historico de movimentacoes com paginacao
+
+2.5.10 CompraService
+  - listar(Pageable): lista todas compras ordenadas por data desc
+  - buscarPorId(id): busca compra por ID
+  - criar(CompraRequest): valida fornecedor ativo, calcula subtotais e total,
+    cria com status RASCUNHO (sem impacto no estoque)
+  - atualizar(id, CompraRequest): atualiza dados (nao permitido se status = RECEBIDO)
+  - alterarStatus(id, novoStatus): valida transicao e processa recebimento se RECEBIDO
+  - desativar(id): cancela compra (nao permitido se ja RECEBIDO)
+
+  Transicoes validas de status da compra:
+    RASCUNHO  -> ENVIADO   | CANCELADO
+    ENVIADO   -> RECEBIDO  | CANCELADO
+    RECEBIDO  -> (nenhuma)
+    CANCELADO -> (nenhuma)
+
+  Processamento de Recebimento (ao mudar para RECEBIDO):
+    Para cada item da compra:
+      1. Calcula custo medio ponderado do insumo:
+         novoCusto = (estoqueAtual * custoAtual + qtdCompra * precoUnitario) / (estoqueAtual + qtdCompra)
+      2. Registra entrada no estoque via EstoqueService
+      3. Cria registro em HistoricoPreco (insumo, fornecedor, preco, data)
+      4. Recalcula todas fichas tecnicas que usam o insumo
+
+2.5.11 CatalogoFornecedorService
+  - listarPorFornecedor(fornecedorId): lista itens do catalogo de um fornecedor
+  - cotacaoPorInsumo(insumoId): lista fornecedores que vendem o insumo, ordenado por preco ASC
+  - criar(fornecedorId, CatalogoFornecedorRequest): valida unicidade fornecedor+insumo
+  - atualizar(id, CatalogoFornecedorRequest): atualiza preco e unidadeVenda
+  - excluir(id): remove item do catalogo (hard delete)
+  - historicoPrecos(insumoId): lista historico de precos do insumo ordenado por data ASC
+
+2.5.12 DashboardService
+  - getDashboard(): agrega metricas do mes corrente:
+    - faturamentoMensal: soma dos totais de pedidos ENTREGUE no mes
+    - totalPedidosMes: contagem de pedidos no mes
+    - pratosAtivos: contagem de pratos ATIVOS
+    - insumosAbaixoMinimo: contagem de insumos abaixo do estoque minimo
+    - totalComprasMes: soma de compras RECEBIDAS no mes
+    - pedidosPorStatus: mapa status -> contagem
+    - pratosFoodCostAlto: pratos com foodCost > 35%
+    - insumosEstoqueBaixo: lista de insumos abaixo do minimo
+    - faturamentoDiario: faturamento por dia nos ultimos 30 dias
+    - topPratos: top 5 pratos mais vendidos no mes
+  - getTopPratos(inicio, fim): top 5 pratos vendidos no periodo, limitado via PageRequest.of(0, 5)
+
+--------------------------------------------------------------------------------
+2.6 DTOs DE REQUISICAO
+--------------------------------------------------------------------------------
+
+LoginRequest:
+  - email: String (@NotBlank, @Email)
+  - senha: String (@NotBlank)
+
+UsuarioRequest:
+  - nome: String (@NotBlank, @Size max 150)
+  - email: String (@NotBlank, @Email)
+  - senha: String (@NotBlank, @Size min 6)
+  - perfil: Perfil (@NotNull)
+
+UsuarioUpdateRequest:
+  - nome: String (@NotBlank, @Size max 150)
+  - email: String (@NotBlank, @Email)
+  - perfil: Perfil (opcional)
+  - senha: String (@Size min 6, opcional)
+
+CategoriaRequest:
+  - nome: String (@NotBlank, @Size max 100)
+  - descricao: String (@Size max 255)
+
+PratoRequest:
+  - nome: String (@NotBlank, @Size max 150)
+  - descricao: String (opcional)
+  - precoVenda: BigDecimal (@NotNull, @Positive)
+  - tempoPreparo: Integer (opcional)
+  - imagemUrl: String (opcional)
+  - categoriaId: Long (@NotNull)
+
+InsumoRequest:
+  - nome: String (@NotBlank, @Size max 150)
+  - unidadeMedida: UnidadeMedida (@NotNull)
+  - estoqueMinimo: BigDecimal (@NotNull, @PositiveOrZero)
+  - custoMedio: BigDecimal (@PositiveOrZero, opcional)
+
+FichaTecnicaRequest:
+  - pratoId: Long (@NotNull)
+  - rendimento: Integer (@NotNull, @Positive)
+  - itens: List<ItemFichaTecnicaRequest> (@NotNull, @Valid)
+
+ItemFichaTecnicaRequest:
+  - insumoId: Long (@NotNull)
+  - quantidadeBruta: BigDecimal (@NotNull, @Positive)
+  - fatorCorrecao: BigDecimal (@NotNull, @DecimalMin "1.0")
+
+PedidoRequest:
+  - observacao: String (opcional)
+  - itens: List<ItemPedidoRequest> (@NotNull, @Valid)
+
+ItemPedidoRequest:
+  - pratoId: Long (@NotNull)
+  - quantidade: Integer (@NotNull, @Positive)
+  - observacao: String (opcional)
+
+FornecedorRequest:
+  - razaoSocial: String (@NotBlank, @Size max 200)
+  - cnpj: String (@NotBlank, @Size max 18)
+  - email: String (@Email, opcional)
+  - telefone: String (opcional)
+  - endereco: String (opcional)
+
+CompraRequest:
+  - fornecedorId: Long (@NotNull)
+  - dataCompra: LocalDate (@NotNull)
+  - notaFiscal: String (opcional)
+  - itens: List<ItemCompraRequest> (@NotNull, @Valid)
+
+ItemCompraRequest:
+  - insumoId: Long (@NotNull)
+  - quantidade: BigDecimal (@NotNull, @Positive)
+  - precoUnitario: BigDecimal (@NotNull, @Positive)
+
+CatalogoFornecedorRequest:
+  - insumoId: Long (@NotNull)
+  - preco: BigDecimal (@NotNull, @Positive)
+  - unidadeVenda: String (@NotNull)
+
+SaidaManualRequest:
+  - quantidade: BigDecimal (@NotNull, @Positive)
+  - motivo: String (@NotNull)
+
+--------------------------------------------------------------------------------
+2.7 DTOs DE RESPOSTA
+--------------------------------------------------------------------------------
+
+LoginResponse: token, tipo, usuario (UsuarioResponse)
+UsuarioResponse: id, nome, email, perfil, status, createdAt
+CategoriaResponse: id, nome, descricao, status
+PratoResponse: id, nome, descricao, precoVenda, custoProducao, foodCost,
+  tempoPreparo, imagemUrl, categoriaId, categoriaNome, temFichaTecnica,
+  foodCostAlto (calculado: foodCost > 35%), status
+InsumoResponse: id, nome, unidadeMedida, quantidadeEstoque, estoqueMinimo,
+  custoMedio, abaixoEstoqueMinimo (calculado: quantidadeEstoque <= estoqueMinimo), status
+FichaTecnicaResponse: id, pratoId, pratoNome, rendimento, custoTotal,
+  custoPorPorcao, foodCost, itens (List<ItemFichaTecnicaResponse>), status
+ItemFichaTecnicaResponse: id, insumoId, insumoNome, unidadeMedida,
+  quantidadeBruta, fatorCorrecao, quantidadeLiquida, custoItem
+PedidoResponse: id, clienteId, clienteNome, statusPedido, total, observacao,
+  motivoCancelamento, itens (List<ItemPedidoResponse>), createdAt
+ItemPedidoResponse: id, pratoId, pratoNome, quantidade, precoUnitario, subtotal, observacao
+FornecedorResponse: id, razaoSocial, cnpj, email, telefone, endereco, status
+CompraResponse: id, fornecedorId, fornecedorNome, dataCompra, notaFiscal,
+  valorTotal, itens (List<ItemCompraResponse>), status
+ItemCompraResponse: id, insumoId, insumoNome, quantidade, precoUnitario, subtotal
+CatalogoFornecedorResponse: id, fornecedorId, fornecedorNome, insumoId, insumoNome,
+  preco, unidadeVenda
+HistoricoPrecoResponse: id, insumoId, insumoNome, fornecedorId, fornecedorNome,
+  preco, dataRegistro
+MovimentacaoEstoqueResponse: id, insumoId, insumoNome, tipo, quantidade, motivo, createdAt
+DashboardResponse: faturamentoMensal, totalPedidosMes, pratosAtivos,
+  insumosAbaixoMinimo, totalComprasMes, pedidosPorStatus, pratosFoodCostAlto,
+  insumosEstoqueBaixo, faturamentoDiario, topPratos
+FaturamentoDiarioResponse: data, valor
+TopPratosResponse: pratoId, pratoNome, quantidadeVendida
+
+--------------------------------------------------------------------------------
+2.8 REPOSITORIES
+--------------------------------------------------------------------------------
+
+UsuarioRepository (extends JpaRepository<Usuario, Long>):
+  - findByEmailAndStatus(email, status): Optional<Usuario>
+  - findByEmail(email): Optional<Usuario>
+  - existsByEmail(email): boolean
+  - findByStatus(status, pageable): Page<Usuario>
+  - findByPerfilAndStatus(perfil, status, pageable): Page<Usuario>
+  - countByPerfilAndStatus(perfil, status): long
+
+CategoriaRepository:
+  - findByStatus(status, pageable): Page<Categoria>
+  - findAllByStatus(status): List<Categoria>
+
+PratoRepository:
+  - findByStatus(status, pageable): Page<Prato>
+  - findByCategoriaIdAndStatus(categoriaId, status, pageable): Page<Prato>
+  - findAtivosComFichaTecnica(status, pageable): Page<Prato>
+    @Query: SELECT p FROM Prato p WHERE p.status = :status AND p.fichaTecnica IS NOT NULL
+  - findPratosComFoodCostAlto(limite): List<Prato>
+    @Query: SELECT p FROM Prato p WHERE p.foodCost > :limite AND p.status = 'ATIVO'
+  - countByStatus(status): long
+
+InsumoRepository:
+  - findByStatus(status, pageable): Page<Insumo>
+  - findInsumosAbaixoEstoqueMinimo(): List<Insumo>
+    @Query: SELECT i FROM Insumo i WHERE i.quantidadeEstoque <= i.estoqueMinimo AND i.status = 'ATIVO'
+  - countByStatus(status): long
+
+FichaTecnicaRepository:
+  - findByPratoId(pratoId): Optional<FichaTecnica>
+  - existsByPratoIdAndStatus(pratoId, status): boolean
+  - findByStatus(status, pageable): Page<FichaTecnica>
+
+FornecedorRepository:
+  - existsByCnpj(cnpj): boolean
+  - findByStatus(status, pageable): Page<Fornecedor>
+  - findAllByStatus(status): List<Fornecedor>
+
+CompraRepository:
+  - findAllByOrderByCreatedAtDesc(pageable): Page<Compra>
+  - findByStatus(status, pageable): Page<Compra>
+  - totalComprasPeriodo(inicio, fim): BigDecimal
+    @Query: SELECT COALESCE(SUM(c.valorTotal), 0) FROM Compra c WHERE c.status = 'RECEBIDO' AND c.dataCompra BETWEEN :inicio AND :fim
+
+PedidoRepository:
+  - findByClienteId(clienteId, pageable): Page<Pedido>
+  - findByStatusPedido(statusPedido, pageable): Page<Pedido>
+  - faturamentoPeriodo(inicio, fim): BigDecimal
+    @Query: SELECT COALESCE(SUM(p.total), 0) FROM Pedido p WHERE p.statusPedido = 'ENTREGUE' AND p.createdAt BETWEEN :inicio AND :fim
+  - countPedidosPeriodo(inicio, fim): long
+  - countByStatusGroup(): List<Object[]>
+    @Query: SELECT p.statusPedido, COUNT(p) FROM Pedido p GROUP BY p.statusPedido
+  - faturamentoDiario(inicio, fim): List<Object[]>
+    @Query: SELECT FUNCTION('DATE', p.createdAt), COALESCE(SUM(p.total), 0) FROM Pedido p WHERE p.statusPedido = 'ENTREGUE' AND p.createdAt BETWEEN :inicio AND :fim GROUP BY FUNCTION('DATE', p.createdAt) ORDER BY FUNCTION('DATE', p.createdAt)
+  - findTopPratosVendidos(inicio, fim, pageable): List<Object[]>
+    @Query: SELECT ip.prato.id, ip.prato.nome, SUM(ip.quantidade) as total FROM ItemPedido ip WHERE ip.pedido.statusPedido = 'ENTREGUE' AND ip.pedido.createdAt BETWEEN :inicio AND :fim GROUP BY ip.prato.id, ip.prato.nome ORDER BY total DESC
+
+MovimentacaoEstoqueRepository:
+  - findByInsumoId(insumoId, pageable): Page<MovimentacaoEstoque>
+
+CatalogoFornecedorRepository:
+  - findByFornecedorId(fornecedorId): List<CatalogoFornecedor>
+  - findByInsumoIdOrderByPrecoAsc(insumoId): List<CatalogoFornecedor>
+  - findByFornecedorIdAndInsumoId(fornecedorId, insumoId): Optional<CatalogoFornecedor>
+  - existsByFornecedorIdAndInsumoId(fornecedorId, insumoId): boolean
+
+HistoricoPrecoRepository:
+  - findByInsumoIdOrderByDataRegistroAsc(insumoId): List<HistoricoPreco>
+  - findByInsumoIdAndFornecedorIdOrderByDataRegistroAsc(insumoId, fornecedorId): List<HistoricoPreco>
+
+--------------------------------------------------------------------------------
+2.9 MAPPERS
+--------------------------------------------------------------------------------
+
+8 classes Mapper no pacote com.comandadigital.mapper:
+  UsuarioMapper, CategoriaMapper, PratoMapper, InsumoMapper,
+  FichaTecnicaMapper, FornecedorMapper, CompraMapper, PedidoMapper
+
+Cada mapper possui:
+  - toResponse(Entity): converte entidade para DTO de resposta
+  - toEntity(Request): converte DTO de entrada para entidade (quando aplicavel)
+
+Campos calculados nos mappers:
+  - PratoMapper.toResponse: temFichaTecnica (via entity.temFichaTecnica()),
+    foodCostAlto (foodCost != null && foodCost > 35)
+  - InsumoMapper.toResponse: abaixoEstoqueMinimo (quantidadeEstoque <= estoqueMinimo)
+
+--------------------------------------------------------------------------------
+2.10 TRATAMENTO DE ERROS
+--------------------------------------------------------------------------------
+
+GlobalExceptionHandler (@RestControllerAdvice):
+
+  Excecao                          | HTTP Status | Mensagem
+  ---------------------------------|-------------|---------------------------
+  ResourceNotFoundException        | 404         | Mensagem customizada
+  DuplicateResourceException       | 409         | Mensagem customizada
+  BusinessException                | 422         | Mensagem customizada
+  BadCredentialsException          | 401         | "Credenciais invalidas"
+  AccessDeniedException            | 403         | "Acesso negado"
+  MethodArgumentNotValidException  | 400         | "Erro de validacao" + campos
+  Exception (generica)             | 500         | "Erro interno do servidor"
+
+Formato padrao de resposta de erro:
+  {
+    "timestamp": "2024-01-01T10:00:00",
+    "status": 404,
+    "erro": "Mensagem do erro"
+  }
+
+Formato para erros de validacao (400):
+  {
+    "timestamp": "2024-01-01T10:00:00",
+    "status": 400,
+    "erro": "Erro de validacao",
+    "campos": { "campo": "mensagem de erro" }
+  }
+
+--------------------------------------------------------------------------------
+2.11 SEGURANCA (config/)
+--------------------------------------------------------------------------------
+
+SecurityConfig:
+  - CORS configurado para http://localhost:4200
+  - CSRF desabilitado (API stateless)
+  - Sessoes STATELESS
+  - Endpoints publicos definidos explicitamente
+  - JwtAuthFilter adicionado antes de UsernamePasswordAuthenticationFilter
+  - @EnableMethodSecurity habilitado para @PreAuthorize
+
+JwtService:
+  - Gera token com subject (email), issuedAt, expiration (8h)
+  - Assina com chave HMAC-SHA derivada do secret em Base64
+  - Valida token comparando username e verificando expiracao
+
+JwtAuthFilter (OncePerRequestFilter):
+  - Extrai header Authorization "Bearer {token}"
+  - Extrai username do token via JwtService
+  - Carrega UserDetails e valida token
+  - Define autenticacao no SecurityContextHolder
+  - Trata excecoes silenciosamente (log + continua filter chain)
+
+PasswordConfig:
+  - BCryptPasswordEncoder como bean PasswordEncoder
+
+
+================================================================================
+3. ESTRUTURA DO FRONTEND
+================================================================================
+
+3.1 TECNOLOGIAS
+
+  - Angular 17.3.0 com standalone components
+  - Lazy loading em todas as rotas
+  - Chart.js 4.4.2 para graficos
+  - RxJS 7.8 para programacao reativa
+  - LocalStorage para persistencia do carrinho e sessao
+
+3.2 ROTAS
+
+  /                   -> redireciona para /cardapio
+  /login              -> LoginComponent (publico)
+  /registrar          -> RegistrarComponent (publico)
+  /cardapio           -> CardapioComponent (publico)
+  /carrinho           -> CarrinhoComponent (authGuard)
+  /meus-pedidos       -> MeusPedidosComponent (authGuard)
+  /admin              -> redireciona para /admin/dashboard (authGuard + roleGuard)
+  /admin/dashboard    -> DashboardComponent (ADMIN, GERENTE, COZINHEIRO)
+  /admin/pedidos      -> PedidosAdminComponent (ADMIN, GERENTE, COZINHEIRO)
+  /admin/categorias   -> CategoriasComponent (ADMIN, GERENTE)
+  /admin/pratos       -> PratosComponent (ADMIN, GERENTE)
+  /admin/fichas-tecnicas -> FichasTecnicasComponent (ADMIN, GERENTE)
+  /admin/insumos      -> InsumosComponent (ADMIN, GERENTE)
+  /admin/fornecedores -> FornecedoresComponent (ADMIN, GERENTE)
+  /admin/compras      -> ComprasComponent (ADMIN, GERENTE)
+  /admin/usuarios     -> UsuariosComponent (ADMIN)
+  **                  -> redireciona para /cardapio
+
+3.3 GUARDS
+
+  authGuard (auth.guard.ts):
+    - Verifica AuthService.isLoggedIn()
+    - Se nao logado, redireciona para /login
+
+  roleGuard (role.guard.ts):
+    - Le roles do route.data['roles']
+    - Verifica AuthService.hasAnyRole(roles)
+    - Se nao autorizado, redireciona para /cardapio
+
+3.4 SERVICES
+
+3.4.1 AuthService (auth.service.ts)
+  Autenticacao:
+    - login(request): POST /auth/login, armazena token e usuario no localStorage
+    - registrar(request): POST /auth/registrar
+    - logout(): limpa token, usuario e carrinho do localStorage
+    - getToken(): retorna token do localStorage
+    - getUsuario(): retorna objeto usuario do localStorage
+    - isLoggedIn(): verifica se token existe
+    - hasRole(role): verifica perfil exato
+    - hasAnyRole(roles): verifica se usuario possui algum dos perfis
+  Carrinho (localStorage):
+    - getCart(): retorna itens do carrinho
+    - addToCart(prato, quantidade): adiciona/atualiza item no carrinho
+    - removeFromCart(pratoId): remove item
+    - clearCart(): esvazia carrinho
+    - getCartCount(): total de itens
+    - getCartTotal(): valor total
+
+3.4.2 ApiService (api.service.ts)
+  Base URL: environment.apiUrl
+  Metodos para todas as entidades:
+    Categorias: getCategoriasPublico, getCategorias, createCategoria, updateCategoria, deleteCategoria
+    Cardapio: getCardapio (12/pagina), getCardapioCategoria
+    Pratos: getPratos, createPrato, updatePrato, ativarPrato, deletePrato
+    Insumos: getInsumos, getInsumosEstoqueBaixo, createInsumo, updateInsumo, deleteInsumo, saidaManual
+    Fichas Tecnicas: getFichasTecnicas, getFichaTecnica, createFichaTecnica, updateFichaTecnica, deleteFichaTecnica
+    Pedidos: getPedidos, getMeusPedidos, getPedidosPorStatus, createPedido, alterarStatusPedido
+    Fornecedores: getFornecedores, getFornecedoresTodos, createFornecedor, updateFornecedor, deleteFornecedor
+    Compras: getCompras, getCompra, createCompra, updateCompra, alterarStatusCompra, deleteCompra
+    Catalogo: getCatalogoFornecedor, getCotacaoInsumo, createCatalogo, updateCatalogo, deleteCatalogo, getHistoricoPrecos
+    Usuarios: getUsuarios, createUsuario, deleteUsuario
+    Dashboard: getDashboard, getTopPratos
+
+3.4.3 ToastService (toast.service.ts)
+  - success(message): emite toast de sucesso
+  - error(message): emite toast de erro
+  - warning(message): emite toast de aviso
+  - toast$: Observable que o ToastComponent assina
+
+3.5 HTTP INTERCEPTOR (auth.interceptor.ts)
+  - Adiciona header Authorization: Bearer {token} em todas as requisicoes
+  - Tratamento de erros HTTP:
+    401: limpa token, redireciona para /login, mostra "Sessao expirada"
+    403: mostra "Acesso negado"
+    409: mostra mensagem de recurso duplicado
+    422: mostra mensagem de erro de validacao
+    0 (rede): mostra "Servidor indisponivel"
+
+3.6 COMPONENTS
+
+3.6.1 AppComponent (root)
+  - Navbar responsiva com badge do carrinho
+  - Sidebar admin para rotas /admin
+  - Menu condicional baseado no perfil do usuario
+  - Integracao do ToastComponent
+
+3.6.2 LoginComponent (/login)
+  - Formulario: email (obrigatorio, formato email), senha (obrigatorio)
+  - Apos login: redireciona ADMIN/GERENTE/COZINHEIRO para /admin, outros para /cardapio
+  - Spinner de carregamento durante submissao
+
+3.6.3 RegistrarComponent (/registrar)
+  - Formulario: nome (obrigatorio), email (obrigatorio), senha (obrigatorio, min 6)
+  - Perfil forcado como CLIENTE
+  - Redireciona para /login apos sucesso
+
+3.6.4 CardapioComponent (/cardapio)
+  - Grid de pratos com filtro por categoria
+  - Paginacao (12 itens por pagina)
+  - Botao "Adicionar ao Carrinho" para usuarios logados
+  - Cards com nome, descricao, categoria, preco
+
+3.6.5 CarrinhoComponent (/carrinho)
+  - Tabela com itens do carrinho (quantidade editavel, observacoes, remover)
+  - Campo de observacao geral do pedido
+  - Calculo automatico do total
+  - Botao "Finalizar Pedido" que cria o pedido e limpa o carrinho
+
+3.6.6 MeusPedidosComponent (/meus-pedidos)
+  - Lista de pedidos do cliente com badges de status
+  - Detalhes dos itens com quantidades e precos
+  - Paginacao
+
+3.6.7 DashboardComponent (/admin/dashboard)
+  - 4 cards KPI: Faturamento Mensal, Pedidos no Mes, Pratos Ativos, Insumos Baixo Estoque
+  - Grafico de linha: faturamento diario (30 dias)
+  - Grafico doughnut: pedidos por status
+  - Grafico de barras: top 5 pratos mais vendidos (com filtro de data)
+  - Tabela: pratos com food cost alto (> 35%)
+  - Tabela: insumos abaixo do estoque minimo
+
+3.6.8 CategoriasComponent (/admin/categorias)
+  - Tabela paginada: ID, Nome, Descricao, Status, Acoes
+  - Modal de criacao/edicao com validacao
+  - Desativacao com confirmacao
+
+3.6.9 PratosComponent (/admin/pratos)
+  - Tabela: ID, Nome, Categoria, Preco, Custo, Food Cost%, Ficha Tec., Status, Acoes
+  - Modal de criacao/edicao com dropdown de categoria
+  - Ativacao (somente se tem ficha tecnica), desativacao, exclusao
+  - Food cost com destaque visual (vermelho se > 35%)
+
+3.6.10 InsumosComponent (/admin/insumos)
+  - Tabela: ID, Nome, Unidade, Estoque, Minimo, Custo Medio, Status Est., Acoes
+  - Modal de criacao/edicao
+  - Modal de saida manual: quantidade + motivo (DESPERDICIO, VENCIMENTO, QUEBRA, USO_INTERNO)
+  - Modal de cotacao: tabela de fornecedores e precos do insumo
+  - Modal de historico de precos: grafico de linha Chart.js + tabela
+
+3.6.11 FichasTecnicasComponent (/admin/fichas-tecnicas)
+  - Tabela: ID, Prato, Rendimento, Custo Total, Custo/Porcao, Food Cost%, Acoes
+  - Modal de criacao com FormArray dinamico de ingredientes
+  - Modal de detalhes: tabela com insumo, unidade, qtd bruta, fator correcao, qtd liquida, custo
+
+3.6.12 PedidosAdminComponent (/admin/pedidos)
+  - Tabela: #, Cliente, Itens, Total, Status, Data, Acoes
+  - Filtro por status (dropdown)
+  - Botoes de transicao de status: Preparar, Pronto, Entregar
+  - Modal de cancelamento com campo de motivo obrigatorio
+  - Restricao: cancelamento apos preparo somente para ADMIN/GERENTE
+
+3.6.13 FornecedoresComponent (/admin/fornecedores)
+  - Tabela: ID, Razao Social, CNPJ, Email, Telefone, Acoes
+  - Modal de criacao/edicao
+  - Modal de catalogo: gerenciamento de produtos do fornecedor (adicionar, editar, remover)
+
+3.6.14 ComprasComponent (/admin/compras)
+  - Tabela: ID, Fornecedor, Data, NF, Itens, Total, Status, Acoes
+  - Modal de criacao/edicao com FormArray de itens
+  - Transicoes de status: RASCUNHO -> ENVIADO -> RECEBIDO
+  - Edicao permitida somente em RASCUNHO
+
+3.6.15 UsuariosComponent (/admin/usuarios)
+  - Tabela: ID, Nome, Email, Perfil, Status, Acoes
+  - Modal de criacao com dropdown de perfil
+  - Desativacao com confirmacao
+  - Acesso restrito a ADMIN
+
+3.6.16 ToastComponent (shared)
+  - Exibe notificacoes temporarias (3 segundos)
+  - Tipos: success (verde), error (vermelho), warning (amarelo)
+  - Assina ToastService.toast$
+
+3.7 MODELS (models.ts)
+
+  Interfaces TypeScript correspondentes aos DTOs do backend:
+    LoginRequest, LoginResponse, UsuarioRequest, Usuario,
+    Categoria, CategoriaRequest, Prato, PratoRequest,
+    Insumo, InsumoRequest, FichaTecnica, ItemFichaTecnica, FichaTecnicaRequest,
+    Pedido, ItemPedido, PedidoRequest, Fornecedor, FornecedorRequest,
+    Compra, ItemCompra, CompraRequest, CatalogoFornecedor, CatalogoFornecedorRequest,
+    HistoricoPreco, TopPratos, Dashboard, Page<T>, CartItem
+
+
+================================================================================
+4. FLUXO COMPLETO DE UMA VENDA
+================================================================================
+
+4.1 CLIENTE FAZ PEDIDO
+
+  1. Cliente acessa /cardapio (CardapioComponent)
+  2. Visualiza pratos ATIVOS com ficha tecnica (GET /api/cardapio)
+  3. Adiciona itens ao carrinho (localStorage via AuthService)
+  4. Acessa /carrinho (CarrinhoComponent)
+  5. Ajusta quantidades e observacoes
+  6. Clica "Finalizar Pedido"
+  7. Frontend envia POST /api/pedidos com PedidoRequest
+
+4.2 BACKEND PROCESSA O PEDIDO (PedidoService.criar)
+
+  Para cada item do pedido:
+    1. Busca prato ATIVO (valida existencia e status)
+    2. Busca ficha tecnica do prato (valida existencia)
+    3. Para cada insumo da ficha tecnica:
+       - Calcula quantidade necessaria: ingrediente.quantidadeBruta * item.quantidade
+       - Verifica disponibilidade no estoque (EstoqueService.verificarDisponibilidade)
+       - Se estoque insuficiente: lanca BusinessException
+    4. Cria ItemPedido com precoUnitario = prato.precoVenda e subtotal = preco * quantidade
+  Calcula total = soma dos subtotais
+  Salva pedido com status PENDENTE
+
+4.3 COZINHA PROCESSA O PEDIDO
+
+  1. Cozinheiro acessa /admin/pedidos (PedidosAdminComponent)
+  2. Visualiza pedidos PENDENTES
+  3. Clica "Preparar" -> PATCH /api/pedidos/{id}/status?status=EM_PREPARO
+
+  Backend (PedidoService.alterarStatus -> EM_PREPARO):
+    1. Valida transicao PENDENTE -> EM_PREPARO
+    2. Executa baixa automatica no estoque (realizarBaixaEstoque):
+       Para cada item do pedido:
+         Para cada insumo da ficha tecnica do prato:
+           quantidade = ingrediente.quantidadeBruta * item.quantidade
+           EstoqueService.registrarSaida(insumo, quantidade, "Baixa automatica - Pedido #X")
+    3. Atualiza status para EM_PREPARO
+
+  4. Quando pronto, cozinheiro clica "Pronto" -> status = PRONTO
+  5. Gerente clica "Entregar" -> status = ENTREGUE
+
+4.4 CANCELAMENTO
+
+  Se cancelado apos EM_PREPARO:
+    1. Somente ADMIN ou GERENTE pode cancelar
+    2. motivoCancelamento obrigatorio
+    3. Estorno automatico no estoque (realizarEstornoEstoque):
+       Para cada item do pedido:
+         Para cada insumo da ficha tecnica:
+           EstoqueService.registrarEstorno(insumo, quantidade, "Estorno - Cancelamento Pedido #X")
+
+
+================================================================================
+5. REGRAS DE NEGOCIO
+================================================================================
+
+5.1 PRATOS
+  - Pratos sao criados com status INATIVO
+  - So podem ser ativados se possuem ficha tecnica ATIVA
+  - Desativar prato ATIVO: soft delete (INATIVO)
+  - Desativar prato INATIVO: hard delete (exclui prato e ficha tecnica)
+  - Food cost = (custoPorPorcao / precoVenda) * 100
+  - Pratos com food cost > 35% sao sinalizados como alto
+
+5.2 FICHAS TECNICAS
+  - Um prato so pode ter uma ficha tecnica ATIVA
+  - Fator de correcao deve ser >= 1.0
+  - quantidadeLiquida = quantidadeBruta / fatorCorrecao
+  - custoItem = quantidadeBruta * insumo.custoMedio
+  - custoTotal = soma dos custoItem
+  - custoPorPorcao = custoTotal / rendimento
+  - Desativar ficha tecnica desativa o prato associado
+  - Quando custo de insumo muda, todas fichas que usam o insumo sao recalculadas
+
+5.3 ESTOQUE
+  - Tres tipos de movimentacao: ENTRADA, SAIDA, ESTORNO
+  - Saida manual requer motivo: DESPERDICIO, VENCIMENTO, QUEBRA, USO_INTERNO
+  - Saida automatica ocorre ao iniciar preparo do pedido (PENDENTE -> EM_PREPARO)
+  - Estorno automatico ocorre ao cancelar pedido ja em preparo
+  - Toda movimentacao cria registro de auditoria em MovimentacaoEstoque
+  - Nao e permitido saida que resulte em estoque negativo
+  - Insumos com quantidadeEstoque <= estoqueMinimo sao sinalizados como baixo estoque
+
+5.4 COMPRAS
+  - Status: RASCUNHO -> ENVIADO -> RECEBIDO (ou CANCELADO)
+  - Compras em RASCUNHO podem ser editadas
+  - Compras RECEBIDAS nao podem ser editadas ou canceladas
+  - Ao receber uma compra:
+    1. Custo medio ponderado:
+       novoCusto = (estoqueAtual * custoAtual + qtdCompra * precoUnitario) / estoqueTotal
+    2. Estoque e atualizado via ENTRADA
+    3. Historico de preco e registrado
+    4. Fichas tecnicas com o insumo sao recalculadas
+
+5.5 PEDIDOS
+  - Transicoes: PENDENTE -> EM_PREPARO -> PRONTO -> ENTREGUE
+  - Cancelamento possivel em PENDENTE (qualquer usuario), EM_PREPARO/PRONTO (somente ADMIN/GERENTE)
+  - Cancelamento sempre requer motivoCancelamento
+  - Criacao de pedido valida estoque de todos os insumos necessarios ANTES de criar
+
+5.6 USUARIOS
+  - Registro publico sempre cria usuario CLIENTE
+  - Somente ADMIN pode criar usuarios com outros perfis
+  - Desativacao por soft delete (status = INATIVO)
+  - Somente usuarios ATIVOS podem fazer login
+  - Email deve ser unico no sistema
+
+5.7 FORNECEDORES
+  - CNPJ deve ser unico
+  - Catalogo vincula fornecedor + insumo com preco e unidade de venda
+  - Combinacao fornecedor + insumo deve ser unica no catalogo
+  - Cotacao lista fornecedores de um insumo ordenados por preco (menor primeiro)
+
+5.8 DASHBOARD
+  - Faturamento mensal: soma dos pedidos ENTREGUE no mes corrente
+  - Faturamento diario: ultimos 30 dias, somente pedidos ENTREGUE
+  - Top pratos: top 5 por quantidade vendida, somente pedidos ENTREGUE
+  - Food cost alto: pratos ATIVOS com food cost > 35%
+  - Estoque baixo: insumos ATIVOS com quantidadeEstoque <= estoqueMinimo
+
+
+================================================================================
+6. ESTRUTURA DO BANCO DE DADOS
+================================================================================
+
+6.1 MIGRACOES FLYWAY
+
+V1__criar_tabelas.sql - Criacao inicial de 12 tabelas:
+  usuarios, categorias, pratos, insumos, fichas_tecnicas, itens_ficha_tecnica,
+  pedidos, itens_pedido, fornecedores, compras, itens_compra, movimentacoes_estoque
+  Engine: InnoDB | Charset: utf8mb4 | Collation: utf8mb4_unicode_ci
+
+V2__seed_admin.sql - Dados iniciais:
+  - Usuario admin: admin@email.com / senha123 (BCrypt) / perfil ADMIN
+  - 4 categorias: Entradas, Pratos Principais, Sobremesas, Bebidas
+
+V3__fix_status_case.sql - Normalizacao de status para UPPERCASE:
+  Atualiza status em: categorias, usuarios, pratos, insumos, fornecedores,
+  fichas_tecnicas, compras
+
+V4__novas_funcionalidades.sql - Novas funcionalidades:
+  - pedidos.motivo_cancelamento (VARCHAR 255)
+  - movimentacoes_estoque.tipo expandido para VARCHAR(20)
+  - compras.status alterado para VARCHAR(20) com default 'RASCUNHO'
+  - Nova tabela: catalogo_fornecedor (fornecedor_id + insumo_id UNIQUE)
+  - Nova tabela: historico_precos
+
+6.2 TABELAS E INDICES
+
+  usuarios:
+    Indices: idx_usuarios_email, idx_usuarios_perfil, idx_usuarios_status
+
+  categorias:
+    Indices: idx_categorias_status
+
+  pratos:
+    FK: fk_pratos_categoria -> categorias(id)
+    Indices: idx_pratos_categoria, idx_pratos_status
+
+  insumos:
+    Indices: idx_insumos_status
+
+  fichas_tecnicas:
+    FK: fk_fichas_tecnicas_prato -> pratos(id)
+    Indices: idx_fichas_tecnicas_prato
+    Constraint: prato_id UNIQUE
+
+  itens_ficha_tecnica:
+    FK: fk_itens_ft_ficha -> fichas_tecnicas(id) ON DELETE CASCADE
+    FK: fk_itens_ft_insumo -> insumos(id)
+    Indices: idx_itens_ft_ficha, idx_itens_ft_insumo
+
+  pedidos:
+    FK: fk_pedidos_cliente -> usuarios(id)
+    Indices: idx_pedidos_cliente, idx_pedidos_status
+
+  itens_pedido:
+    FK: fk_itens_pedido_pedido -> pedidos(id) ON DELETE CASCADE
+    FK: fk_itens_pedido_prato -> pratos(id)
+    Indices: idx_itens_pedido_pedido, idx_itens_pedido_prato
+
+  fornecedores:
+    Indices: idx_fornecedores_cnpj, idx_fornecedores_status
+
+  compras:
+    FK: fk_compras_fornecedor -> fornecedores(id)
+    Indices: idx_compras_fornecedor, idx_compras_data
+
+  itens_compra:
+    FK: fk_itens_compra_compra -> compras(id) ON DELETE CASCADE
+    FK: fk_itens_compra_insumo -> insumos(id)
+    Indices: idx_itens_compra_compra, idx_itens_compra_insumo
+
+  movimentacoes_estoque:
+    FK: fk_movimentacoes_insumo -> insumos(id)
+    Indices: idx_movimentacoes_insumo, idx_movimentacoes_tipo
+
+  catalogo_fornecedor:
+    FK: fornecedor_id -> fornecedores(id)
+    FK: insumo_id -> insumos(id)
+    UNIQUE: uk_catalogo_forn_insumo (fornecedor_id, insumo_id)
+    Indices: idx_catalogo_insumo, idx_catalogo_fornecedor
+
+  historico_precos:
+    FK: insumo_id -> insumos(id)
+    FK: fornecedor_id -> fornecedores(id)
+    Indices: idx_hist_insumo, idx_hist_fornecedor, idx_hist_data
+
+6.3 DIAGRAMA DE RELACIONAMENTOS
+
+  Usuario (1) ---> (N) Pedido (1) ---> (N) ItemPedido (N) ---> (1) Prato
+  Categoria (1) ---> (N) Prato (1) <---> (1) FichaTecnica (1) ---> (N) ItemFichaTecnica
+  ItemFichaTecnica (N) ---> (1) Insumo
+  Fornecedor (1) ---> (N) Compra (1) ---> (N) ItemCompra (N) ---> (1) Insumo
+  Fornecedor (1) ---> (N) CatalogoFornecedor (N) <--- (1) Insumo
+  Fornecedor (1) ---> (N) HistoricoPreco (N) <--- (1) Insumo
+  Insumo (1) ---> (N) MovimentacaoEstoque
+
+
+================================================================================
+7. CONSIDERACOES TECNICAS
+================================================================================
+
+7.1 DEPENDENCIAS BACKEND (pom.xml)
+
+  Spring Boot Starters:
+    - spring-boot-starter-web
+    - spring-boot-starter-data-jpa
+    - spring-boot-starter-security
+    - spring-boot-starter-validation
+
+  Banco de Dados:
+    - mysql-connector-j (runtime)
+    - flyway-core
+    - flyway-mysql
+
+  JWT:
+    - jjwt-api 0.12.5
+    - jjwt-impl 0.12.5 (runtime)
+    - jjwt-jackson 0.12.5 (runtime)
+
+  Documentacao:
+    - springdoc-openapi-starter-webmvc-ui 2.5.0
+
+  Utilitarios:
+    - lombok (optional)
+
+  Testes:
+    - spring-boot-starter-test
+    - spring-security-test
+
+7.2 DEPENDENCIAS FRONTEND (package.json)
+
+  Angular:
+    - @angular/core, @angular/common, @angular/forms, @angular/router,
+      @angular/platform-browser, @angular/compiler, @angular/animations (^17.3.0)
+
+  Graficos:
+    - chart.js ^4.4.2
+
+  Utilitarios:
+    - rxjs ~7.8.0
+    - tslib ^2.6.0
+    - zone.js ~0.14.0
+
+  Dev:
+    - @angular/cli, @angular-devkit/build-angular, @angular/compiler-cli (^17.3.0)
+    - typescript ~5.4.0
+
+7.3 DOCKER
+
+  docker-compose.yml define 3 servicos:
+
+  mysql:
+    - Imagem: mysql:8.0
+    - Container: comanda-mysql
+    - Porta: 3306:3306
+    - Volume: mysql_data (persistente)
+    - Health check: mysqladmin ping (10s intervalo, 5 retries)
+
+  backend:
+    - Build: ./backend (Dockerfile multi-stage)
+    - Container: comanda-backend
+    - Porta: 8080:8080
+    - Depende de: mysql (service_healthy)
+    - Variaveis: DB_HOST=mysql, DB_PORT=3306, DB_NAME=comanda_digital, DB_USER=root, DB_PASSWORD=root
+
+  frontend:
+    - Build: ./frontend (Dockerfile multi-stage)
+    - Container: comanda-frontend
+    - Porta: 4200:80
+    - Depende de: backend
+
+  Backend Dockerfile (multi-stage):
+    Stage 1 (build): maven:3.9-eclipse-temurin-17 -> mvn package -DskipTests
+    Stage 2 (runtime): eclipse-temurin:17-jre -> java -jar app.jar
+
+  Frontend Dockerfile (multi-stage):
+    Stage 1 (build): node:20-alpine -> npx ng build --configuration=production
+    Stage 2 (runtime): nginx:alpine -> copia dist/ para /usr/share/nginx/html
+
+7.4 PADROES ADOTADOS
+
+  - Soft delete para entidades principais (status ATIVO/INATIVO)
+  - Paginacao com Pageable do Spring Data em todas as listagens principais
+  - DTOs separados para Request e Response (nunca expondo @Entity)
+  - @Valid com Bean Validation em todos os endpoints que recebem body
+  - @Transactional nos metodos de servico
+  - @Transactional(readOnly = true) nos metodos de leitura
+  - Tratamento global de excecoes via @RestControllerAdvice
+  - Lazy loading em todos os relacionamentos JPA
+  - Cascade ALL + orphanRemoval em relacionamentos pai-filho
+  - Standalone components no Angular (sem NgModules)
+  - Lazy loading de rotas no Angular
+  - HttpInterceptor para token JWT e tratamento de erros HTTP
+  - LocalStorage para persistencia de sessao e carrinho
+
+7.5 SWAGGER
+
+  Disponivel em /swagger-ui.html quando a aplicacao esta rodando.
+  Documentacao JSON em /api-docs.
+
+================================================================================
+                         FIM DA DOCUMENTACAO
+================================================================================
