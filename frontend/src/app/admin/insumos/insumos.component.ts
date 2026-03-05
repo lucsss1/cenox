@@ -14,7 +14,10 @@ Chart.register(...registerables);
   imports: [CommonModule, ReactiveFormsModule, FormsModule],
   template: `
     <div class="page-header">
-      <h2><i class="fas fa-boxes"></i> Insumos / Estoque</h2>
+      <div>
+        <h2><i class="fas fa-boxes"></i> Insumos / Estoque</h2>
+        <p class="page-subtitle">{{insumos.length}} registros encontrados</p>
+      </div>
       <button class="btn btn-primary" (click)="abrirModal()"><i class="fas fa-plus"></i> Novo Insumo</button>
     </div>
 
@@ -25,33 +28,39 @@ Chart.register(...registerables);
           <thead><tr><th>ID</th><th>Nome</th><th>Unidade</th><th>Estoque</th><th>Min.</th><th>Custo Medio</th><th>Status Est.</th><th>Acoes</th></tr></thead>
           <tbody>
             <tr *ngFor="let i of insumos">
-              <td>{{i.id}}</td>
-              <td><strong>{{i.nome}}</strong></td>
+              <td style="color:#DC2626;font-weight:600;">#{{i.id}}</td>
+              <td><strong style="color:#F3F4F6;">{{i.nome}}</strong></td>
               <td>{{i.unidadeMedida}}</td>
               <td>{{i.quantidadeEstoque | number:'1.0-3'}}</td>
               <td>{{i.estoqueMinimo | number:'1.0-3'}}</td>
-              <td>{{i.custoMedio ? 'R$ ' + (i.custoMedio | number:'1.2-2') : '-'}}</td>
+              <td>{{i.custoMedio ? 'R$ ' + (i.custoMedio | number:'1.2-2') : '&mdash;'}}</td>
               <td>
                 <span [class]="i.abaixoEstoqueMinimo ? 'badge badge-danger' : 'badge badge-success'">
+                  <span class="badge-dot"></span>
                   {{i.abaixoEstoqueMinimo ? 'BAIXO' : 'OK'}}
                 </span>
               </td>
-              <td style="white-space:nowrap;">
-                <button class="btn btn-info btn-sm" (click)="verCotacao(i)" title="Cotacao"><i class="fas fa-search-dollar"></i></button>
-                <button class="btn btn-purple btn-sm" (click)="verHistorico(i)" title="Historico Precos" style="background:#7C3AED;"><i class="fas fa-chart-line"></i></button>
-                <button class="btn btn-warning btn-sm" (click)="abrirSaida(i)" title="Saida Manual"><i class="fas fa-arrow-down"></i></button>
-                <button class="btn btn-warning btn-sm" (click)="editar(i)" title="Editar"><i class="fas fa-edit"></i></button>
-                <button class="btn btn-danger btn-sm" (click)="excluir(i.id)" title="Excluir"><i class="fas fa-trash"></i></button>
+              <td>
+                <div style="display:flex;gap:6px;">
+                  <button class="btn-icon" (click)="verCotacao(i)" title="Cotacao"><i class="fas fa-search-dollar"></i></button>
+                  <button class="btn-icon" (click)="verHistorico(i)" title="Historico" style="border-color:rgba(124,58,237,0.3);color:#A78BFA;"><i class="fas fa-chart-line"></i></button>
+                  <button class="btn-icon btn-icon-warning" (click)="abrirSaida(i)" title="Saida Manual"><i class="fas fa-arrow-down"></i></button>
+                  <button class="btn-icon btn-icon-warning" (click)="editar(i)" title="Editar"><i class="fas fa-edit"></i></button>
+                  <button class="btn-icon btn-icon-danger" (click)="excluir(i.id)" title="Excluir"><i class="fas fa-trash"></i></button>
+                </div>
               </td>
             </tr>
-            <tr *ngIf="insumos.length === 0"><td colspan="8" style="text-align:center;color:var(--gray-500);">Nenhum insumo encontrado</td></tr>
+            <tr *ngIf="insumos.length === 0"><td colspan="8" style="text-align:center;color:#6B7280;padding:30px;">Nenhum insumo encontrado</td></tr>
           </tbody>
         </table>
       </div>
-      <div class="pagination" *ngIf="totalPages > 1">
-        <button (click)="carregar(currentPage - 1)" [disabled]="currentPage === 0">Anterior</button>
-        <button *ngFor="let p of pages" (click)="carregar(p)" [class.active]="p === currentPage">{{p + 1}}</button>
-        <button (click)="carregar(currentPage + 1)" [disabled]="currentPage === totalPages - 1">Proximo</button>
+      <div style="display:flex;align-items:center;margin-top:16px;" *ngIf="!loading && totalPages > 1">
+        <span class="pagination-info">Exibindo {{insumos.length}} registros</span>
+        <div class="pagination" style="margin-top:0;">
+          <button (click)="carregar(currentPage - 1)" [disabled]="currentPage === 0">&laquo;</button>
+          <button *ngFor="let p of pages" (click)="carregar(p)" [class.active]="p === currentPage">{{p + 1}}</button>
+          <button (click)="carregar(currentPage + 1)" [disabled]="currentPage === totalPages - 1">&raquo;</button>
+        </div>
       </div>
     </div>
 
@@ -72,8 +81,10 @@ Chart.register(...registerables);
               <option value="L">L</option><option value="ML">ML</option><option value="UN">UN</option>
             </select>
           </div>
-          <div class="form-group"><label>Estoque Minimo</label><input type="number" class="form-control" formControlName="estoqueMinimo" step="0.001"></div>
-          <div class="form-group"><label>Custo Medio (R$)</label><input type="number" class="form-control" formControlName="custoMedio" step="0.01"></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div class="form-group"><label>Estoque Minimo</label><input type="number" class="form-control" formControlName="estoqueMinimo" step="0.001"></div>
+            <div class="form-group"><label>Custo Medio (R$)</label><input type="number" class="form-control" formControlName="custoMedio" step="0.01"></div>
+          </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" (click)="fecharModal()">Cancelar</button>
             <button type="submit" class="btn btn-primary" [disabled]="form.invalid">Salvar</button>
@@ -114,21 +125,21 @@ Chart.register(...registerables);
     <div class="modal-overlay" *ngIf="showCotacaoModal" (click)="showCotacaoModal=false">
       <div class="modal-content" (click)="$event.stopPropagation()" style="max-width:600px;">
         <div class="modal-header">
-          <h3><i class="fas fa-search-dollar"></i> Cotacao - {{cotacaoInsumoNome}}</h3>
+          <h3><i class="fas fa-search-dollar" style="color:var(--primary);margin-right:8px;"></i> Cotacao - {{cotacaoInsumoNome}}</h3>
           <button class="modal-close" (click)="showCotacaoModal=false">&times;</button>
         </div>
         <table *ngIf="cotacaoItens.length > 0">
           <thead><tr><th>#</th><th>Fornecedor</th><th>Preco</th><th>Unidade</th></tr></thead>
           <tbody>
             <tr *ngFor="let c of cotacaoItens; let idx = index">
-              <td><span class="badge" [ngClass]="idx === 0 ? 'badge-success' : ''">{{idx + 1}}</span></td>
-              <td>{{c.fornecedorNome}}</td>
-              <td><strong>R$ {{c.preco | number:'1.4-4'}}</strong></td>
+              <td><span class="rank-number" [class.rank-1]="idx === 0">{{idx + 1}}</span></td>
+              <td><strong style="color:#F3F4F6;">{{c.fornecedorNome}}</strong></td>
+              <td><strong style="color:#F3F4F6;">R$ {{c.preco | number:'1.4-4'}}</strong></td>
               <td>{{c.unidadeVenda}}</td>
             </tr>
           </tbody>
         </table>
-        <p *ngIf="cotacaoItens.length === 0" style="text-align:center;color:var(--gray-500);padding:20px;">Nenhum fornecedor cadastrado para este insumo</p>
+        <p *ngIf="cotacaoItens.length === 0" style="text-align:center;color:#6B7280;padding:20px;">Nenhum fornecedor cadastrado para este insumo</p>
       </div>
     </div>
 
@@ -136,7 +147,7 @@ Chart.register(...registerables);
     <div class="modal-overlay" *ngIf="showHistoricoModal" (click)="showHistoricoModal=false">
       <div class="modal-content" (click)="$event.stopPropagation()" style="max-width:700px;">
         <div class="modal-header">
-          <h3><i class="fas fa-chart-line"></i> Historico de Precos - {{historicoInsumoNome}}</h3>
+          <h3><i class="fas fa-chart-line" style="color:#A78BFA;margin-right:8px;"></i> Historico de Precos - {{historicoInsumoNome}}</h3>
           <button class="modal-close" (click)="showHistoricoModal=false">&times;</button>
         </div>
         <canvas #historicoChart></canvas>
@@ -145,12 +156,12 @@ Chart.register(...registerables);
           <tbody>
             <tr *ngFor="let h of historicoItens">
               <td>{{h.dataRegistro}}</td>
-              <td>{{h.fornecedorNome}}</td>
-              <td><strong>R$ {{h.preco | number:'1.4-4'}}</strong></td>
+              <td><strong style="color:#F3F4F6;">{{h.fornecedorNome}}</strong></td>
+              <td><strong style="color:#F3F4F6;">R$ {{h.preco | number:'1.4-4'}}</strong></td>
             </tr>
           </tbody>
         </table>
-        <p *ngIf="historicoItens.length === 0" style="text-align:center;color:var(--gray-500);padding:20px;">Nenhum historico de precos disponivel</p>
+        <p *ngIf="historicoItens.length === 0" style="text-align:center;color:#6B7280;padding:20px;">Nenhum historico de precos disponivel</p>
       </div>
     </div>
   `
@@ -164,19 +175,16 @@ export class InsumosComponent implements OnInit {
   showModal = false; editando = false; editId = 0;
   form: FormGroup;
 
-  // Saida Manual
   showSaidaModal = false;
   saidaInsumoId = 0;
   saidaInsumoNome = '';
   saidaQtd = 0;
   saidaMotivo = '';
 
-  // Cotacao
   showCotacaoModal = false;
   cotacaoInsumoNome = '';
   cotacaoItens: CatalogoFornecedor[] = [];
 
-  // Historico
   showHistoricoModal = false;
   historicoInsumoNome = '';
   historicoItens: HistoricoPreco[] = [];
@@ -221,7 +229,6 @@ export class InsumosComponent implements OnInit {
     this.api.deleteInsumo(id).subscribe({ next: () => { this.toast.success('Insumo desativado!'); this.carregar(this.currentPage); } });
   }
 
-  // Saida Manual
   abrirSaida(i: Insumo): void {
     this.saidaInsumoId = i.id; this.saidaInsumoNome = i.nome;
     this.saidaQtd = 0; this.saidaMotivo = '';
@@ -236,7 +243,6 @@ export class InsumosComponent implements OnInit {
     });
   }
 
-  // Cotacao Comparativa
   verCotacao(i: Insumo): void {
     this.cotacaoInsumoNome = i.nome;
     this.api.getCotacaoInsumo(i.id).subscribe({
@@ -244,7 +250,6 @@ export class InsumosComponent implements OnInit {
     });
   }
 
-  // Historico de Precos
   verHistorico(i: Insumo): void {
     this.historicoInsumoNome = i.nome;
     this.api.getHistoricoPrecos(i.id).subscribe({
@@ -273,16 +278,16 @@ export class InsumosComponent implements OnInit {
           label: 'Preco (R$)',
           data: valores,
           borderColor: '#7C3AED',
-          backgroundColor: 'rgba(124,58,237,0.1)',
-          fill: true, tension: 0.3, pointRadius: 4
+          backgroundColor: 'rgba(124,58,237,0.08)',
+          fill: true, tension: 0.3, pointRadius: 4, borderWidth: 2
         }]
       },
       options: {
         responsive: true,
         plugins: { legend: { display: false } },
         scales: {
-          y: { beginAtZero: false, ticks: { color: '#6B7280' }, grid: { color: '#222' } },
-          x: { ticks: { color: '#6B7280' }, grid: { color: '#222' } }
+          y: { beginAtZero: false, ticks: { color: '#555' }, grid: { color: '#1A1A1A' }, border: { display: false } },
+          x: { ticks: { color: '#555' }, grid: { display: false }, border: { display: false } }
         }
       }
     });

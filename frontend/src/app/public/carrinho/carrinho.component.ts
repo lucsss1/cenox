@@ -15,10 +15,13 @@ import { CartItem } from '../../shared/models/models';
     <div class="carrinho">
       <h2><i class="fas fa-shopping-cart"></i> Meu Carrinho</h2>
 
-      <div *ngIf="itens.length === 0" class="empty-cart">
-        <i class="fas fa-shopping-cart"></i>
-        <p>Seu carrinho esta vazio</p>
-        <a routerLink="/cardapio" class="btn btn-primary">Ver Cardapio</a>
+      <div *ngIf="itens.length === 0" class="empty-state">
+        <div class="empty-state-icon">
+          <i class="fas fa-shopping-cart"></i>
+        </div>
+        <h3>Seu carrinho esta vazio</h3>
+        <p>Adicione pratos do cardapio para comecar seu pedido.</p>
+        <a routerLink="/cardapio" class="btn btn-primary" style="margin-top:16px;">Ver Cardapio</a>
       </div>
 
       <div *ngIf="itens.length > 0">
@@ -36,19 +39,19 @@ import { CartItem } from '../../shared/models/models';
             </thead>
             <tbody>
               <tr *ngFor="let item of itens">
-                <td><strong>{{item.prato.nome}}</strong></td>
+                <td><strong style="color:#F3F4F6;">{{item.prato.nome}}</strong></td>
                 <td>R$ {{item.prato.precoVenda | number:'1.2-2'}}</td>
                 <td style="width:80px;">
                   <input type="number" class="form-control" min="1" [(ngModel)]="item.quantidade"
-                    (change)="atualizar()" style="width:60px;padding:4px 6px;">
+                    (change)="atualizar()" style="width:60px;padding:6px 8px;">
                 </td>
-                <td><strong>R$ {{item.prato.precoVenda * item.quantidade | number:'1.2-2'}}</strong></td>
+                <td><strong style="color:#4ADE80;">R$ {{item.prato.precoVenda * item.quantidade | number:'1.2-2'}}</strong></td>
                 <td style="width:150px;">
                   <input type="text" class="form-control" [(ngModel)]="item.observacao"
-                    placeholder="Sem cebola..." style="padding:4px 6px;font-size:12px;">
+                    placeholder="Sem cebola..." style="padding:6px 8px;font-size:12px;">
                 </td>
                 <td>
-                  <button class="btn btn-danger btn-sm" (click)="remover(item.prato.id)">
+                  <button class="btn-icon btn-icon-danger" (click)="remover(item.prato.id)">
                     <i class="fas fa-trash"></i>
                   </button>
                 </td>
@@ -67,7 +70,7 @@ import { CartItem } from '../../shared/models/models';
             <span class="total-valor">R$ {{auth.getCartTotal() | number:'1.2-2'}}</span>
           </div>
           <button class="btn btn-success btn-block" (click)="finalizar()" [disabled]="loading">
-            <span class="spinner" *ngIf="loading"></span>
+            <span class="spinner" *ngIf="loading" style="width:16px;height:16px;border-width:2px;"></span>
             {{ loading ? 'Enviando...' : 'Finalizar Pedido' }}
           </button>
         </div>
@@ -76,13 +79,16 @@ import { CartItem } from '../../shared/models/models';
   `,
   styles: [`
     .carrinho { max-width: 900px; margin: 0 auto; }
-    .carrinho h2 { margin-bottom: 24px; color: #F9FAFB; font-weight: 700; }
-    .carrinho h2 i { color: #DC2626; }
-    .empty-cart { text-align: center; padding: 60px 20px; }
-    .empty-cart i { font-size: 48px; color: #333; display: block; }
-    .empty-cart p { color: #6B7280; margin: 16px 0; }
+    .carrinho h2 {
+      margin-bottom: 24px; color: #F9FAFB; font-weight: 700;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .carrinho h2 i { color: #DC2626; font-size: 18px; }
     .cart-summary { margin-top: 16px; }
-    .cart-total { display: flex; justify-content: space-between; align-items: center; margin: 16px 0; padding-top: 16px; border-top: 2px solid #DC2626; }
+    .cart-total {
+      display: flex; justify-content: space-between; align-items: center;
+      margin: 16px 0; padding-top: 16px; border-top: 2px solid #DC2626;
+    }
     .cart-total span:first-child { font-size: 16px; font-weight: 600; color: #9CA3AF; }
     .total-valor { font-size: 26px; font-weight: 700; color: #4ADE80; }
     .btn-block { width: 100%; justify-content: center; padding: 14px; font-size: 16px; }
