@@ -12,10 +12,13 @@ import { Pedido } from '../../shared/models/models';
   imports: [CommonModule, FormsModule],
   template: `
     <div class="page-header">
-      <h2><i class="fas fa-clipboard-list"></i> Gestao de Pedidos</h2>
-      <div style="display:flex;gap:8px;">
-        <select class="form-control" [(ngModel)]="filtroStatus" (change)="carregar(0)" style="width:auto;">
-          <option value="">Todos</option>
+      <div>
+        <h2><i class="fas fa-clipboard-list"></i> Gestao de Pedidos</h2>
+        <p class="page-subtitle">Gerencie todos os pedidos do restaurante</p>
+      </div>
+      <div class="filter-bar" style="margin-bottom:0;">
+        <select class="form-control" [(ngModel)]="filtroStatus" (change)="carregar(0)" style="width:auto;padding:8px 12px;font-size:13px;">
+          <option value="">Todos os status</option>
           <option value="PENDENTE">Pendente</option>
           <option value="EM_PREPARO">Em Preparo</option>
           <option value="PRONTO">Pronto</option>
@@ -32,47 +35,52 @@ import { Pedido } from '../../shared/models/models';
           <thead><tr><th>#</th><th>Cliente</th><th>Itens</th><th>Total</th><th>Status</th><th>Data</th><th>Acoes</th></tr></thead>
           <tbody>
             <tr *ngFor="let p of pedidos">
-              <td><strong>{{p.id}}</strong></td>
-              <td>{{p.clienteNome}}</td>
+              <td style="color:#DC2626;font-weight:600;">#{{p.id}}</td>
+              <td><strong style="color:#F3F4F6;">{{p.clienteNome}}</strong></td>
               <td>
-                <div *ngFor="let i of p.itens" style="font-size:12px;">{{i.quantidade}}x {{i.pratoNome}}</div>
+                <div *ngFor="let i of p.itens" style="font-size:12px;color:#9CA3AF;">{{i.quantidade}}x {{i.pratoNome}}</div>
               </td>
-              <td><strong>R$ {{p.total | number:'1.2-2'}}</strong></td>
+              <td><strong style="color:#F3F4F6;">R$ {{p.total | number:'1.2-2'}}</strong></td>
               <td>
                 <span class="badge" [ngClass]="{
                   'badge-warning': p.statusPedido === 'PENDENTE',
                   'badge-info': p.statusPedido === 'EM_PREPARO',
                   'badge-success': p.statusPedido === 'PRONTO' || p.statusPedido === 'ENTREGUE',
                   'badge-danger': p.statusPedido === 'CANCELADO'
-                }">{{p.statusPedido}}</span>
+                }"><span class="badge-dot"></span> {{p.statusPedido}}</span>
                 <div *ngIf="p.motivoCancelamento" style="font-size:11px;color:#FCA5A5;margin-top:4px;">
                   <i class="fas fa-info-circle"></i> {{p.motivoCancelamento}}
                 </div>
               </td>
-              <td style="font-size:12px;">{{p.createdAt | date:'dd/MM/yy HH:mm'}}</td>
-              <td style="white-space:nowrap;">
-                <button *ngIf="p.statusPedido === 'PENDENTE'" class="btn btn-info btn-sm" (click)="alterarStatus(p.id, 'EM_PREPARO')" title="Iniciar Preparo">
-                  <i class="fas fa-fire"></i> Preparar
-                </button>
-                <button *ngIf="p.statusPedido === 'EM_PREPARO'" class="btn btn-success btn-sm" (click)="alterarStatus(p.id, 'PRONTO')" title="Marcar Pronto">
-                  <i class="fas fa-check"></i> Pronto
-                </button>
-                <button *ngIf="p.statusPedido === 'PRONTO'" class="btn btn-success btn-sm" (click)="alterarStatus(p.id, 'ENTREGUE')" title="Entregar">
-                  <i class="fas fa-hand-holding"></i> Entregar
-                </button>
-                <button *ngIf="canCancel(p)" class="btn btn-danger btn-sm" (click)="abrirCancelamento(p)" title="Cancelar">
-                  <i class="fas fa-times"></i> Cancelar
-                </button>
+              <td style="font-size:12px;color:#6B7280;">{{p.createdAt | date:'dd/MM/yy HH:mm'}}</td>
+              <td>
+                <div style="display:flex;gap:6px;">
+                  <button *ngIf="p.statusPedido === 'PENDENTE'" class="btn btn-info btn-sm" (click)="alterarStatus(p.id, 'EM_PREPARO')" title="Iniciar Preparo">
+                    <i class="fas fa-fire"></i> Preparar
+                  </button>
+                  <button *ngIf="p.statusPedido === 'EM_PREPARO'" class="btn btn-success btn-sm" (click)="alterarStatus(p.id, 'PRONTO')" title="Marcar Pronto">
+                    <i class="fas fa-check"></i> Pronto
+                  </button>
+                  <button *ngIf="p.statusPedido === 'PRONTO'" class="btn btn-success btn-sm" (click)="alterarStatus(p.id, 'ENTREGUE')" title="Entregar">
+                    <i class="fas fa-hand-holding"></i> Entregar
+                  </button>
+                  <button *ngIf="canCancel(p)" class="btn btn-danger btn-sm" (click)="abrirCancelamento(p)" title="Cancelar">
+                    <i class="fas fa-times"></i> Cancelar
+                  </button>
+                </div>
               </td>
             </tr>
-            <tr *ngIf="pedidos.length === 0"><td colspan="7" style="text-align:center;color:var(--gray-500);">Nenhum pedido encontrado</td></tr>
+            <tr *ngIf="pedidos.length === 0"><td colspan="7" style="text-align:center;color:#6B7280;padding:30px;">Nenhum pedido encontrado</td></tr>
           </tbody>
         </table>
       </div>
-      <div class="pagination" *ngIf="totalPages > 1">
-        <button (click)="carregar(currentPage - 1)" [disabled]="currentPage === 0">Anterior</button>
-        <button *ngFor="let pg of pages" (click)="carregar(pg)" [class.active]="pg === currentPage">{{pg + 1}}</button>
-        <button (click)="carregar(currentPage + 1)" [disabled]="currentPage === totalPages - 1">Proximo</button>
+      <div style="display:flex;align-items:center;margin-top:16px;" *ngIf="!loading && totalPages > 1">
+        <span class="pagination-info">Exibindo {{pedidos.length}} pedidos</span>
+        <div class="pagination" style="margin-top:0;">
+          <button (click)="carregar(currentPage - 1)" [disabled]="currentPage === 0">&laquo;</button>
+          <button *ngFor="let pg of pages" (click)="carregar(pg)" [class.active]="pg === currentPage">{{pg + 1}}</button>
+          <button (click)="carregar(currentPage + 1)" [disabled]="currentPage === totalPages - 1">&raquo;</button>
+        </div>
       </div>
     </div>
 
@@ -88,7 +96,7 @@ import { Pedido } from '../../shared/models/models';
           <textarea class="form-control" [(ngModel)]="motivoCancelamento" rows="3"
                     placeholder="Informe o motivo do cancelamento..."></textarea>
         </div>
-        <p *ngIf="cancelEstorno" style="font-size:0.85em;color:#FCD34D;margin:8px 0;">
+        <p *ngIf="cancelEstorno" style="font-size:13px;color:#FCD34D;margin:8px 0;">
           <i class="fas fa-exclamation-triangle"></i> O estoque dos insumos sera estornado automaticamente.
         </p>
         <div class="modal-footer">
@@ -134,7 +142,6 @@ export class PedidosAdminComponent implements OnInit {
 
   canCancel(p: Pedido): boolean {
     if (p.statusPedido === 'ENTREGUE' || p.statusPedido === 'CANCELADO') return false;
-    // Antes de EM_PREPARO: qualquer um. Depois: so ADMIN/GERENTE
     if (p.statusPedido === 'PENDENTE') return true;
     return this.auth.hasAnyRole(['ADMIN', 'GERENTE']);
   }

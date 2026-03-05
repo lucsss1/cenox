@@ -12,7 +12,9 @@ import { ToastService } from '../shared/services/toast.service';
   template: `
     <div class="auth-container">
       <div class="auth-card">
-        <div class="auth-icon"><i class="fas fa-fire"></i></div>
+        <div class="auth-icon">
+          <div class="auth-icon-circle"><i class="fas fa-fire"></i></div>
+        </div>
         <h2>Entrar</h2>
         <p class="auth-sub">Acesse sua conta na Comanda Digital</p>
         <form [formGroup]="form" (ngSubmit)="onSubmit()">
@@ -27,7 +29,7 @@ import { ToastService } from '../shared/services/toast.service';
             <span class="error-msg" *ngIf="form.get('senha')?.invalid && form.get('senha')?.touched">Senha obrigatoria</span>
           </div>
           <button type="submit" class="btn btn-primary btn-block" [disabled]="loading">
-            <span class="spinner" *ngIf="loading"></span>
+            <span class="spinner" *ngIf="loading" style="width:16px;height:16px;border-width:2px;"></span>
             {{ loading ? 'Entrando...' : 'Entrar' }}
           </button>
         </form>
@@ -38,13 +40,18 @@ import { ToastService } from '../shared/services/toast.service';
   styles: [`
     .auth-container { display: flex; justify-content: center; align-items: center; min-height: 80vh; }
     .auth-card {
-      background: #1A1A1A; padding: 36px; border-radius: 16px;
+      background: #141414; padding: 36px; border-radius: 16px;
       box-shadow: 0 8px 30px rgba(0,0,0,0.4); width: 100%; max-width: 420px;
-      border: 1px solid #2A2A2A;
+      border: 1px solid #1F1F1F;
     }
-    .auth-icon { text-align: center; margin-bottom: 8px; }
-    .auth-icon i { font-size: 36px; color: #DC2626; }
-    .auth-card h2 { text-align: center; margin-bottom: 4px; color: #F9FAFB; font-size: 24px; }
+    .auth-icon { text-align: center; margin-bottom: 12px; }
+    .auth-icon-circle {
+      width: 56px; height: 56px; border-radius: 50%;
+      background: rgba(220,38,38,0.1); display: inline-flex;
+      align-items: center; justify-content: center;
+    }
+    .auth-icon-circle i { font-size: 24px; color: #DC2626; }
+    .auth-card h2 { text-align: center; margin-bottom: 4px; color: #F9FAFB; font-size: 24px; font-weight: 700; }
     .auth-sub { text-align: center; color: #6B7280; margin-bottom: 28px; font-size: 14px; }
     .btn-block { width: 100%; justify-content: center; padding: 12px; font-size: 15px; margin-top: 4px; }
     .auth-footer { text-align: center; margin-top: 20px; font-size: 14px; color: #6B7280; }
