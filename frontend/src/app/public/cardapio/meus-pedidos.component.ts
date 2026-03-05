@@ -1,12 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../shared/services/api.service';
+import { ToastService } from '../../shared/services/toast.service';
 import { Pedido } from '../../shared/models/models';
 
 @Component({
   selector: 'app-meus-pedidos',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   template: `
     <div class="meus-pedidos">
       <h2><i class="fas fa-clipboard-list"></i> Meus Pedidos</h2>
@@ -41,8 +43,41 @@ import { Pedido } from '../../shared/models/models';
           </div>
         </div>
         <div class="pedido-footer">
-          <span *ngIf="pedido.observacao" class="pedido-obs"><i class="fas fa-comment" style="margin-right:4px;"></i> {{pedido.observacao}}</span>
+          <div style="display:flex;align-items:center;gap:12px;flex:1;">
+            <span *ngIf="pedido.observacao" class="pedido-obs"><i class="fas fa-comment" style="margin-right:4px;"></i> {{pedido.observacao}}</span>
+            <button *ngIf="pedido.statusPedido === 'PENDENTE'" class="btn-cancelar"
+                    (click)="abrirCancelamento(pedido)">
+              <i class="fas fa-times-circle"></i> Cancelar pedido
+            </button>
+          </div>
           <strong class="pedido-total">R$ {{pedido.total | number:'1.2-2'}}</strong>
+        </div>
+      </div>
+
+      <!-- Modal de Cancelamento -->
+      <div class="modal-overlay" *ngIf="showCancelModal" (click)="fecharCancelModal()">
+        <div class="cancel-modal" (click)="$event.stopPropagation()">
+          <div class="cancel-modal-header">
+            <div class="cancel-icon-circle">
+              <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h3>Cancelar Pedido #{{pedidoCancelando?.id}}</h3>
+            <p>Esta acao nao pode ser desfeita. Informe o motivo do cancelamento.</p>
+          </div>
+          <div class="form-group">
+            <label>Motivo do cancelamento</label>
+            <textarea class="form-control" [(ngModel)]="motivoCancelamento" rows="3"
+                      placeholder="Ex: Pedi errado, mudei de ideia, demora excessiva..."></textarea>
+          </div>
+          <div class="cancel-modal-footer">
+            <button class="btn btn-secondary" (click)="fecharCancelModal()">Voltar</button>
+            <button class="btn btn-danger" (click)="confirmarCancelamento()"
+                    [disabled]="!motivoCancelamento.trim() || cancelando">
+              <i class="fas fa-times-circle" *ngIf="!cancelando"></i>
+              <div class="spinner" style="width:14px;height:14px;border-width:2px;" *ngIf="cancelando"></div>
+              {{cancelando ? 'Cancelando...' : 'Confirmar cancelamento'}}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -76,6 +111,39 @@ import { Pedido } from '../../shared/models/models';
     }
     .pedido-obs { font-size: 13px; color: #6B7280; }
     .pedido-total { font-size: 17px; color: #4ADE80; }
+
+    .btn-cancelar {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 14px; border: 1px solid rgba(220,38,38,0.3);
+      background: rgba(220,38,38,0.06); border-radius: 8px;
+      color: #FCA5A5; font-size: 12px; font-weight: 500;
+      cursor: pointer; transition: all 0.2s; font-family: 'Inter', sans-serif;
+    }
+    .btn-cancelar:hover {
+      background: rgba(220,38,38,0.12); border-color: rgba(220,38,38,0.5);
+      color: #FEE2E2;
+    }
+    .btn-cancelar i { font-size: 12px; }
+
+    .cancel-modal {
+      background: #1A1A1A; border-radius: 16px; padding: 28px;
+      width: 440px; max-width: 90vw;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.5); border: 1px solid #2A2A2A;
+    }
+    .cancel-modal-header { text-align: center; margin-bottom: 20px; }
+    .cancel-icon-circle {
+      width: 56px; height: 56px; border-radius: 50%;
+      background: rgba(220,38,38,0.1); display: flex;
+      align-items: center; justify-content: center;
+      margin: 0 auto 14px;
+    }
+    .cancel-icon-circle i { font-size: 24px; color: #DC2626; }
+    .cancel-modal-header h3 { font-size: 18px; font-weight: 700; color: #F9FAFB; margin-bottom: 6px; }
+    .cancel-modal-header p { font-size: 13px; color: #6B7280; line-height: 1.5; }
+    .cancel-modal-footer {
+      display: flex; gap: 8px; justify-content: flex-end;
+      margin-top: 20px; padding-top: 16px; border-top: 1px solid #2A2A2A;
+    }
   `]
 })
 export class MeusPedidosComponent implements OnInit {
@@ -85,7 +153,12 @@ export class MeusPedidosComponent implements OnInit {
   totalPages = 0;
   pages: number[] = [];
 
-  constructor(private api: ApiService) {}
+  showCancelModal = false;
+  pedidoCancelando: Pedido | null = null;
+  motivoCancelamento = '';
+  cancelando = false;
+
+  constructor(private api: ApiService, private toast: ToastService) {}
 
   ngOnInit(): void { this.carregar(); }
 
@@ -105,5 +178,33 @@ export class MeusPedidosComponent implements OnInit {
   carregarPagina(page: number): void {
     this.currentPage = page;
     this.carregar();
+  }
+
+  abrirCancelamento(pedido: Pedido): void {
+    this.pedidoCancelando = pedido;
+    this.motivoCancelamento = '';
+    this.cancelando = false;
+    this.showCancelModal = true;
+  }
+
+  fecharCancelModal(): void {
+    this.showCancelModal = false;
+    this.pedidoCancelando = null;
+    this.motivoCancelamento = '';
+  }
+
+  confirmarCancelamento(): void {
+    if (!this.pedidoCancelando || !this.motivoCancelamento.trim()) return;
+    this.cancelando = true;
+    this.api.alterarStatusPedido(this.pedidoCancelando.id, 'CANCELADO', this.motivoCancelamento.trim()).subscribe({
+      next: () => {
+        this.toast.success('Pedido cancelado com sucesso.');
+        this.fecharCancelModal();
+        this.carregar();
+      },
+      error: () => {
+        this.cancelando = false;
+      }
+    });
   }
 }
