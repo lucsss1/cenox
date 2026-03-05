@@ -11,7 +11,10 @@ import { Prato, Categoria } from '../../shared/models/models';
   imports: [CommonModule, ReactiveFormsModule],
   template: `
     <div class="page-header">
-      <h2><i class="fas fa-hamburger"></i> Pratos</h2>
+      <div>
+        <h2><i class="fas fa-hamburger"></i> Pratos</h2>
+        <p class="page-subtitle">{{pratos.length}} registros encontrados</p>
+      </div>
       <button class="btn btn-primary" (click)="abrirModal()"><i class="fas fa-plus"></i> Novo Prato</button>
     </div>
 
@@ -22,38 +25,43 @@ import { Prato, Categoria } from '../../shared/models/models';
           <thead><tr><th>ID</th><th>Nome</th><th>Categoria</th><th>Preco</th><th>Custo</th><th>Food Cost</th><th>Ficha Tec.</th><th>Status</th><th>Acoes</th></tr></thead>
           <tbody>
             <tr *ngFor="let p of pratos">
-              <td>{{p.id}}</td>
-              <td><strong>{{p.nome}}</strong></td>
-              <td>{{p.categoriaNome}}</td>
+              <td style="color:#DC2626;font-weight:600;">#{{p.id}}</td>
+              <td><strong style="color:#F3F4F6;">{{p.nome}}</strong></td>
+              <td><span class="badge badge-secondary" style="font-size:10px;">{{p.categoriaNome}}</span></td>
               <td>R$ {{p.precoVenda | number:'1.2-2'}}</td>
-              <td>{{p.custoProducao ? 'R$ ' + (p.custoProducao | number:'1.2-2') : '-'}}</td>
+              <td>{{p.custoProducao ? 'R$ ' + (p.custoProducao | number:'1.2-2') : '&mdash;'}}</td>
               <td>
                 <span *ngIf="p.foodCost" [class]="p.foodCostAlto ? 'badge badge-danger' : 'badge badge-success'">
                   {{p.foodCost | number:'1.1-1'}}%
                 </span>
-                <span *ngIf="!p.foodCost">-</span>
+                <span *ngIf="!p.foodCost" style="color:#555;">&mdash;</span>
               </td>
               <td>
                 <span [class]="p.temFichaTecnica ? 'badge badge-success' : 'badge badge-danger'">
                   {{p.temFichaTecnica ? 'Sim' : 'Nao'}}
                 </span>
               </td>
-              <td><span [class]="p.status === 'ATIVO' ? 'badge badge-success' : 'badge badge-secondary'">{{p.status}}</span></td>
-              <td style="white-space:nowrap;">
-                <button class="btn btn-warning btn-sm" (click)="editar(p)"><i class="fas fa-edit"></i></button>
-                <button class="btn btn-success btn-sm" *ngIf="p.status === 'INATIVO' && p.temFichaTecnica" (click)="ativar(p.id)" title="Ativar"><i class="fas fa-check"></i></button>
-                <button class="btn btn-danger btn-sm" *ngIf="p.status === 'ATIVO'" (click)="desativar(p.id)" title="Desativar"><i class="fas fa-ban"></i></button>
-                <button class="btn btn-danger btn-sm" *ngIf="p.status === 'INATIVO'" (click)="excluir(p.id)" title="Excluir"><i class="fas fa-trash"></i></button>
+              <td><span [class]="p.status === 'ATIVO' ? 'badge badge-success' : 'badge badge-secondary'"><span class="badge-dot"></span> {{p.status}}</span></td>
+              <td>
+                <div style="display:flex;gap:6px;">
+                  <button class="btn-icon btn-icon-warning" (click)="editar(p)" title="Editar"><i class="fas fa-edit"></i></button>
+                  <button class="btn-icon btn-icon-success" *ngIf="p.status === 'INATIVO' && p.temFichaTecnica" (click)="ativar(p.id)" title="Ativar"><i class="fas fa-check"></i></button>
+                  <button class="btn-icon btn-icon-danger" *ngIf="p.status === 'ATIVO'" (click)="desativar(p.id)" title="Desativar"><i class="fas fa-ban"></i></button>
+                  <button class="btn-icon btn-icon-danger" *ngIf="p.status === 'INATIVO'" (click)="excluir(p.id)" title="Excluir"><i class="fas fa-trash"></i></button>
+                </div>
               </td>
             </tr>
-            <tr *ngIf="pratos.length === 0"><td colspan="9" style="text-align:center;color:var(--gray-500);">Nenhum prato encontrado</td></tr>
+            <tr *ngIf="pratos.length === 0"><td colspan="9" style="text-align:center;color:#6B7280;padding:30px;">Nenhum prato encontrado</td></tr>
           </tbody>
         </table>
       </div>
-      <div class="pagination" *ngIf="totalPages > 1">
-        <button (click)="carregar(currentPage - 1)" [disabled]="currentPage === 0">Anterior</button>
-        <button *ngFor="let pg of pages" (click)="carregar(pg)" [class.active]="pg === currentPage">{{pg + 1}}</button>
-        <button (click)="carregar(currentPage + 1)" [disabled]="currentPage === totalPages - 1">Proximo</button>
+      <div style="display:flex;align-items:center;margin-top:16px;" *ngIf="!loading && totalPages > 1">
+        <span class="pagination-info">Exibindo {{pratos.length}} registros</span>
+        <div class="pagination" style="margin-top:0;">
+          <button (click)="carregar(currentPage - 1)" [disabled]="currentPage === 0">&laquo;</button>
+          <button *ngFor="let pg of pages" (click)="carregar(pg)" [class.active]="pg === currentPage">{{pg + 1}}</button>
+          <button (click)="carregar(currentPage + 1)" [disabled]="currentPage === totalPages - 1">&raquo;</button>
+        </div>
       </div>
     </div>
 
@@ -72,13 +80,15 @@ import { Prato, Categoria } from '../../shared/models/models';
             <label>Descricao</label>
             <textarea class="form-control" formControlName="descricao" rows="2"></textarea>
           </div>
-          <div class="form-group">
-            <label>Preco de Venda (R$)</label>
-            <input type="number" class="form-control" formControlName="precoVenda" step="0.01">
-          </div>
-          <div class="form-group">
-            <label>Tempo Preparo (min)</label>
-            <input type="number" class="form-control" formControlName="tempoPreparo">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div class="form-group">
+              <label>Preco de Venda (R$)</label>
+              <input type="number" class="form-control" formControlName="precoVenda" step="0.01">
+            </div>
+            <div class="form-group">
+              <label>Tempo Preparo (min)</label>
+              <input type="number" class="form-control" formControlName="tempoPreparo">
+            </div>
           </div>
           <div class="form-group">
             <label>Categoria</label>

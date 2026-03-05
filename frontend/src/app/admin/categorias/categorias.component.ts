@@ -11,7 +11,10 @@ import { Categoria } from '../../shared/models/models';
   imports: [CommonModule, ReactiveFormsModule],
   template: `
     <div class="page-header">
-      <h2><i class="fas fa-tags"></i> Categorias</h2>
+      <div>
+        <h2><i class="fas fa-tags"></i> Categorias</h2>
+        <p class="page-subtitle">{{categorias.length}} registros encontrados</p>
+      </div>
       <button class="btn btn-primary" (click)="abrirModal()"><i class="fas fa-plus"></i> Nova Categoria</button>
     </div>
 
@@ -22,23 +25,28 @@ import { Categoria } from '../../shared/models/models';
           <thead><tr><th>ID</th><th>Nome</th><th>Descricao</th><th>Status</th><th>Acoes</th></tr></thead>
           <tbody>
             <tr *ngFor="let cat of categorias">
-              <td>{{cat.id}}</td>
-              <td><strong>{{cat.nome}}</strong></td>
-              <td>{{cat.descricao || '-'}}</td>
-              <td><span class="badge badge-success">{{cat.status}}</span></td>
+              <td style="color:#DC2626;font-weight:600;">#{{cat.id}}</td>
+              <td><strong style="color:#F3F4F6;">{{cat.nome}}</strong></td>
+              <td>{{cat.descricao || '&mdash;'}}</td>
+              <td><span class="badge badge-success"><span class="badge-dot"></span> {{cat.status}}</span></td>
               <td>
-                <button class="btn btn-warning btn-sm" (click)="editar(cat)"><i class="fas fa-edit"></i></button>
-                <button class="btn btn-danger btn-sm" (click)="excluir(cat.id)"><i class="fas fa-trash"></i></button>
+                <div style="display:flex;gap:6px;">
+                  <button class="btn-icon btn-icon-warning" (click)="editar(cat)" title="Editar"><i class="fas fa-edit"></i></button>
+                  <button class="btn-icon btn-icon-danger" (click)="excluir(cat.id)" title="Desativar"><i class="fas fa-trash"></i></button>
+                </div>
               </td>
             </tr>
-            <tr *ngIf="categorias.length === 0"><td colspan="5" style="text-align:center;color:var(--gray-500);">Nenhuma categoria encontrada</td></tr>
+            <tr *ngIf="categorias.length === 0"><td colspan="5" style="text-align:center;color:#6B7280;padding:30px;">Nenhuma categoria encontrada</td></tr>
           </tbody>
         </table>
       </div>
-      <div class="pagination" *ngIf="totalPages > 1">
-        <button (click)="carregar(currentPage - 1)" [disabled]="currentPage === 0">Anterior</button>
-        <button *ngFor="let p of pages" (click)="carregar(p)" [class.active]="p === currentPage">{{p + 1}}</button>
-        <button (click)="carregar(currentPage + 1)" [disabled]="currentPage === totalPages - 1">Proximo</button>
+      <div style="display:flex;align-items:center;margin-top:16px;" *ngIf="!loading && totalPages > 1">
+        <span class="pagination-info">Exibindo {{categorias.length}} registros</span>
+        <div class="pagination" style="margin-top:0;">
+          <button (click)="carregar(currentPage - 1)" [disabled]="currentPage === 0">&laquo;</button>
+          <button *ngFor="let p of pages" (click)="carregar(p)" [class.active]="p === currentPage">{{p + 1}}</button>
+          <button (click)="carregar(currentPage + 1)" [disabled]="currentPage === totalPages - 1">&raquo;</button>
+        </div>
       </div>
     </div>
 

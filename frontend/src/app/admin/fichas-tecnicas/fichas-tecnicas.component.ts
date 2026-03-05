@@ -11,7 +11,10 @@ import { FichaTecnica, Prato, Insumo } from '../../shared/models/models';
   imports: [CommonModule, ReactiveFormsModule],
   template: `
     <div class="page-header">
-      <h2><i class="fas fa-file-alt"></i> Fichas Tecnicas</h2>
+      <div>
+        <h2><i class="fas fa-file-alt"></i> Fichas Tecnicas</h2>
+        <p class="page-subtitle">{{fichas.length}} registros encontrados</p>
+      </div>
       <button class="btn btn-primary" (click)="abrirModal()"><i class="fas fa-plus"></i> Nova Ficha</button>
     </div>
 
@@ -22,8 +25,8 @@ import { FichaTecnica, Prato, Insumo } from '../../shared/models/models';
           <thead><tr><th>ID</th><th>Prato</th><th>Rendimento</th><th>Custo Total</th><th>Custo/Porcao</th><th>Food Cost</th><th>Acoes</th></tr></thead>
           <tbody>
             <tr *ngFor="let f of fichas">
-              <td>{{f.id}}</td>
-              <td><strong>{{f.pratoNome}}</strong></td>
+              <td style="color:#DC2626;font-weight:600;">#{{f.id}}</td>
+              <td><strong style="color:#F3F4F6;">{{f.pratoNome}}</strong></td>
               <td>{{f.rendimento}} porcoes</td>
               <td>R$ {{f.custoTotal | number:'1.2-2'}}</td>
               <td>R$ {{f.custoPorPorcao | number:'1.2-2'}}</td>
@@ -31,21 +34,26 @@ import { FichaTecnica, Prato, Insumo } from '../../shared/models/models';
                 <span *ngIf="f.foodCost" [class]="f.foodCost > 35 ? 'badge badge-danger' : 'badge badge-success'">
                   {{f.foodCost | number:'1.1-1'}}%
                 </span>
-                <span *ngIf="!f.foodCost">-</span>
+                <span *ngIf="!f.foodCost" style="color:#555;">&mdash;</span>
               </td>
               <td>
-                <button class="btn btn-info btn-sm" (click)="verDetalhes(f)"><i class="fas fa-eye"></i></button>
-                <button class="btn btn-danger btn-sm" (click)="excluir(f.id)"><i class="fas fa-trash"></i></button>
+                <div style="display:flex;gap:6px;">
+                  <button class="btn-icon" (click)="verDetalhes(f)" title="Detalhes"><i class="fas fa-eye"></i></button>
+                  <button class="btn-icon btn-icon-danger" (click)="excluir(f.id)" title="Desativar"><i class="fas fa-trash"></i></button>
+                </div>
               </td>
             </tr>
-            <tr *ngIf="fichas.length === 0"><td colspan="7" style="text-align:center;color:var(--gray-500);">Nenhuma ficha tecnica</td></tr>
+            <tr *ngIf="fichas.length === 0"><td colspan="7" style="text-align:center;color:#6B7280;padding:30px;">Nenhuma ficha tecnica</td></tr>
           </tbody>
         </table>
       </div>
-      <div class="pagination" *ngIf="totalPages > 1">
-        <button (click)="carregar(currentPage - 1)" [disabled]="currentPage === 0">Anterior</button>
-        <button *ngFor="let p of pages" (click)="carregar(p)" [class.active]="p === currentPage">{{p + 1}}</button>
-        <button (click)="carregar(currentPage + 1)" [disabled]="currentPage === totalPages - 1">Proximo</button>
+      <div style="display:flex;align-items:center;margin-top:16px;" *ngIf="!loading && totalPages > 1">
+        <span class="pagination-info">Exibindo {{fichas.length}} registros</span>
+        <div class="pagination" style="margin-top:0;">
+          <button (click)="carregar(currentPage - 1)" [disabled]="currentPage === 0">&laquo;</button>
+          <button *ngFor="let p of pages" (click)="carregar(p)" [class.active]="p === currentPage">{{p + 1}}</button>
+          <button (click)="carregar(currentPage + 1)" [disabled]="currentPage === totalPages - 1">&raquo;</button>
+        </div>
       </div>
     </div>
 
@@ -56,16 +64,21 @@ import { FichaTecnica, Prato, Insumo } from '../../shared/models/models';
           <h3>Ficha Tecnica - {{fichaDetalhe?.pratoNome}}</h3>
           <button class="modal-close" (click)="showDetalhes=false">&times;</button>
         </div>
-        <p><strong>Rendimento:</strong> {{fichaDetalhe?.rendimento}} porcoes</p>
-        <p><strong>Custo Total:</strong> R$ {{fichaDetalhe?.custoTotal | number:'1.2-2'}}</p>
-        <p><strong>Custo/Porcao:</strong> R$ {{fichaDetalhe?.custoPorPorcao | number:'1.2-2'}}</p>
-        <table style="margin-top:12px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px;">
+          <div><span style="font-size:12px;color:#6B7280;text-transform:uppercase;">Rendimento</span><br><strong style="color:#F3F4F6;">{{fichaDetalhe?.rendimento}} porcoes</strong></div>
+          <div><span style="font-size:12px;color:#6B7280;text-transform:uppercase;">Custo Total</span><br><strong style="color:#F3F4F6;">R$ {{fichaDetalhe?.custoTotal | number:'1.2-2'}}</strong></div>
+          <div><span style="font-size:12px;color:#6B7280;text-transform:uppercase;">Custo/Porcao</span><br><strong style="color:#F3F4F6;">R$ {{fichaDetalhe?.custoPorPorcao | number:'1.2-2'}}</strong></div>
+        </div>
+        <table>
           <thead><tr><th>Insumo</th><th>Unid.</th><th>Qtd Bruta</th><th>FC</th><th>Qtd Liquida</th><th>Custo</th></tr></thead>
           <tbody>
             <tr *ngFor="let item of fichaDetalhe?.itens">
-              <td>{{item.insumoNome}}</td><td>{{item.unidadeMedida}}</td>
-              <td>{{item.quantidadeBruta | number:'1.3-3'}}</td><td>{{item.fatorCorrecao | number:'1.2-2'}}</td>
-              <td>{{item.quantidadeLiquida | number:'1.3-3'}}</td><td>R$ {{item.custoItem | number:'1.2-2'}}</td>
+              <td><strong style="color:#F3F4F6;">{{item.insumoNome}}</strong></td>
+              <td>{{item.unidadeMedida}}</td>
+              <td>{{item.quantidadeBruta | number:'1.3-3'}}</td>
+              <td>{{item.fatorCorrecao | number:'1.2-2'}}</td>
+              <td>{{item.quantidadeLiquida | number:'1.3-3'}}</td>
+              <td>R$ {{item.custoItem | number:'1.2-2'}}</td>
             </tr>
           </tbody>
         </table>
@@ -80,37 +93,40 @@ import { FichaTecnica, Prato, Insumo } from '../../shared/models/models';
           <button class="modal-close" (click)="fecharModal()">&times;</button>
         </div>
         <form [formGroup]="form" (ngSubmit)="salvar()">
-          <div class="form-group">
-            <label>Prato</label>
-            <select class="form-control" formControlName="pratoId">
-              <option value="">Selecione...</option>
-              <option *ngFor="let p of pratos" [value]="p.id">{{p.nome}} (R$ {{p.precoVenda | number:'1.2-2'}})</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Rendimento (porcoes)</label>
-            <input type="number" class="form-control" formControlName="rendimento" min="1">
+          <div style="display:grid;grid-template-columns:2fr 1fr;gap:12px;">
+            <div class="form-group">
+              <label>Prato</label>
+              <select class="form-control" formControlName="pratoId">
+                <option value="">Selecione...</option>
+                <option *ngFor="let p of pratos" [value]="p.id">{{p.nome}} (R$ {{p.precoVenda | number:'1.2-2'}})</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Rendimento (porcoes)</label>
+              <input type="number" class="form-control" formControlName="rendimento" min="1">
+            </div>
           </div>
 
-          <h4 style="margin:16px 0 8px;">Ingredientes</h4>
+          <h4 style="margin:16px 0 8px;color:#F3F4F6;font-size:14px;">Ingredientes</h4>
           <div formArrayName="itens">
-            <div *ngFor="let item of itensArray.controls; let i=index" [formGroupName]="i" style="display:flex;gap:8px;margin-bottom:8px;align-items:end;">
-              <div class="form-group" style="flex:2;margin:0;">
+            <div *ngFor="let item of itensArray.controls; let i=index" [formGroupName]="i"
+                 style="display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:8px;margin-bottom:8px;align-items:end;">
+              <div class="form-group" style="margin:0;">
                 <label *ngIf="i===0">Insumo</label>
                 <select class="form-control" formControlName="insumoId">
                   <option value="">Sel...</option>
                   <option *ngFor="let ins of insumos" [value]="ins.id">{{ins.nome}} ({{ins.unidadeMedida}})</option>
                 </select>
               </div>
-              <div class="form-group" style="flex:1;margin:0;">
+              <div class="form-group" style="margin:0;">
                 <label *ngIf="i===0">Qtd Bruta</label>
                 <input type="number" class="form-control" formControlName="quantidadeBruta" step="0.001">
               </div>
-              <div class="form-group" style="flex:1;margin:0;">
+              <div class="form-group" style="margin:0;">
                 <label *ngIf="i===0">Fator Corr.</label>
                 <input type="number" class="form-control" formControlName="fatorCorrecao" step="0.01" min="1">
               </div>
-              <button type="button" class="btn btn-danger btn-sm" (click)="removerItem(i)" style="margin-bottom:2px;">
+              <button type="button" class="btn-icon btn-icon-danger" (click)="removerItem(i)" style="margin-bottom:2px;">
                 <i class="fas fa-times"></i>
               </button>
             </div>

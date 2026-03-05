@@ -11,7 +11,10 @@ import { Usuario } from '../../shared/models/models';
   imports: [CommonModule, ReactiveFormsModule],
   template: `
     <div class="page-header">
-      <h2><i class="fas fa-users"></i> Usuarios</h2>
+      <div>
+        <h2><i class="fas fa-users"></i> Usuarios</h2>
+        <p class="page-subtitle">Gerenciamento de usuarios do sistema</p>
+      </div>
       <button class="btn btn-primary" (click)="abrirModal()"><i class="fas fa-plus"></i> Novo Usuario</button>
     </div>
 
@@ -22,22 +25,25 @@ import { Usuario } from '../../shared/models/models';
           <thead><tr><th>ID</th><th>Nome</th><th>Email</th><th>Perfil</th><th>Status</th><th>Acoes</th></tr></thead>
           <tbody>
             <tr *ngFor="let u of usuarios">
-              <td>{{u.id}}</td>
-              <td><strong>{{u.nome}}</strong></td>
+              <td style="color:#DC2626;font-weight:600;">#{{u.id}}</td>
+              <td><strong style="color:#F3F4F6;">{{u.nome}}</strong></td>
               <td>{{u.email}}</td>
               <td><span class="badge badge-info">{{u.perfil}}</span></td>
-              <td><span class="badge badge-success">{{u.status}}</span></td>
+              <td><span class="badge badge-success"><span class="badge-dot"></span> {{u.status}}</span></td>
               <td>
-                <button class="btn btn-danger btn-sm" (click)="excluir(u.id)"><i class="fas fa-trash"></i></button>
+                <button class="btn-icon btn-icon-danger" (click)="excluir(u.id)" title="Desativar"><i class="fas fa-trash"></i></button>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
-      <div class="pagination" *ngIf="totalPages > 1">
-        <button (click)="carregar(currentPage - 1)" [disabled]="currentPage === 0">Anterior</button>
-        <button *ngFor="let p of pages" (click)="carregar(p)" [class.active]="p === currentPage">{{p + 1}}</button>
-        <button (click)="carregar(currentPage + 1)" [disabled]="currentPage === totalPages - 1">Proximo</button>
+      <div style="display:flex;align-items:center;margin-top:16px;" *ngIf="!loading && totalPages > 1">
+        <span class="pagination-info">Exibindo {{usuarios.length}} registros</span>
+        <div class="pagination" style="margin-top:0;">
+          <button (click)="carregar(currentPage - 1)" [disabled]="currentPage === 0">&laquo;</button>
+          <button *ngFor="let p of pages" (click)="carregar(p)" [class.active]="p === currentPage">{{p + 1}}</button>
+          <button (click)="carregar(currentPage + 1)" [disabled]="currentPage === totalPages - 1">&raquo;</button>
+        </div>
       </div>
     </div>
 

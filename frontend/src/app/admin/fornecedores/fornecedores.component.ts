@@ -11,7 +11,10 @@ import { Fornecedor, CatalogoFornecedor, Insumo } from '../../shared/models/mode
   imports: [CommonModule, ReactiveFormsModule, FormsModule],
   template: `
     <div class="page-header">
-      <h2><i class="fas fa-truck"></i> Fornecedores</h2>
+      <div>
+        <h2><i class="fas fa-truck"></i> Fornecedores</h2>
+        <p class="page-subtitle">{{fornecedores.length}} registros encontrados</p>
+      </div>
       <button class="btn btn-primary" (click)="abrirModal()"><i class="fas fa-plus"></i> Novo Fornecedor</button>
     </div>
 
@@ -22,25 +25,30 @@ import { Fornecedor, CatalogoFornecedor, Insumo } from '../../shared/models/mode
           <thead><tr><th>ID</th><th>Razao Social</th><th>CNPJ</th><th>Email</th><th>Telefone</th><th>Acoes</th></tr></thead>
           <tbody>
             <tr *ngFor="let f of fornecedores">
-              <td>{{f.id}}</td>
-              <td><strong>{{f.razaoSocial}}</strong></td>
+              <td style="color:#DC2626;font-weight:600;">#{{f.id}}</td>
+              <td><strong style="color:#F3F4F6;">{{f.razaoSocial}}</strong></td>
               <td>{{f.cnpj}}</td>
-              <td>{{f.email || '-'}}</td>
-              <td>{{f.telefone || '-'}}</td>
-              <td style="white-space:nowrap;">
-                <button class="btn btn-info btn-sm" (click)="verCatalogo(f)" title="Catalogo de Produtos"><i class="fas fa-list-alt"></i></button>
-                <button class="btn btn-warning btn-sm" (click)="editar(f)" title="Editar"><i class="fas fa-edit"></i></button>
-                <button class="btn btn-danger btn-sm" (click)="excluir(f.id)" title="Excluir"><i class="fas fa-trash"></i></button>
+              <td>{{f.email || '&mdash;'}}</td>
+              <td>{{f.telefone || '&mdash;'}}</td>
+              <td>
+                <div style="display:flex;gap:6px;">
+                  <button class="btn-icon" (click)="verCatalogo(f)" title="Catalogo"><i class="fas fa-list-alt"></i></button>
+                  <button class="btn-icon btn-icon-warning" (click)="editar(f)" title="Editar"><i class="fas fa-edit"></i></button>
+                  <button class="btn-icon btn-icon-danger" (click)="excluir(f.id)" title="Excluir"><i class="fas fa-trash"></i></button>
+                </div>
               </td>
             </tr>
-            <tr *ngIf="fornecedores.length === 0"><td colspan="6" style="text-align:center;color:var(--gray-500);">Nenhum fornecedor</td></tr>
+            <tr *ngIf="fornecedores.length === 0"><td colspan="6" style="text-align:center;color:#6B7280;padding:30px;">Nenhum fornecedor</td></tr>
           </tbody>
         </table>
       </div>
-      <div class="pagination" *ngIf="totalPages > 1">
-        <button (click)="carregar(currentPage - 1)" [disabled]="currentPage === 0">Anterior</button>
-        <button *ngFor="let p of pages" (click)="carregar(p)" [class.active]="p === currentPage">{{p + 1}}</button>
-        <button (click)="carregar(currentPage + 1)" [disabled]="currentPage === totalPages - 1">Proximo</button>
+      <div style="display:flex;align-items:center;margin-top:16px;" *ngIf="!loading && totalPages > 1">
+        <span class="pagination-info">Exibindo {{fornecedores.length}} registros</span>
+        <div class="pagination" style="margin-top:0;">
+          <button (click)="carregar(currentPage - 1)" [disabled]="currentPage === 0">&laquo;</button>
+          <button *ngFor="let p of pages" (click)="carregar(p)" [class.active]="p === currentPage">{{p + 1}}</button>
+          <button (click)="carregar(currentPage + 1)" [disabled]="currentPage === totalPages - 1">&raquo;</button>
+        </div>
       </div>
     </div>
 
@@ -54,8 +62,10 @@ import { Fornecedor, CatalogoFornecedor, Insumo } from '../../shared/models/mode
         <form [formGroup]="form" (ngSubmit)="salvar()">
           <div class="form-group"><label>Razao Social</label><input type="text" class="form-control" formControlName="razaoSocial"></div>
           <div class="form-group"><label>CNPJ</label><input type="text" class="form-control" formControlName="cnpj" placeholder="00.000.000/0000-00"></div>
-          <div class="form-group"><label>Email</label><input type="email" class="form-control" formControlName="email"></div>
-          <div class="form-group"><label>Telefone</label><input type="text" class="form-control" formControlName="telefone"></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div class="form-group"><label>Email</label><input type="email" class="form-control" formControlName="email"></div>
+            <div class="form-group"><label>Telefone</label><input type="text" class="form-control" formControlName="telefone"></div>
+          </div>
           <div class="form-group"><label>Endereco</label><input type="text" class="form-control" formControlName="endereco"></div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" (click)="fecharModal()">Cancelar</button>
@@ -69,24 +79,23 @@ import { Fornecedor, CatalogoFornecedor, Insumo } from '../../shared/models/mode
     <div class="modal-overlay" *ngIf="showCatalogoModal" (click)="showCatalogoModal=false">
       <div class="modal-content" (click)="$event.stopPropagation()" style="max-width:700px;">
         <div class="modal-header">
-          <h3><i class="fas fa-list-alt"></i> Catalogo - {{catalogoFornecedorNome}}</h3>
+          <h3><i class="fas fa-list-alt" style="color:var(--primary);margin-right:8px;"></i> Catalogo - {{catalogoFornecedorNome}}</h3>
           <button class="modal-close" (click)="showCatalogoModal=false">&times;</button>
         </div>
 
-        <!-- Form adicionar item ao catalogo -->
-        <div style="display:flex;gap:8px;align-items:flex-end;margin-bottom:16px;flex-wrap:wrap;">
-          <div class="form-group" style="flex:2;margin-bottom:0;">
+        <div style="display:grid;grid-template-columns:2fr 1fr 1fr auto auto;gap:8px;align-items:end;margin-bottom:16px;">
+          <div class="form-group" style="margin-bottom:0;">
             <label>Insumo</label>
             <select class="form-control" [(ngModel)]="catInsumoId">
               <option [ngValue]="0">Selecione...</option>
               <option *ngFor="let ins of insumosDisponiveis" [ngValue]="ins.id">{{ins.nome}} ({{ins.unidadeMedida}})</option>
             </select>
           </div>
-          <div class="form-group" style="flex:1;margin-bottom:0;">
+          <div class="form-group" style="margin-bottom:0;">
             <label>Preco (R$)</label>
             <input type="number" class="form-control" [(ngModel)]="catPreco" step="0.0001" min="0.0001">
           </div>
-          <div class="form-group" style="flex:1;margin-bottom:0;">
+          <div class="form-group" style="margin-bottom:0;">
             <label>Unid. Venda</label>
             <select class="form-control" [(ngModel)]="catUnidade">
               <option value="">Selecione...</option>
@@ -97,7 +106,7 @@ import { Fornecedor, CatalogoFornecedor, Insumo } from '../../shared/models/mode
           </div>
           <button class="btn btn-primary btn-sm" style="height:38px;" [disabled]="!catInsumoId || !catPreco || !catUnidade"
                   (click)="catEditId ? atualizarCatalogo() : adicionarCatalogo()">
-            <i [class]="catEditId ? 'fas fa-check' : 'fas fa-plus'"></i> {{catEditId ? 'Salvar' : 'Adicionar'}}
+            <i [class]="catEditId ? 'fas fa-check' : 'fas fa-plus'"></i> {{catEditId ? 'Salvar' : 'Add'}}
           </button>
           <button *ngIf="catEditId" class="btn btn-secondary btn-sm" style="height:38px;" (click)="cancelarEdicaoCatalogo()">
             <i class="fas fa-times"></i>
@@ -108,17 +117,19 @@ import { Fornecedor, CatalogoFornecedor, Insumo } from '../../shared/models/mode
           <thead><tr><th>Insumo</th><th>Preco</th><th>Unid. Venda</th><th>Acoes</th></tr></thead>
           <tbody>
             <tr *ngFor="let c of catalogoItens">
-              <td><strong>{{c.insumoNome}}</strong></td>
+              <td><strong style="color:#F3F4F6;">{{c.insumoNome}}</strong></td>
               <td>R$ {{c.preco | number:'1.4-4'}}</td>
               <td>{{c.unidadeVenda}}</td>
-              <td style="white-space:nowrap;">
-                <button class="btn btn-warning btn-sm" (click)="editarCatalogo(c)" title="Editar"><i class="fas fa-edit"></i></button>
-                <button class="btn btn-danger btn-sm" (click)="excluirCatalogo(c.id)" title="Remover"><i class="fas fa-trash"></i></button>
+              <td>
+                <div style="display:flex;gap:6px;">
+                  <button class="btn-icon btn-icon-warning" (click)="editarCatalogo(c)" title="Editar"><i class="fas fa-edit"></i></button>
+                  <button class="btn-icon btn-icon-danger" (click)="excluirCatalogo(c.id)" title="Remover"><i class="fas fa-trash"></i></button>
+                </div>
               </td>
             </tr>
           </tbody>
         </table>
-        <p *ngIf="catalogoItens.length === 0" style="text-align:center;color:var(--gray-500);padding:20px;">Nenhum produto cadastrado no catalogo deste fornecedor</p>
+        <p *ngIf="catalogoItens.length === 0" style="text-align:center;color:#6B7280;padding:20px;">Nenhum produto cadastrado no catalogo deste fornecedor</p>
       </div>
     </div>
   `
@@ -130,7 +141,6 @@ export class FornecedoresComponent implements OnInit {
   showModal = false; editando = false; editId = 0;
   form: FormGroup;
 
-  // Catalogo
   showCatalogoModal = false;
   catalogoFornecedorId = 0;
   catalogoFornecedorNome = '';
@@ -179,7 +189,6 @@ export class FornecedoresComponent implements OnInit {
     this.api.deleteFornecedor(id).subscribe({ next: () => { this.toast.success('Fornecedor desativado!'); this.carregar(this.currentPage); } });
   }
 
-  // === Catalogo ===
   verCatalogo(f: Fornecedor): void {
     this.catalogoFornecedorId = f.id;
     this.catalogoFornecedorNome = f.razaoSocial;
