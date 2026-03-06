@@ -1,5 +1,6 @@
 package com.comandadigital.controller;
 
+import com.comandadigital.dto.request.EntradaEstoqueRequest;
 import com.comandadigital.dto.request.InsumoRequest;
 import com.comandadigital.dto.request.SaidaManualRequest;
 import com.comandadigital.dto.response.InsumoResponse;
@@ -39,6 +40,12 @@ public class InsumoController {
         return ResponseEntity.ok(service.buscarPorId(id));
     }
 
+    @GetMapping("/todos")
+    @PreAuthorize("hasAnyRole('ADMIN', 'GERENTE')")
+    public ResponseEntity<List<InsumoResponse>> listarTodos() {
+        return ResponseEntity.ok(service.listarTodos());
+    }
+
     @GetMapping("/estoque-baixo")
     @PreAuthorize("hasAnyRole('ADMIN', 'GERENTE')")
     public ResponseEntity<List<InsumoResponse>> listarEstoqueBaixo() {
@@ -63,6 +70,16 @@ public class InsumoController {
     public ResponseEntity<InsumoResponse> atualizar(
             @PathVariable Long id, @Valid @RequestBody InsumoRequest request) {
         return ResponseEntity.ok(service.atualizar(id, request));
+    }
+
+    @PostMapping("/{id}/entrada")
+    @PreAuthorize("hasAnyRole('ADMIN', 'GERENTE')")
+    public ResponseEntity<Void> entradaEstoque(
+            @PathVariable Long id, @Valid @RequestBody EntradaEstoqueRequest request) {
+        Insumo insumo = service.findActiveById(id);
+        String motivo = request.getObservacao() != null ? "Entrada manual - " + request.getObservacao() : "Entrada manual";
+        estoqueService.registrarEntrada(insumo, request.getQuantidade(), motivo);
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{id}/saida-manual")

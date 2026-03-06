@@ -38,6 +38,8 @@ export class ApiService {
   createInsumo(r: M.InsumoRequest): Observable<M.Insumo> { return this.http.post<M.Insumo>(`${this.api}/insumos`, r); }
   updateInsumo(id: number, r: M.InsumoRequest): Observable<M.Insumo> { return this.http.put<M.Insumo>(`${this.api}/insumos/${id}`, r); }
   deleteInsumo(id: number): Observable<void> { return this.http.delete<void>(`${this.api}/insumos/${id}`); }
+  getInsumosTodos(): Observable<M.Insumo[]> { return this.http.get<M.Insumo[]>(`${this.api}/insumos/todos`); }
+  entradaEstoque(id: number, r: { quantidade: number; observacao: string }): Observable<void> { return this.http.post<void>(`${this.api}/insumos/${id}/entrada`, r); }
   saidaManual(id: number, r: { quantidade: number; motivo: string }): Observable<void> { return this.http.post<void>(`${this.api}/insumos/${id}/saida-manual`, r); }
 
   // Fichas Tecnicas
