@@ -15,6 +15,8 @@ public interface InsumoRepository extends JpaRepository<Insumo, Long> {
 
     Page<Insumo> findByStatus(StatusGeral status, Pageable pageable);
 
+    List<Insumo> findAllByStatus(StatusGeral status);
+
     @Query("SELECT i FROM Insumo i WHERE i.quantidadeEstoque <= i.estoqueMinimo AND i.status = 'ATIVO'")
     List<Insumo> findInsumosAbaixoEstoqueMinimo();
 

@@ -60,6 +60,9 @@ import { ToastComponent } from './shared/components/toast.component';
           <a routerLink="/admin/insumos" class="sidebar-link" [class.active]="isRoute('/admin/insumos')" *ngIf="auth.hasAnyRole(['ADMIN','GERENTE'])">
             <i class="fas fa-boxes"></i> <span>Insumos</span>
           </a>
+          <a routerLink="/admin/entrada-estoque" class="sidebar-link" [class.active]="isRoute('/admin/entrada-estoque')" *ngIf="auth.hasAnyRole(['ADMIN','GERENTE'])">
+            <i class="fas fa-arrow-circle-down"></i> <span>Entrada Estoque</span>
+          </a>
           <a routerLink="/admin/fornecedores" class="sidebar-link" [class.active]="isRoute('/admin/fornecedores')" *ngIf="auth.hasAnyRole(['ADMIN','GERENTE'])">
             <i class="fas fa-truck"></i> <span>Fornecedores</span>
           </a>
