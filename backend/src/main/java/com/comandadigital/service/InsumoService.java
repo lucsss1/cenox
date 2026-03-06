@@ -81,6 +81,13 @@ public class InsumoService {
     }
 
     @Transactional(readOnly = true)
+    public List<InsumoResponse> listarTodos() {
+        return repository.findAllByStatus(StatusGeral.ATIVO).stream()
+                .map(mapper::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
     public List<InsumoResponse> listarAbaixoEstoqueMinimo() {
         return repository.findInsumosAbaixoEstoqueMinimo().stream()
                 .map(mapper::toResponse)
