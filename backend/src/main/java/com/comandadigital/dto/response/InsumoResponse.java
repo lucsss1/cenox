@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 @Data
 @NoArgsConstructor
@@ -21,5 +22,10 @@ public class InsumoResponse {
     private BigDecimal estoqueMinimo;
     private BigDecimal custoMedio;
     private boolean abaixoEstoqueMinimo;
+    private String categoria;
+    private LocalDate dataEntradaEstoque;
+    private LocalDate dataValidade;
+    private Long fornecedorId;
+    private String fornecedorNome;
     private StatusGeral status;
 }
