@@ -11,22 +11,26 @@ public class FornecedorMapper {
     public FornecedorResponse toResponse(Fornecedor entity) {
         return FornecedorResponse.builder()
                 .id(entity.getId())
-                .razaoSocial(entity.getRazaoSocial())
+                .nomeEmpresa(entity.getNomeEmpresa())
                 .cnpj(entity.getCnpj())
                 .email(entity.getEmail())
                 .telefone(entity.getTelefone())
                 .endereco(entity.getEndereco())
+                .responsavelComercial(entity.getResponsavelComercial())
+                .statusFornecedor(entity.getStatusFornecedor())
                 .status(entity.getStatus())
                 .build();
     }
 
     public Fornecedor toEntity(FornecedorRequest request) {
         return Fornecedor.builder()
-                .razaoSocial(request.getRazaoSocial())
+                .nomeEmpresa(request.getNomeEmpresa())
                 .cnpj(request.getCnpj())
                 .email(request.getEmail())
                 .telefone(request.getTelefone())
                 .endereco(request.getEndereco())
+                .responsavelComercial(request.getResponsavelComercial())
+                .statusFornecedor(request.getStatusFornecedor())
                 .build();
     }
 }

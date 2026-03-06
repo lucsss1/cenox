@@ -15,7 +15,7 @@ public class CompraMapper {
         return CompraResponse.builder()
                 .id(entity.getId())
                 .fornecedorId(entity.getFornecedor().getId())
-                .fornecedorNome(entity.getFornecedor().getRazaoSocial())
+                .fornecedorNome(entity.getFornecedor().getNomeEmpresa())
                 .dataCompra(entity.getDataCompra())
                 .notaFiscal(entity.getNotaFiscal())
                 .valorTotal(entity.getValorTotal())
