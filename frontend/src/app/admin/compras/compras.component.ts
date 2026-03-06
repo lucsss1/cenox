@@ -117,7 +117,7 @@ import { Compra, Fornecedor, Insumo } from '../../shared/models/models';
               <label>Fornecedor</label>
               <select class="form-control" formControlName="fornecedorId">
                 <option value="">Selecione...</option>
-                <option *ngFor="let f of fornecedores" [value]="f.id">{{f.razaoSocial}}</option>
+                <option *ngFor="let f of fornecedores" [value]="f.id">{{f.nomeEmpresa}}</option>
               </select>
             </div>
             <div class="form-group">

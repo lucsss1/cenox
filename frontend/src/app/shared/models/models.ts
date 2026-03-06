@@ -66,12 +66,14 @@ export interface PedidoRequest {
 }
 
 export interface Fornecedor {
-  id: number; razaoSocial: string; cnpj: string;
-  email: string; telefone: string; endereco: string; status: string;
+  id: number; nomeEmpresa: string; cnpj: string;
+  email: string; telefone: string; endereco: string;
+  responsavelComercial: string; statusFornecedor: string; status: string;
 }
 export interface FornecedorRequest {
-  razaoSocial: string; cnpj: string; email: string;
+  nomeEmpresa: string; cnpj: string; email: string;
   telefone: string; endereco: string;
+  responsavelComercial: string; statusFornecedor: string;
 }
 
 export interface Compra {

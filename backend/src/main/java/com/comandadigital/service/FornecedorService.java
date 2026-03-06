@@ -56,11 +56,15 @@ public class FornecedorService {
     @Transactional
     public FornecedorResponse atualizar(Long id, FornecedorRequest request) {
         Fornecedor fornecedor = findActiveById(id);
-        fornecedor.setRazaoSocial(request.getRazaoSocial());
+        fornecedor.setNomeEmpresa(request.getNomeEmpresa());
         fornecedor.setCnpj(request.getCnpj());
         fornecedor.setEmail(request.getEmail());
         fornecedor.setTelefone(request.getTelefone());
         fornecedor.setEndereco(request.getEndereco());
+        fornecedor.setResponsavelComercial(request.getResponsavelComercial());
+        if (request.getStatusFornecedor() != null) {
+            fornecedor.setStatusFornecedor(request.getStatusFornecedor());
+        }
         fornecedor = repository.save(fornecedor);
         return mapper.toResponse(fornecedor);
     }

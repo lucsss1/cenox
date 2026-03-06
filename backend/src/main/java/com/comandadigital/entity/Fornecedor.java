@@ -1,5 +1,6 @@
 package com.comandadigital.entity;
 
+import com.comandadigital.enums.StatusFornecedor;
 import com.comandadigital.enums.StatusGeral;
 import jakarta.persistence.*;
 import lombok.*;
@@ -17,7 +18,10 @@ public class Fornecedor {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "razao_social", nullable = false, length = 200)
+    @Column(name = "nome_empresa", nullable = false, length = 200)
+    private String nomeEmpresa;
+
+    @Column(name = "razao_social", length = 200)
     private String razaoSocial;
 
     @Column(nullable = false, unique = true, length = 18)
@@ -31,6 +35,13 @@ public class Fornecedor {
 
     @Column(length = 255)
     private String endereco;
+
+    @Column(name = "responsavel_comercial", length = 150)
+    private String responsavelComercial;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status_fornecedor", nullable = false, length = 20)
+    private StatusFornecedor statusFornecedor;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 10)
@@ -47,6 +58,7 @@ public class Fornecedor {
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
         if (this.status == null) this.status = StatusGeral.ATIVO;
+        if (this.statusFornecedor == null) this.statusFornecedor = StatusFornecedor.EM_AVALIACAO;
     }
 
     @PreUpdate

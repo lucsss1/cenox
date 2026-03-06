@@ -22,14 +22,21 @@ import { Fornecedor, CatalogoFornecedor, Insumo } from '../../shared/models/mode
       <div class="loading" *ngIf="loading"><div class="spinner"></div></div>
       <div class="table-container" *ngIf="!loading">
         <table>
-          <thead><tr><th>ID</th><th>Razao Social</th><th>CNPJ</th><th>Email</th><th>Telefone</th><th>Acoes</th></tr></thead>
+          <thead><tr><th>ID</th><th>Empresa</th><th>CNPJ</th><th>Responsavel</th><th>Telefone</th><th>Status</th><th>Acoes</th></tr></thead>
           <tbody>
             <tr *ngFor="let f of fornecedores">
               <td style="color:#DC2626;font-weight:600;">#{{f.id}}</td>
-              <td><strong style="color:#F3F4F6;">{{f.razaoSocial}}</strong></td>
+              <td><strong style="color:#F3F4F6;">{{f.nomeEmpresa}}</strong></td>
               <td>{{f.cnpj}}</td>
-              <td>{{f.email || '&mdash;'}}</td>
+              <td>{{f.responsavelComercial || '&mdash;'}}</td>
               <td>{{f.telefone || '&mdash;'}}</td>
+              <td>
+                <span class="status-badge" [ngClass]="{
+                  'status-em-avaliacao': f.statusFornecedor === 'EM_AVALIACAO',
+                  'status-homologado': f.statusFornecedor === 'HOMOLOGADO',
+                  'status-bloqueado': f.statusFornecedor === 'BLOQUEADO'
+                }">{{formatStatus(f.statusFornecedor)}}</span>
+              </td>
               <td>
                 <div style="display:flex;gap:6px;">
                   <button class="btn-icon" (click)="verCatalogo(f)" title="Catalogo"><i class="fas fa-list-alt"></i></button>
@@ -38,7 +45,7 @@ import { Fornecedor, CatalogoFornecedor, Insumo } from '../../shared/models/mode
                 </div>
               </td>
             </tr>
-            <tr *ngIf="fornecedores.length === 0"><td colspan="6" style="text-align:center;color:#6B7280;padding:30px;">Nenhum fornecedor</td></tr>
+            <tr *ngIf="fornecedores.length === 0"><td colspan="7" style="text-align:center;color:#6B7280;padding:30px;">Nenhum fornecedor</td></tr>
           </tbody>
         </table>
       </div>
@@ -60,13 +67,26 @@ import { Fornecedor, CatalogoFornecedor, Insumo } from '../../shared/models/mode
           <button class="modal-close" (click)="fecharModal()">&times;</button>
         </div>
         <form [formGroup]="form" (ngSubmit)="salvar()">
-          <div class="form-group"><label>Razao Social</label><input type="text" class="form-control" formControlName="razaoSocial"></div>
-          <div class="form-group"><label>CNPJ</label><input type="text" class="form-control" formControlName="cnpj" placeholder="00.000.000/0000-00"></div>
+          <div class="form-group"><label>Nome da Empresa</label><input type="text" class="form-control" formControlName="nomeEmpresa"></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div class="form-group"><label>CNPJ</label><input type="text" class="form-control" formControlName="cnpj" placeholder="00.000.000/0000-00"></div>
+            <div class="form-group"><label>Responsavel Comercial</label><input type="text" class="form-control" formControlName="responsavelComercial"></div>
+          </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
             <div class="form-group"><label>Email</label><input type="email" class="form-control" formControlName="email"></div>
             <div class="form-group"><label>Telefone</label><input type="text" class="form-control" formControlName="telefone"></div>
           </div>
-          <div class="form-group"><label>Endereco</label><input type="text" class="form-control" formControlName="endereco"></div>
+          <div style="display:grid;grid-template-columns:2fr 1fr;gap:12px;">
+            <div class="form-group"><label>Endereco</label><input type="text" class="form-control" formControlName="endereco"></div>
+            <div class="form-group">
+              <label>Status</label>
+              <select class="form-control" formControlName="statusFornecedor">
+                <option value="EM_AVALIACAO">Em Avaliacao</option>
+                <option value="HOMOLOGADO">Homologado</option>
+                <option value="BLOQUEADO">Bloqueado</option>
+              </select>
+            </div>
+          </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" (click)="fecharModal()">Cancelar</button>
             <button type="submit" class="btn btn-primary" [disabled]="form.invalid">Salvar</button>
@@ -132,7 +152,13 @@ import { Fornecedor, CatalogoFornecedor, Insumo } from '../../shared/models/mode
         <p *ngIf="catalogoItens.length === 0" style="text-align:center;color:#6B7280;padding:20px;">Nenhum produto cadastrado no catalogo deste fornecedor</p>
       </div>
     </div>
-  `
+  `,
+  styles: [`
+    .status-badge { padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+    .status-em-avaliacao { background: rgba(234,179,8,0.15); color: #EAB308; }
+    .status-homologado { background: rgba(34,197,94,0.15); color: #22C55E; }
+    .status-bloqueado { background: rgba(239,68,68,0.15); color: #EF4444; }
+  `]
 })
 export class FornecedoresComponent implements OnInit {
   fornecedores: Fornecedor[] = [];
@@ -153,8 +179,9 @@ export class FornecedoresComponent implements OnInit {
 
   constructor(private api: ApiService, private toast: ToastService, private fb: FormBuilder) {
     this.form = this.fb.group({
-      razaoSocial: ['', Validators.required], cnpj: ['', Validators.required],
-      email: [''], telefone: [''], endereco: ['']
+      nomeEmpresa: ['', Validators.required], cnpj: ['', Validators.required],
+      email: [''], telefone: [''], endereco: [''],
+      responsavelComercial: [''], statusFornecedor: ['EM_AVALIACAO']
     });
   }
 
@@ -191,7 +218,7 @@ export class FornecedoresComponent implements OnInit {
 
   verCatalogo(f: Fornecedor): void {
     this.catalogoFornecedorId = f.id;
-    this.catalogoFornecedorNome = f.razaoSocial;
+    this.catalogoFornecedorNome = f.nomeEmpresa;
     this.resetCatForm();
     this.api.getCatalogoFornecedor(f.id).subscribe({
       next: (data) => {
@@ -254,6 +281,15 @@ export class FornecedoresComponent implements OnInit {
     this.api.deleteCatalogo(id).subscribe({
       next: () => { this.toast.success('Item removido!'); this.recarregarCatalogo(); }
     });
+  }
+
+  formatStatus(status: string): string {
+    const map: { [key: string]: string } = {
+      'EM_AVALIACAO': 'Em Avaliacao',
+      'HOMOLOGADO': 'Homologado',
+      'BLOQUEADO': 'Bloqueado'
+    };
+    return map[status] || status;
   }
 
   private recarregarCatalogo(): void {
