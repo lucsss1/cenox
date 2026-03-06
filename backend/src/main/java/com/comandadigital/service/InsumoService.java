@@ -5,7 +5,9 @@ import com.comandadigital.dto.response.InsumoResponse;
 import com.comandadigital.entity.Insumo;
 import com.comandadigital.enums.StatusGeral;
 import com.comandadigital.exception.ResourceNotFoundException;
+import com.comandadigital.entity.Fornecedor;
 import com.comandadigital.mapper.InsumoMapper;
+import com.comandadigital.repository.FornecedorRepository;
 import com.comandadigital.repository.InsumoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -21,6 +23,7 @@ import java.util.stream.Collectors;
 public class InsumoService {
 
     private final InsumoRepository repository;
+    private final FornecedorRepository fornecedorRepository;
     private final InsumoMapper mapper;
 
     @Transactional(readOnly = true)
@@ -38,6 +41,7 @@ public class InsumoService {
     @Transactional
     public InsumoResponse criar(InsumoRequest request) {
         Insumo insumo = mapper.toEntity(request);
+        setFornecedor(insumo, request.getFornecedorId());
         insumo = repository.save(insumo);
         return mapper.toResponse(insumo);
     }
@@ -51,8 +55,22 @@ public class InsumoService {
         if (request.getCustoMedio() != null) {
             insumo.setCustoMedio(request.getCustoMedio());
         }
+        insumo.setCategoria(request.getCategoria());
+        insumo.setDataEntradaEstoque(request.getDataEntradaEstoque());
+        insumo.setDataValidade(request.getDataValidade());
+        setFornecedor(insumo, request.getFornecedorId());
         insumo = repository.save(insumo);
         return mapper.toResponse(insumo);
+    }
+
+    private void setFornecedor(Insumo insumo, Long fornecedorId) {
+        if (fornecedorId != null) {
+            Fornecedor fornecedor = fornecedorRepository.findById(fornecedorId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Fornecedor nao encontrado: " + fornecedorId));
+            insumo.setFornecedor(fornecedor);
+        } else {
+            insumo.setFornecedor(null);
+        }
     }
 
     @Transactional

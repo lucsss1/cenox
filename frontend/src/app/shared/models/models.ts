@@ -26,11 +26,15 @@ export interface PratoRequest {
 export interface Insumo {
   id: number; nome: string; unidadeMedida: string;
   quantidadeEstoque: number; estoqueMinimo: number;
-  custoMedio: number; abaixoEstoqueMinimo: boolean; status: string;
+  custoMedio: number; abaixoEstoqueMinimo: boolean;
+  categoria: string; dataEntradaEstoque: string; dataValidade: string;
+  fornecedorId: number; fornecedorNome: string; status: string;
 }
 export interface InsumoRequest {
   nome: string; unidadeMedida: string;
   estoqueMinimo: number; custoMedio: number;
+  categoria: string; dataEntradaEstoque: string; dataValidade: string;
+  fornecedorId: number | null;
 }
 
 export interface FichaTecnica {

@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -34,6 +35,19 @@ public class Insumo {
 
     @Column(name = "custo_medio", precision = 10, scale = 2)
     private BigDecimal custoMedio;
+
+    @Column(length = 100)
+    private String categoria;
+
+    @Column(name = "data_entrada_estoque")
+    private LocalDate dataEntradaEstoque;
+
+    @Column(name = "data_validade")
+    private LocalDate dataValidade;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "fornecedor_id")
+    private Fornecedor fornecedor;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 10)

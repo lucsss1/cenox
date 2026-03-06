@@ -17,6 +17,11 @@ public class InsumoMapper {
                 .estoqueMinimo(entity.getEstoqueMinimo())
                 .custoMedio(entity.getCustoMedio())
                 .abaixoEstoqueMinimo(entity.getQuantidadeEstoque().compareTo(entity.getEstoqueMinimo()) <= 0)
+                .categoria(entity.getCategoria())
+                .dataEntradaEstoque(entity.getDataEntradaEstoque())
+                .dataValidade(entity.getDataValidade())
+                .fornecedorId(entity.getFornecedor() != null ? entity.getFornecedor().getId() : null)
+                .fornecedorNome(entity.getFornecedor() != null ? entity.getFornecedor().getNomeEmpresa() : null)
                 .status(entity.getStatus())
                 .build();
     }
@@ -27,6 +32,9 @@ public class InsumoMapper {
                 .unidadeMedida(request.getUnidadeMedida())
                 .estoqueMinimo(request.getEstoqueMinimo())
                 .custoMedio(request.getCustoMedio())
+                .categoria(request.getCategoria())
+                .dataEntradaEstoque(request.getDataEntradaEstoque())
+                .dataValidade(request.getDataValidade())
                 .build();
     }
 }

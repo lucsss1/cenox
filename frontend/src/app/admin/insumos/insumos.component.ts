@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ApiService } from '../../shared/services/api.service';
 import { ToastService } from '../../shared/services/toast.service';
-import { Insumo, CatalogoFornecedor, HistoricoPreco } from '../../shared/models/models';
+import { Insumo, Fornecedor, CatalogoFornecedor, HistoricoPreco } from '../../shared/models/models';
 import { Chart, registerables } from 'chart.js';
 
 Chart.register(...registerables);
@@ -25,15 +25,23 @@ Chart.register(...registerables);
       <div class="loading" *ngIf="loading"><div class="spinner"></div></div>
       <div class="table-container" *ngIf="!loading">
         <table>
-          <thead><tr><th>ID</th><th>Nome</th><th>Unidade</th><th>Estoque</th><th>Min.</th><th>Custo Medio</th><th>Status Est.</th><th>Acoes</th></tr></thead>
+          <thead><tr><th>ID</th><th>Nome</th><th>Categoria</th><th>Unidade</th><th>Estoque</th><th>Min.</th><th>Custo Medio</th><th>Validade</th><th>Fornecedor</th><th>Status Est.</th><th>Acoes</th></tr></thead>
           <tbody>
             <tr *ngFor="let i of insumos">
               <td style="color:#DC2626;font-weight:600;">#{{i.id}}</td>
               <td><strong style="color:#F3F4F6;">{{i.nome}}</strong></td>
+              <td>{{i.categoria || '&mdash;'}}</td>
               <td>{{i.unidadeMedida}}</td>
               <td>{{i.quantidadeEstoque | number:'1.0-3'}}</td>
               <td>{{i.estoqueMinimo | number:'1.0-3'}}</td>
               <td>{{i.custoMedio ? 'R$ ' + (i.custoMedio | number:'1.2-2') : '&mdash;'}}</td>
+              <td>
+                <span *ngIf="i.dataValidade" [style.color]="isVencido(i.dataValidade) ? '#EF4444' : isProximoVencer(i.dataValidade) ? '#F59E0B' : '#6B7280'">
+                  {{i.dataValidade}}
+                </span>
+                <span *ngIf="!i.dataValidade">&mdash;</span>
+              </td>
+              <td>{{i.fornecedorNome || '&mdash;'}}</td>
               <td>
                 <span [class]="i.abaixoEstoqueMinimo ? 'badge badge-danger' : 'badge badge-success'">
                   <span class="badge-dot"></span>
@@ -50,7 +58,7 @@ Chart.register(...registerables);
                 </div>
               </td>
             </tr>
-            <tr *ngIf="insumos.length === 0"><td colspan="8" style="text-align:center;color:#6B7280;padding:30px;">Nenhum insumo encontrado</td></tr>
+            <tr *ngIf="insumos.length === 0"><td colspan="11" style="text-align:center;color:#6B7280;padding:30px;">Nenhum insumo encontrado</td></tr>
           </tbody>
         </table>
       </div>
@@ -72,18 +80,34 @@ Chart.register(...registerables);
           <button class="modal-close" (click)="fecharModal()">&times;</button>
         </div>
         <form [formGroup]="form" (ngSubmit)="salvar()">
-          <div class="form-group"><label>Nome</label><input type="text" class="form-control" formControlName="nome"></div>
-          <div class="form-group">
-            <label>Unidade de Medida</label>
-            <select class="form-control" formControlName="unidadeMedida">
-              <option value="">Selecione...</option>
-              <option value="KG">KG</option><option value="G">G</option>
-              <option value="L">L</option><option value="ML">ML</option><option value="UN">UN</option>
-            </select>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div class="form-group"><label>Nome *</label><input type="text" class="form-control" formControlName="nome"></div>
+            <div class="form-group"><label>Categoria</label><input type="text" class="form-control" formControlName="categoria" placeholder="Ex: Hortifruti, Carnes..."></div>
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-            <div class="form-group"><label>Estoque Minimo</label><input type="number" class="form-control" formControlName="estoqueMinimo" step="0.001"></div>
+            <div class="form-group">
+              <label>Unidade de Medida *</label>
+              <select class="form-control" formControlName="unidadeMedida">
+                <option value="">Selecione...</option>
+                <option value="KG">KG</option><option value="G">G</option>
+                <option value="L">L</option><option value="ML">ML</option><option value="UN">UN</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Fornecedor</label>
+              <select class="form-control" formControlName="fornecedorId">
+                <option [ngValue]="null">Nenhum</option>
+                <option *ngFor="let f of fornecedores" [ngValue]="f.id">{{f.nomeEmpresa}}</option>
+              </select>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div class="form-group"><label>Estoque Minimo *</label><input type="number" class="form-control" formControlName="estoqueMinimo" step="0.001"></div>
             <div class="form-group"><label>Custo Medio (R$)</label><input type="number" class="form-control" formControlName="custoMedio" step="0.01"></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div class="form-group"><label>Data de Entrada</label><input type="date" class="form-control" formControlName="dataEntradaEstoque"></div>
+            <div class="form-group"><label>Data de Validade</label><input type="date" class="form-control" formControlName="dataValidade"></div>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" (click)="fecharModal()">Cancelar</button>
@@ -170,6 +194,7 @@ export class InsumosComponent implements OnInit {
   @ViewChild('historicoChart') historicoRef!: ElementRef<HTMLCanvasElement>;
 
   insumos: Insumo[] = [];
+  fornecedores: Fornecedor[] = [];
   loading = true;
   currentPage = 0; totalPages = 0; pages: number[] = [];
   showModal = false; editando = false; editId = 0;
@@ -193,11 +218,15 @@ export class InsumosComponent implements OnInit {
   constructor(private api: ApiService, private toast: ToastService, private fb: FormBuilder) {
     this.form = this.fb.group({
       nome: ['', Validators.required], unidadeMedida: ['', Validators.required],
-      estoqueMinimo: [0, [Validators.required, Validators.min(0)]], custoMedio: [null]
+      estoqueMinimo: [0, [Validators.required, Validators.min(0)]], custoMedio: [null],
+      categoria: [''], dataEntradaEstoque: [null], dataValidade: [null], fornecedorId: [null]
     });
   }
 
-  ngOnInit(): void { this.carregar(0); }
+  ngOnInit(): void {
+    this.carregar(0);
+    this.api.getFornecedoresTodos().subscribe({ next: (f) => this.fornecedores = f });
+  }
 
   carregar(page: number): void {
     this.currentPage = page; this.loading = true;
@@ -210,7 +239,11 @@ export class InsumosComponent implements OnInit {
   abrirModal(): void { this.editando = false; this.form.reset(); this.showModal = true; }
   editar(i: Insumo): void {
     this.editando = true; this.editId = i.id;
-    this.form.patchValue({ nome: i.nome, unidadeMedida: i.unidadeMedida, estoqueMinimo: i.estoqueMinimo, custoMedio: i.custoMedio });
+    this.form.patchValue({
+      nome: i.nome, unidadeMedida: i.unidadeMedida, estoqueMinimo: i.estoqueMinimo, custoMedio: i.custoMedio,
+      categoria: i.categoria, dataEntradaEstoque: i.dataEntradaEstoque, dataValidade: i.dataValidade,
+      fornecedorId: i.fornecedorId || null
+    });
     this.showModal = true;
   }
   fecharModal(): void { this.showModal = false; }
@@ -259,6 +292,17 @@ export class InsumosComponent implements OnInit {
         setTimeout(() => this.renderHistoricoChart(), 200);
       }
     });
+  }
+
+  isVencido(data: string): boolean {
+    return new Date(data) < new Date();
+  }
+
+  isProximoVencer(data: string): boolean {
+    const validade = new Date(data);
+    const hoje = new Date();
+    const diffDias = (validade.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24);
+    return diffDias >= 0 && diffDias <= 7;
   }
 
   private renderHistoricoChart(): void {
