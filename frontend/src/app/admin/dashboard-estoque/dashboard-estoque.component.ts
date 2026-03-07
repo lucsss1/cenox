@@ -11,7 +11,8 @@ import { Insumo, MovimentacaoEstoque } from '../../shared/models/models';
   template: `
     <div class="page-header">
       <div>
-        <h2><i class="fas fa-warehouse"></i> Dashboard de Estoque</h2>
+        <a routerLink="/admin/dashboard" class="back-link"><i class="fas fa-arrow-left"></i> Dashboards</a>
+        <h2><i class="fas fa-warehouse"></i> Painel de Estoque</h2>
         <p class="page-subtitle">Visao geral do estoque — atualizado agora</p>
       </div>
       <div style="display:flex;gap:8px;">
