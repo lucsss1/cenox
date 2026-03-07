@@ -96,4 +96,8 @@ export class ApiService {
   // Dashboard
   getDashboard(): Observable<M.Dashboard> { return this.http.get<M.Dashboard>(`${this.api}/dashboard`); }
   getTopPratos(inicio: string, fim: string): Observable<M.TopPratos[]> { return this.http.get<M.TopPratos[]>(`${this.api}/dashboard/top-pratos?inicio=${inicio}&fim=${fim}`); }
+  getDashboardEstoqueBaixo(): Observable<M.Insumo[]> { return this.http.get<M.Insumo[]>(`${this.api}/dashboard/estoque-baixo`); }
+  getDashboardProximosVencimento(): Observable<M.Insumo[]> { return this.http.get<M.Insumo[]>(`${this.api}/dashboard/proximos-vencimento`); }
+  getDashboardVencidos(): Observable<M.Insumo[]> { return this.http.get<M.Insumo[]>(`${this.api}/dashboard/vencidos`); }
+  getDashboardUltimasEntradas(): Observable<M.MovimentacaoEstoque[]> { return this.http.get<M.MovimentacaoEstoque[]>(`${this.api}/dashboard/ultimas-entradas`); }
 }
