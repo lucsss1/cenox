@@ -1,11 +1,13 @@
 package com.comandadigital.service;
 
+import com.comandadigital.dto.response.InsumoResponse;
 import com.comandadigital.dto.response.MovimentacaoEstoqueResponse;
 import com.comandadigital.entity.Insumo;
 import com.comandadigital.entity.MovimentacaoEstoque;
 import com.comandadigital.enums.MotivoSaida;
 import com.comandadigital.enums.TipoMovimentacao;
 import com.comandadigital.exception.BusinessException;
+import com.comandadigital.mapper.InsumoMapper;
 import com.comandadigital.repository.InsumoRepository;
 import com.comandadigital.repository.MovimentacaoEstoqueRepository;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +17,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -22,6 +27,7 @@ public class EstoqueService {
 
     private final InsumoRepository insumoRepository;
     private final MovimentacaoEstoqueRepository movimentacaoRepository;
+    private final InsumoMapper insumoMapper;
 
     @Transactional
     public void registrarEntrada(Insumo insumo, BigDecimal quantidade, String motivo) {
@@ -112,5 +118,28 @@ public class EstoqueService {
                         .motivo(m.getMotivo())
                         .createdAt(m.getCreatedAt())
                         .build());
+    }
+
+    @Transactional(readOnly = true)
+    public List<InsumoResponse> listarVencidos() {
+        return insumoRepository.findVencidos(LocalDate.now()).stream()
+                .map(insumoMapper::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<InsumoResponse> listarProximosVencimento() {
+        LocalDate hoje = LocalDate.now();
+        LocalDate limite = hoje.plusDays(3);
+        return insumoRepository.findProximosVencimento(hoje, limite).stream()
+                .map(insumoMapper::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<InsumoResponse> listarOrdenadoPorValidade() {
+        return insumoRepository.findAllOrdenadoPorValidade().stream()
+                .map(insumoMapper::toResponse)
+                .collect(Collectors.toList());
     }
 }
