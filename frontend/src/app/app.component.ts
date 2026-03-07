@@ -42,8 +42,8 @@ import { ToastComponent } from './shared/components/toast.component';
           <span class="sidebar-brand">Comanda Digital</span>
         </div>
         <nav class="sidebar-nav">
-          <a routerLink="/admin/dashboard" class="sidebar-link" [class.active]="isRoute('/admin/dashboard')">
-            <i class="fas fa-chart-line"></i> <span>Dashboard</span>
+          <a routerLink="/admin/dashboard" class="sidebar-link" [class.active]="isDashboardRoute()">
+            <i class="fas fa-th-large"></i> <span>Dashboards</span>
           </a>
           <a routerLink="/admin/pedidos" class="sidebar-link" [class.active]="isRoute('/admin/pedidos')">
             <i class="fas fa-clipboard-list"></i> <span>Pedidos</span>
@@ -56,9 +56,6 @@ import { ToastComponent } from './shared/components/toast.component';
           </a>
           <a routerLink="/admin/fichas-tecnicas" class="sidebar-link" [class.active]="isRoute('/admin/fichas-tecnicas')" *ngIf="auth.hasAnyRole(['ADMIN','GERENTE'])">
             <i class="fas fa-file-alt"></i> <span>Fichas Tecnicas</span>
-          </a>
-          <a routerLink="/admin/dashboard-estoque" class="sidebar-link" [class.active]="isRoute('/admin/dashboard-estoque')" *ngIf="auth.hasAnyRole(['ADMIN','GERENTE'])">
-            <i class="fas fa-warehouse"></i> <span>Painel Estoque</span>
           </a>
           <a routerLink="/admin/insumos" class="sidebar-link" [class.active]="isRoute('/admin/insumos')" *ngIf="auth.hasAnyRole(['ADMIN','GERENTE'])">
             <i class="fas fa-boxes"></i> <span>Insumos</span>
@@ -191,6 +188,10 @@ export class AppComponent {
 
   isRoute(path: string): boolean {
     return this.router.url === path || this.router.url.startsWith(path + '/');
+  }
+
+  isDashboardRoute(): boolean {
+    return this.router.url === '/admin/dashboard' || this.router.url.startsWith('/admin/dashboard/');
   }
 
   logout(): void {
