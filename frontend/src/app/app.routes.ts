@@ -20,6 +20,7 @@ export const routes: Routes = [
       { path: 'pratos', loadComponent: () => import('./admin/pratos/pratos.component').then(m => m.PratosComponent) },
       { path: 'insumos', loadComponent: () => import('./admin/insumos/insumos.component').then(m => m.InsumosComponent) },
       { path: 'entrada-estoque', loadComponent: () => import('./admin/entrada-estoque/entrada-estoque.component').then(m => m.EntradaEstoqueComponent) },
+      { path: 'controle-validade', loadComponent: () => import('./admin/controle-validade/controle-validade.component').then(m => m.ControleValidadeComponent) },
       { path: 'fichas-tecnicas', loadComponent: () => import('./admin/fichas-tecnicas/fichas-tecnicas.component').then(m => m.FichasTecnicasComponent) },
       { path: 'pedidos', loadComponent: () => import('./admin/pedidos/pedidos.component').then(m => m.PedidosAdminComponent) },
       { path: 'fornecedores', loadComponent: () => import('./admin/fornecedores/fornecedores.component').then(m => m.FornecedoresComponent) },

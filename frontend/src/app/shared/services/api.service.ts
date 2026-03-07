@@ -83,6 +83,11 @@ export class ApiService {
   deleteCatalogo(id: number): Observable<void> { return this.http.delete<void>(`${this.api}/catalogo/${id}`); }
   getHistoricoPrecos(insumoId: number): Observable<M.HistoricoPreco[]> { return this.http.get<M.HistoricoPreco[]>(`${this.api}/catalogo/historico/${insumoId}`); }
 
+  // Estoque - Validade
+  getProximosVencimento(): Observable<M.Insumo[]> { return this.http.get<M.Insumo[]>(`${this.api}/estoque/proximos-vencimento`); }
+  getVencidos(): Observable<M.Insumo[]> { return this.http.get<M.Insumo[]>(`${this.api}/estoque/vencidos`); }
+  getOrdenadoValidade(): Observable<M.Insumo[]> { return this.http.get<M.Insumo[]>(`${this.api}/estoque/ordenado-validade`); }
+
   // Usuarios
   getUsuarios(page: number): Observable<M.Page<M.Usuario>> { return this.http.get<M.Page<M.Usuario>>(`${this.api}/usuarios`, { params: this.pageParams(page) }); }
   createUsuario(r: M.UsuarioRequest): Observable<M.Usuario> { return this.http.post<M.Usuario>(`${this.api}/usuarios`, r); }
