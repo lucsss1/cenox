@@ -109,6 +109,11 @@ export interface HistoricoPreco {
   preco: number; dataRegistro: string;
 }
 
+export interface MovimentacaoEstoque {
+  id: number; insumoId: number; insumoNome: string;
+  tipo: string; quantidade: number; motivo: string; createdAt: string;
+}
+
 export interface TopPratos {
   pratoId: number; pratoNome: string; quantidadeVendida: number;
 }

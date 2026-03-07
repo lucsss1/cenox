@@ -18,6 +18,7 @@ export const routes: Routes = [
       { path: 'dashboard', loadComponent: () => import('./admin/dashboard/dashboard.component').then(m => m.DashboardComponent) },
       { path: 'categorias', loadComponent: () => import('./admin/categorias/categorias.component').then(m => m.CategoriasComponent) },
       { path: 'pratos', loadComponent: () => import('./admin/pratos/pratos.component').then(m => m.PratosComponent) },
+      { path: 'dashboard-estoque', loadComponent: () => import('./admin/dashboard-estoque/dashboard-estoque.component').then(m => m.DashboardEstoqueComponent) },
       { path: 'insumos', loadComponent: () => import('./admin/insumos/insumos.component').then(m => m.InsumosComponent) },
       { path: 'entrada-estoque', loadComponent: () => import('./admin/entrada-estoque/entrada-estoque.component').then(m => m.EntradaEstoqueComponent) },
       { path: 'controle-validade', loadComponent: () => import('./admin/controle-validade/controle-validade.component').then(m => m.ControleValidadeComponent) },

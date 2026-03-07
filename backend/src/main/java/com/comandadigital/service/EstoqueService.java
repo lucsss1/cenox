@@ -142,4 +142,20 @@ public class EstoqueService {
                 .map(insumoMapper::toResponse)
                 .collect(Collectors.toList());
     }
+
+    @Transactional(readOnly = true)
+    public List<MovimentacaoEstoqueResponse> listarUltimasEntradas() {
+        return movimentacaoRepository.findTop20ByTipoOrderByCreatedAtDesc(TipoMovimentacao.ENTRADA)
+                .stream()
+                .map(m -> MovimentacaoEstoqueResponse.builder()
+                        .id(m.getId())
+                        .insumoId(m.getInsumo().getId())
+                        .insumoNome(m.getInsumo().getNome())
+                        .tipo(m.getTipo())
+                        .quantidade(m.getQuantidade())
+                        .motivo(m.getMotivo())
+                        .createdAt(m.getCreatedAt())
+                        .build())
+                .collect(Collectors.toList());
+    }
 }
