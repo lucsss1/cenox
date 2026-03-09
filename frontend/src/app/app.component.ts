@@ -34,50 +34,77 @@ import { ToastComponent } from './shared/components/toast.component';
     </nav>
 
     <div *ngIf="isAdminRoute()" class="admin-layout">
-      <aside class="sidebar">
+      <!-- Mobile topbar -->
+      <div class="mobile-topbar">
+        <button class="mobile-menu-btn" (click)="sidebarOpen = !sidebarOpen">
+          <i class="fas" [class.fa-bars]="!sidebarOpen" [class.fa-times]="sidebarOpen"></i>
+        </button>
+        <span class="mobile-brand"><i class="fas fa-fire"></i> Comanda Digital</span>
+      </div>
+
+      <!-- Sidebar overlay for mobile -->
+      <div class="sidebar-overlay" *ngIf="sidebarOpen" (click)="sidebarOpen = false"></div>
+
+      <aside class="sidebar" [class.sidebar-open]="sidebarOpen">
         <div class="sidebar-header">
           <div class="sidebar-logo">
             <i class="fas fa-fire"></i>
           </div>
           <span class="sidebar-brand">Comanda Digital</span>
         </div>
+
         <nav class="sidebar-nav">
-          <a routerLink="/admin/dashboard" class="sidebar-link" [class.active]="isDashboardRoute()">
-            <i class="fas fa-th-large"></i> <span>Dashboards</span>
+          <!-- Overview -->
+          <div class="sidebar-section">Visao Geral</div>
+          <a routerLink="/admin/dashboard" class="sidebar-link" [class.active]="isDashboardRoute()" (click)="closeMobile()">
+            <i class="fas fa-th-large"></i> <span>Dashboard</span>
           </a>
-          <a routerLink="/admin/pedidos" class="sidebar-link" [class.active]="isRoute('/admin/pedidos')">
+          <a routerLink="/admin/pedidos" class="sidebar-link" [class.active]="isRoute('/admin/pedidos')" (click)="closeMobile()">
             <i class="fas fa-clipboard-list"></i> <span>Pedidos</span>
           </a>
-          <a routerLink="/admin/categorias" class="sidebar-link" [class.active]="isRoute('/admin/categorias')" *ngIf="auth.hasAnyRole(['ADMIN','GERENTE'])">
+
+          <!-- Menu -->
+          <div class="sidebar-section" *ngIf="auth.hasAnyRole(['ADMIN','GERENTE'])">Cardapio</div>
+          <a routerLink="/admin/categorias" class="sidebar-link" [class.active]="isRoute('/admin/categorias')" *ngIf="auth.hasAnyRole(['ADMIN','GERENTE'])" (click)="closeMobile()">
             <i class="fas fa-tags"></i> <span>Categorias</span>
           </a>
-          <a routerLink="/admin/pratos" class="sidebar-link" [class.active]="isRoute('/admin/pratos')" *ngIf="auth.hasAnyRole(['ADMIN','GERENTE'])">
+          <a routerLink="/admin/pratos" class="sidebar-link" [class.active]="isRoute('/admin/pratos')" *ngIf="auth.hasAnyRole(['ADMIN','GERENTE'])" (click)="closeMobile()">
             <i class="fas fa-hamburger"></i> <span>Pratos</span>
           </a>
-          <a routerLink="/admin/fichas-tecnicas" class="sidebar-link" [class.active]="isRoute('/admin/fichas-tecnicas')" *ngIf="auth.hasAnyRole(['ADMIN','GERENTE'])">
+          <a routerLink="/admin/fichas-tecnicas" class="sidebar-link" [class.active]="isRoute('/admin/fichas-tecnicas')" *ngIf="auth.hasAnyRole(['ADMIN','GERENTE'])" (click)="closeMobile()">
             <i class="fas fa-file-alt"></i> <span>Fichas Tecnicas</span>
           </a>
-          <a routerLink="/admin/insumos" class="sidebar-link" [class.active]="isRoute('/admin/insumos')" *ngIf="auth.hasAnyRole(['ADMIN','GERENTE'])">
+
+          <!-- Inventory -->
+          <div class="sidebar-section" *ngIf="auth.hasAnyRole(['ADMIN','GERENTE'])">Estoque</div>
+          <a routerLink="/admin/insumos" class="sidebar-link" [class.active]="isRoute('/admin/insumos')" *ngIf="auth.hasAnyRole(['ADMIN','GERENTE'])" (click)="closeMobile()">
             <i class="fas fa-boxes"></i> <span>Insumos</span>
           </a>
-          <a routerLink="/admin/entrada-estoque" class="sidebar-link" [class.active]="isRoute('/admin/entrada-estoque')" *ngIf="auth.hasAnyRole(['ADMIN','GERENTE'])">
+          <a routerLink="/admin/entrada-estoque" class="sidebar-link" [class.active]="isRoute('/admin/entrada-estoque')" *ngIf="auth.hasAnyRole(['ADMIN','GERENTE'])" (click)="closeMobile()">
             <i class="fas fa-arrow-circle-down"></i> <span>Entrada Estoque</span>
           </a>
-          <a routerLink="/admin/controle-validade" class="sidebar-link" [class.active]="isRoute('/admin/controle-validade')" *ngIf="auth.hasAnyRole(['ADMIN','GERENTE'])">
+          <a routerLink="/admin/controle-validade" class="sidebar-link" [class.active]="isRoute('/admin/controle-validade')" *ngIf="auth.hasAnyRole(['ADMIN','GERENTE'])" (click)="closeMobile()">
             <i class="fas fa-calendar-check"></i> <span>Validades</span>
           </a>
-          <a routerLink="/admin/fornecedores" class="sidebar-link" [class.active]="isRoute('/admin/fornecedores')" *ngIf="auth.hasAnyRole(['ADMIN','GERENTE'])">
+
+          <!-- Suppliers & Purchases -->
+          <div class="sidebar-section" *ngIf="auth.hasAnyRole(['ADMIN','GERENTE'])">Compras</div>
+          <a routerLink="/admin/fornecedores" class="sidebar-link" [class.active]="isRoute('/admin/fornecedores')" *ngIf="auth.hasAnyRole(['ADMIN','GERENTE'])" (click)="closeMobile()">
             <i class="fas fa-truck"></i> <span>Fornecedores</span>
           </a>
-          <a routerLink="/admin/compras" class="sidebar-link" [class.active]="isRoute('/admin/compras')" *ngIf="auth.hasAnyRole(['ADMIN','GERENTE'])">
-            <i class="fas fa-shopping-bag"></i> <span>Compras</span>
+          <a routerLink="/admin/compras" class="sidebar-link" [class.active]="isRoute('/admin/compras')" *ngIf="auth.hasAnyRole(['ADMIN','GERENTE'])" (click)="closeMobile()">
+            <i class="fas fa-shopping-bag"></i> <span>Pedidos Compra</span>
           </a>
-          <a routerLink="/admin/usuarios" class="sidebar-link" [class.active]="isRoute('/admin/usuarios')" *ngIf="auth.hasRole('ADMIN')">
+
+          <!-- Admin -->
+          <div class="sidebar-section" *ngIf="auth.hasRole('ADMIN')">Administracao</div>
+          <a routerLink="/admin/usuarios" class="sidebar-link" [class.active]="isRoute('/admin/usuarios')" *ngIf="auth.hasRole('ADMIN')" (click)="closeMobile()">
             <i class="fas fa-users"></i> <span>Usuarios</span>
           </a>
         </nav>
+
         <div class="sidebar-footer">
-          <a routerLink="/cardapio" class="sidebar-link">
+          <a routerLink="/cardapio" class="sidebar-link" (click)="closeMobile()">
             <i class="fas fa-globe"></i> <span>Voltar ao Site</span>
           </a>
           <button class="sidebar-link sidebar-btn" (click)="logout()">
@@ -85,6 +112,7 @@ import { ToastComponent } from './shared/components/toast.component';
           </button>
         </div>
       </aside>
+
       <main class="admin-content">
         <router-outlet></router-outlet>
       </main>
@@ -99,7 +127,7 @@ import { ToastComponent } from './shared/components/toast.component';
   styles: [`
     /* ---- Public Navbar ---- */
     .navbar {
-      background: #0A0A0A; border-bottom: 1px solid #1A1A1A;
+      background: #09090B; border-bottom: 1px solid var(--border, #27272A);
       position: sticky; top: 0; z-index: 100; backdrop-filter: blur(12px);
     }
     .nav-container {
@@ -113,15 +141,15 @@ import { ToastComponent } from './shared/components/toast.component';
     .nav-brand i { font-size: 20px; }
     .nav-links { display: flex; align-items: center; gap: 20px; }
     .nav-link {
-      text-decoration: none; color: #9CA3AF; font-size: 14px;
-      font-weight: 500; position: relative; transition: color 0.2s;
+      text-decoration: none; color: #A1A1AA; font-size: 14px;
+      font-weight: 500; position: relative; transition: color 0.15s;
     }
-    .nav-link:hover { color: #E5E7EB; }
+    .nav-link:hover { color: #FAFAFA; }
     .nav-link-btn {
-      padding: 7px 16px; border: 1px solid #333; border-radius: 8px;
-      transition: all 0.2s;
+      padding: 7px 16px; border: 1px solid #27272A; border-radius: 8px;
+      transition: all 0.15s;
     }
-    .nav-link-btn:hover { border-color: #555; color: #F9FAFB; }
+    .nav-link-btn:hover { border-color: #3F3F46; color: #FAFAFA; }
     .cart-link { display: flex; align-items: center; gap: 6px; }
     .cart-badge {
       background: #DC2626; color: white; font-size: 10px; font-weight: 700;
@@ -131,55 +159,101 @@ import { ToastComponent } from './shared/components/toast.component';
 
     /* ---- Admin Layout ---- */
     .admin-layout { display: flex; min-height: 100vh; }
+
+    /* ---- Sidebar ---- */
     .sidebar {
-      width: 240px; background: #0A0A0A; color: white;
-      display: flex; flex-direction: column; position: fixed; height: 100vh;
-      border-right: 1px solid #1A1A1A; z-index: 50;
+      width: 240px; background: #09090B;
+      display: flex; flex-direction: column;
+      position: fixed; height: 100vh;
+      border-right: 1px solid #27272A; z-index: 50;
     }
     .sidebar-header {
-      padding: 18px 18px; display: flex; align-items: center; gap: 10px;
-      border-bottom: 1px solid #1A1A1A;
+      padding: 16px 20px; display: flex; align-items: center; gap: 10px;
+      border-bottom: 1px solid #27272A; height: 56px;
     }
     .sidebar-logo {
-      width: 32px; height: 32px; border-radius: 8px;
-      background: rgba(220,38,38,0.12); display: flex;
+      width: 28px; height: 28px; border-radius: 7px;
+      background: rgba(220,38,38,0.1); display: flex;
       align-items: center; justify-content: center; flex-shrink: 0;
     }
-    .sidebar-logo i { color: #DC2626; font-size: 14px; }
-    .sidebar-brand { font-size: 16px; font-weight: 700; color: #F9FAFB; }
-    .sidebar-nav { flex: 1; padding: 12px 0; overflow-y: auto; }
+    .sidebar-logo i { color: #DC2626; font-size: 12px; }
+    .sidebar-brand { font-size: 15px; font-weight: 700; color: #FAFAFA; }
+
+    .sidebar-nav { flex: 1; padding: 4px 0; overflow-y: auto; }
+
+    .sidebar-section {
+      font-size: 10px; font-weight: 600; color: #52525B;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      padding: 20px 20px 6px;
+    }
+
     .sidebar-link {
-      display: flex; align-items: center; gap: 12px;
-      padding: 10px 18px; color: #6B7280; text-decoration: none;
-      font-size: 13px; transition: all 0.2s; border-left: 3px solid transparent;
-      margin: 1px 0;
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 20px; color: #71717A; text-decoration: none;
+      font-size: 13px; font-weight: 450;
+      transition: all 0.15s;
+      margin: 1px 8px; border-radius: 6px;
     }
-    .sidebar-link:hover { background: rgba(255,255,255,0.03); color: #E5E7EB; }
+    .sidebar-link:hover { background: rgba(255,255,255,0.04); color: #A1A1AA; }
     .sidebar-link.active {
-      color: #F9FAFB; background: rgba(220,38,38,0.06);
-      border-left-color: #DC2626;
+      color: #FAFAFA; background: rgba(220,38,38,0.08);
     }
-    .sidebar-link i { width: 18px; text-align: center; font-size: 14px; }
-    .sidebar-footer { border-top: 1px solid #1A1A1A; padding: 8px 0; }
+    .sidebar-link.active i { color: #DC2626; }
+    .sidebar-link i { width: 18px; text-align: center; font-size: 13px; flex-shrink: 0; }
+
+    .sidebar-footer {
+      border-top: 1px solid #27272A; padding: 8px 0;
+    }
     .sidebar-btn {
-      width: 100%; text-align: left; border: none; background: none;
+      width: calc(100% - 16px); text-align: left; border: none; background: none;
       cursor: pointer; font-size: inherit; font-family: inherit;
     }
     .admin-content {
-      margin-left: 240px; flex: 1; padding: 28px; min-height: 100vh;
+      margin-left: 240px; flex: 1; padding: 28px 32px; min-height: 100vh;
     }
 
+    /* ---- Mobile topbar ---- */
+    .mobile-topbar {
+      display: none; position: fixed; top: 0; left: 0; right: 0; height: 56px;
+      background: #09090B; border-bottom: 1px solid #27272A;
+      z-index: 40; padding: 0 16px;
+      align-items: center; gap: 12px;
+    }
+    .mobile-menu-btn {
+      width: 36px; height: 36px; border: 1px solid #27272A; background: transparent;
+      border-radius: 8px; color: #A1A1AA; font-size: 16px;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+    }
+    .mobile-brand { font-size: 15px; font-weight: 700; color: #FAFAFA; display: flex; align-items: center; gap: 8px; }
+    .mobile-brand i { color: #DC2626; font-size: 14px; }
+
+    .sidebar-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.5); z-index: 45;
+    }
+
+    /* ---- Responsive ---- */
     @media (max-width: 768px) {
       .nav-links { gap: 10px; }
-      .sidebar { width: 56px; }
-      .sidebar-brand, .sidebar-link span { display: none; }
-      .sidebar-header { justify-content: center; padding: 16px 8px; }
-      .sidebar-link { justify-content: center; padding: 12px; border-left: none; }
-      .admin-content { margin-left: 56px; }
+      .mobile-topbar { display: flex; }
+      .sidebar-overlay { display: block; }
+      .sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.2s ease;
+        z-index: 50;
+      }
+      .sidebar.sidebar-open { transform: translateX(0); }
+      .admin-content { margin-left: 0; padding: 72px 16px 24px; }
+    }
+
+    @media (min-width: 769px) and (max-width: 1024px) {
+      .admin-content { padding: 24px; }
     }
   `]
 })
 export class AppComponent {
+  sidebarOpen = false;
+
   constructor(public auth: AuthService, private router: Router) {}
 
   isAdminRoute(): boolean {
@@ -192,6 +266,10 @@ export class AppComponent {
 
   isDashboardRoute(): boolean {
     return this.router.url === '/admin/dashboard' || this.router.url.startsWith('/admin/dashboard/');
+  }
+
+  closeMobile(): void {
+    this.sidebarOpen = false;
   }
 
   logout(): void {

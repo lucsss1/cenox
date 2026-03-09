@@ -49,11 +49,11 @@ interface DashboardCard {
       margin-bottom: 32px;
     }
     .hub-header h2 {
-      font-size: 22px; font-weight: 700; color: #F9FAFB;
+      font-size: 22px; font-weight: 700; color: var(--text-primary);
       display: flex; align-items: center; gap: 10px;
     }
     .hub-header h2 i { color: var(--primary); font-size: 18px; }
-    .hub-subtitle { font-size: 13px; color: #6B7280; margin-top: 2px; }
+    .hub-subtitle { font-size: 13px; color: var(--text-tertiary); margin-top: 2px; }
     .system-status {
       display: flex; align-items: center; gap: 6px;
       padding: 6px 14px; border-radius: 20px;
@@ -78,16 +78,16 @@ interface DashboardCard {
     .hub-card {
       display: flex; align-items: center; gap: 16px;
       padding: 24px;
-      background: #111111;
-      border: 1px solid #1A1A1A;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
       border-radius: 12px;
       text-decoration: none;
       transition: all 0.2s ease;
       cursor: pointer;
     }
     .hub-card:hover {
-      border-color: var(--card-color, #333);
-      background: #161616;
+      border-color: var(--card-color, var(--border-light));
+      background: var(--bg-surface);
       transform: translateY(-2px);
       box-shadow: 0 8px 24px rgba(0,0,0,0.3);
     }
@@ -104,21 +104,21 @@ interface DashboardCard {
       flex: 1; min-width: 0;
     }
     .hub-card-body h3 {
-      font-size: 16px; font-weight: 600; color: #F3F4F6;
+      font-size: 16px; font-weight: 600; color: var(--text-primary);
       margin: 0 0 4px 0;
     }
     .hub-card-body p {
-      font-size: 13px; color: #6B7280; margin: 0;
+      font-size: 13px; color: var(--text-tertiary); margin: 0;
       line-height: 1.4;
     }
 
     .hub-card-arrow {
-      color: #333; font-size: 14px;
+      color: var(--text-muted); font-size: 14px;
       transition: all 0.2s;
       flex-shrink: 0;
     }
     .hub-card:hover .hub-card-arrow {
-      color: var(--card-color, #666);
+      color: var(--card-color, var(--text-secondary));
       transform: translateX(3px);
     }
 

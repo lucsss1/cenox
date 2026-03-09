@@ -14,7 +14,7 @@ Chart.register(...registerables);
   template: `
     <div class="dash-header">
       <div>
-        <h2><i class="fas fa-chart-line"></i> Dashboard</h2>
+        <h2>Dashboard</h2>
         <p class="dash-welcome">Bem-vindo de volta &mdash; {{todayDate}}</p>
       </div>
       <div class="system-status">
@@ -29,27 +29,27 @@ Chart.register(...registerables);
       <div class="kpi-grid">
         <div class="kpi-card kpi-card-green">
           <div class="kpi-icon-corner"><i class="fas fa-dollar-sign"></i></div>
-          <span class="kpi-label">FATURAMENTO MENSAL</span>
+          <span class="kpi-label">Faturamento Mensal</span>
           <span class="kpi-value">R$ {{data.faturamentoMensal | number:'1.2-2'}}</span>
-          <span class="kpi-compare">&mdash; Sem comparativo</span>
+          <span class="kpi-compare">Periodo atual</span>
         </div>
         <div class="kpi-card kpi-card-blue">
           <div class="kpi-icon-corner"><i class="fas fa-clipboard-list"></i></div>
-          <span class="kpi-label">PEDIDOS NO MES</span>
+          <span class="kpi-label">Pedidos no Mes</span>
           <span class="kpi-value">{{data.totalPedidosMes}}</span>
-          <span class="kpi-compare">&mdash; Sem comparativo</span>
+          <span class="kpi-compare">Total acumulado</span>
         </div>
         <div class="kpi-card kpi-card-purple">
           <div class="kpi-icon-corner"><i class="fas fa-hamburger"></i></div>
-          <span class="kpi-label">PRATOS ATIVOS</span>
+          <span class="kpi-label">Pratos Ativos</span>
           <span class="kpi-value">{{data.pratosAtivos}}</span>
-          <span class="kpi-compare">&mdash; Sem comparativo</span>
+          <span class="kpi-compare">No cardapio</span>
         </div>
-        <div class="kpi-card" [class]="data.insumosAbaixoMinimo > 0 ? 'kpi-card kpi-card-red' : 'kpi-card kpi-card-green'">
+        <div class="kpi-card" [ngClass]="data.insumosAbaixoMinimo > 0 ? 'kpi-card-red' : 'kpi-card-green'">
           <div class="kpi-icon-corner"><i class="fas fa-exclamation-triangle"></i></div>
-          <span class="kpi-label">INSUMOS ESTOQUE BAIXO</span>
+          <span class="kpi-label">Estoque Baixo</span>
           <span class="kpi-value">{{data.insumosAbaixoMinimo}}</span>
-          <span class="kpi-compare">&mdash; Sem comparativo</span>
+          <span class="kpi-compare">{{data.insumosAbaixoMinimo > 0 ? 'Requer atencao' : 'Tudo em ordem'}}</span>
         </div>
       </div>
 
@@ -82,7 +82,7 @@ Chart.register(...registerables);
       <div class="card top-card">
         <div class="top-header">
           <div class="top-title">
-            <i class="fas fa-trophy" style="color:#FCD34D;"></i>
+            <i class="fas fa-trophy trophy-icon"></i>
             <div>
               <h3>Top 5 Pratos Mais Vendidos</h3>
               <span class="chart-subtitle">Ranking por periodo</span>
@@ -102,8 +102,8 @@ Chart.register(...registerables);
             <thead>
               <tr>
                 <th style="width:40px;">#</th>
-                <th>PRATO</th>
-                <th>VENDAS</th>
+                <th>Prato</th>
+                <th>Vendas</th>
               </tr>
             </thead>
             <tbody>
@@ -111,10 +111,10 @@ Chart.register(...registerables);
                 <td>
                   <span class="rank-number" [ngClass]="{'rank-1': i===0, 'rank-2': i===1}">{{i + 1}}</span>
                 </td>
-                <td><strong style="color:#F3F4F6;">{{t.pratoNome}}</strong></td>
+                <td><strong>{{t.pratoNome}}</strong></td>
                 <td>
-                  <span style="display:inline-flex;align-items:center;gap:4px;">
-                    <i class="fas fa-chart-line" style="color:var(--primary);font-size:11px;"></i>
+                  <span class="sales-count">
+                    <i class="fas fa-chart-line"></i>
                     {{t.quantidadeVendida}}
                   </span>
                 </td>
@@ -122,7 +122,7 @@ Chart.register(...registerables);
             </tbody>
           </table>
         </div>
-        <div *ngIf="topPratos.length === 0" class="empty-state" style="padding:30px;">
+        <div *ngIf="topPratos.length === 0" class="empty-state compact-empty">
           <p>Nenhum prato vendido no periodo</p>
         </div>
       </div>
@@ -135,7 +135,7 @@ Chart.register(...registerables);
             <thead><tr><th>Prato</th><th>Food Cost</th><th>Custo</th><th>Preco</th></tr></thead>
             <tbody>
               <tr *ngFor="let p of data.pratosFoodCostAlto">
-                <td><strong style="color:#F3F4F6;">{{p.nome}}</strong></td>
+                <td><strong>{{p.nome}}</strong></td>
                 <td><span class="badge badge-danger">{{p.foodCost | number:'1.1-1'}}%</span></td>
                 <td>R$ {{p.custoProducao | number:'1.2-2'}}</td>
                 <td>R$ {{p.precoVenda | number:'1.2-2'}}</td>
@@ -149,7 +149,7 @@ Chart.register(...registerables);
             <thead><tr><th>Insumo</th><th>Estoque</th><th>Minimo</th></tr></thead>
             <tbody>
               <tr *ngFor="let i of data.insumosEstoqueBaixo">
-                <td><strong style="color:#F3F4F6;">{{i.nome}}</strong></td>
+                <td><strong>{{i.nome}}</strong></td>
                 <td><span class="badge badge-danger">{{i.quantidadeEstoque | number:'1.3-3'}} {{i.unidadeMedida}}</span></td>
                 <td>{{i.estoqueMinimo | number:'1.3-3'}} {{i.unidadeMedida}}</td>
               </tr>
@@ -162,23 +162,21 @@ Chart.register(...registerables);
   styles: [`
     .dash-header {
       display: flex; justify-content: space-between; align-items: flex-start;
-      margin-bottom: 24px;
+      margin-bottom: var(--space-6);
     }
     .dash-header h2 {
-      font-size: 22px; font-weight: 700; color: #F9FAFB;
-      display: flex; align-items: center; gap: 10px;
+      font-size: 22px; font-weight: 700; color: var(--text-primary);
     }
-    .dash-header h2 i { color: var(--primary); font-size: 18px; }
-    .dash-welcome { font-size: 13px; color: #6B7280; margin-top: 2px; }
+    .dash-welcome { font-size: 13px; color: var(--text-tertiary); margin-top: 2px; }
     .system-status {
       display: flex; align-items: center; gap: 6px;
-      padding: 6px 14px; border-radius: 20px;
-      border: 1px solid rgba(22,163,74,0.2); background: rgba(22,163,74,0.05);
-      font-size: 12px; color: #4ADE80; font-weight: 500;
+      padding: 5px 12px; border-radius: var(--radius-full);
+      border: 1px solid rgba(16,185,129,0.2); background: rgba(16,185,129,0.05);
+      font-size: 12px; color: #6EE7B7; font-weight: 500;
     }
     .status-dot {
       width: 6px; height: 6px; border-radius: 50%;
-      background: #4ADE80; animation: pulse 2s infinite;
+      background: var(--success); animation: pulse 2s infinite;
     }
     @keyframes pulse {
       0%, 100% { opacity: 1; }
@@ -186,42 +184,49 @@ Chart.register(...registerables);
     }
 
     .charts-grid {
-      display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 20px;
+      display: grid; grid-template-columns: 2fr 1fr;
+      gap: var(--space-4); margin-bottom: var(--space-5);
     }
-    .chart-card { padding: 20px; }
+    .chart-card { padding: var(--space-5); }
     .chart-header {
       display: flex; justify-content: space-between; align-items: flex-start;
-      margin-bottom: 16px;
+      margin-bottom: var(--space-4);
     }
-    .chart-header h3 { font-size: 15px; font-weight: 600; color: #F3F4F6; }
-    .chart-subtitle { font-size: 12px; color: #6B7280; }
+    .chart-header h3 { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+    .chart-subtitle { font-size: 12px; color: var(--text-tertiary); }
     .chart-legend { display: flex; gap: 12px; align-items: center; }
     .legend-item {
       display: flex; align-items: center; gap: 6px;
-      font-size: 12px; color: #9CA3AF;
+      font-size: 12px; color: var(--text-secondary);
     }
     .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
     .legend-red { background: var(--primary); }
 
-    .top-card { padding: 20px; margin-bottom: 20px; }
+    .top-card { padding: var(--space-5); margin-bottom: var(--space-5); }
     .top-header {
       display: flex; justify-content: space-between; align-items: center;
-      margin-bottom: 16px; flex-wrap: wrap; gap: 12px;
+      margin-bottom: var(--space-4); flex-wrap: wrap; gap: var(--space-3);
     }
     .top-title { display: flex; align-items: center; gap: 10px; }
-    .top-title h3 { font-size: 15px; font-weight: 600; color: #F3F4F6; }
-    .top-filters {
-      display: flex; gap: 8px; align-items: center;
-    }
+    .top-title h3 { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+    .trophy-icon { color: #FCD34D; }
+    .top-filters { display: flex; gap: var(--space-2); align-items: center; }
     .date-input {
-      width: auto; padding: 6px 10px; font-size: 12px;
-      background: var(--bg-surface); border-color: #2A2A2A;
+      width: auto; padding: 5px 10px; font-size: 12px;
+      background: var(--bg-surface); border-color: var(--border);
     }
-    .date-sep { color: #555; font-size: 12px; }
+    .date-sep { color: var(--text-muted); font-size: 12px; }
+    .sales-count {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 13px; color: var(--text-secondary);
+    }
+    .sales-count i { color: var(--primary); font-size: 11px; }
+
+    .compact-empty { padding: var(--space-8); }
 
     .alerts-row {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-      gap: 16px; margin-top: 20px;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+      gap: var(--space-4); margin-top: var(--space-5);
     }
     .alert-header-danger { color: #FCA5A5; }
     .alert-header-warning { color: #FCD34D; }
@@ -230,7 +235,7 @@ Chart.register(...registerables);
       .charts-grid { grid-template-columns: 1fr; }
       .top-header { flex-direction: column; align-items: flex-start; }
       .alerts-row { grid-template-columns: 1fr; }
-      .dash-header { flex-direction: column; gap: 12px; }
+      .dash-header { flex-direction: column; gap: var(--space-3); }
     }
   `]
 })
@@ -275,9 +280,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   carregarTopPratos(): void {
     if (!this.topInicio || !this.topFim) return;
     this.api.getTopPratos(this.topInicio, this.topFim).subscribe({
-      next: (tp) => {
-        this.topPratos = tp;
-      }
+      next: (tp) => { this.topPratos = tp; }
     });
   }
 
@@ -304,7 +307,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           label: 'Faturamento (R$)',
           data: valores,
           borderColor: '#DC2626',
-          backgroundColor: 'rgba(220,38,38,0.08)',
+          backgroundColor: 'rgba(220,38,38,0.06)',
           fill: true,
           tension: 0.4,
           pointRadius: 0,
@@ -318,12 +321,12 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         scales: {
           y: {
             beginAtZero: true,
-            ticks: { color: '#555', font: { size: 11 }, callback: (v) => 'R$' + Number(v).toLocaleString('pt-BR') },
-            grid: { color: '#1A1A1A' },
+            ticks: { color: '#52525B', font: { size: 11 }, callback: (v) => 'R$' + Number(v).toLocaleString('pt-BR') },
+            grid: { color: '#27272A' },
             border: { display: false }
           },
           x: {
-            ticks: { color: '#555', font: { size: 11 }, maxTicksLimit: 8 },
+            ticks: { color: '#52525B', font: { size: 11 }, maxTicksLimit: 8 },
             grid: { display: false },
             border: { display: false }
           }
@@ -340,7 +343,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     const statusData = this.data.pedidosPorStatus;
     const labels = Object.keys(statusData);
     const valores = Object.values(statusData);
-    const colors = ['#4ADE80', '#DC2626', '#FCD34D', '#6B7280', '#60A5FA'];
+    const colors = ['#10B981', '#EF4444', '#F59E0B', '#71717A', '#3B82F6'];
 
     new Chart(ctx, {
       type: 'doughnut',
@@ -360,7 +363,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           legend: {
             position: 'right',
             labels: {
-              color: '#9CA3AF',
+              color: '#A1A1AA',
               padding: 16,
               usePointStyle: true,
               pointStyle: 'circle',

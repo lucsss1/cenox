@@ -25,16 +25,16 @@ import { Prato, Categoria } from '../../shared/models/models';
           <thead><tr><th>ID</th><th>Nome</th><th>Categoria</th><th>Preco</th><th>Custo</th><th>Food Cost</th><th>Ficha Tec.</th><th>Status</th><th>Acoes</th></tr></thead>
           <tbody>
             <tr *ngFor="let p of pratos">
-              <td style="color:#DC2626;font-weight:600;">#{{p.id}}</td>
-              <td><strong style="color:#F3F4F6;">{{p.nome}}</strong></td>
-              <td><span class="badge badge-secondary" style="font-size:10px;">{{p.categoriaNome}}</span></td>
+              <td><span class="id-col">#{{p.id}}</span></td>
+              <td><strong>{{p.nome}}</strong></td>
+              <td><span class="badge badge-secondary">{{p.categoriaNome}}</span></td>
               <td>R$ {{p.precoVenda | number:'1.2-2'}}</td>
               <td>{{p.custoProducao ? 'R$ ' + (p.custoProducao | number:'1.2-2') : '&mdash;'}}</td>
               <td>
                 <span *ngIf="p.foodCost" [class]="p.foodCostAlto ? 'badge badge-danger' : 'badge badge-success'">
                   {{p.foodCost | number:'1.1-1'}}%
                 </span>
-                <span *ngIf="!p.foodCost" style="color:#555;">&mdash;</span>
+                <span *ngIf="!p.foodCost" class="text-muted">&mdash;</span>
               </td>
               <td>
                 <span [class]="p.temFichaTecnica ? 'badge badge-success' : 'badge badge-danger'">
@@ -43,7 +43,7 @@ import { Prato, Categoria } from '../../shared/models/models';
               </td>
               <td><span [class]="p.status === 'ATIVO' ? 'badge badge-success' : 'badge badge-secondary'"><span class="badge-dot"></span> {{p.status}}</span></td>
               <td>
-                <div style="display:flex;gap:6px;">
+                <div class="action-bar">
                   <button class="btn-icon btn-icon-warning" (click)="editar(p)" title="Editar"><i class="fas fa-edit"></i></button>
                   <button class="btn-icon btn-icon-success" *ngIf="p.status === 'INATIVO' && p.temFichaTecnica" (click)="ativar(p.id)" title="Ativar"><i class="fas fa-check"></i></button>
                   <button class="btn-icon btn-icon-danger" *ngIf="p.status === 'ATIVO'" (click)="desativar(p.id)" title="Desativar"><i class="fas fa-ban"></i></button>
@@ -51,13 +51,15 @@ import { Prato, Categoria } from '../../shared/models/models';
                 </div>
               </td>
             </tr>
-            <tr *ngIf="pratos.length === 0"><td colspan="9" style="text-align:center;color:#6B7280;padding:30px;">Nenhum prato encontrado</td></tr>
+            <tr *ngIf="pratos.length === 0">
+              <td colspan="9" class="empty-row">Nenhum prato encontrado</td>
+            </tr>
           </tbody>
         </table>
       </div>
-      <div style="display:flex;align-items:center;margin-top:16px;" *ngIf="!loading && totalPages > 1">
+      <div class="table-footer" *ngIf="!loading && totalPages > 1">
         <span class="pagination-info">Exibindo {{pratos.length}} registros</span>
-        <div class="pagination" style="margin-top:0;">
+        <div class="pagination">
           <button (click)="carregar(currentPage - 1)" [disabled]="currentPage === 0">&laquo;</button>
           <button *ngFor="let pg of pages" (click)="carregar(pg)" [class.active]="pg === currentPage">{{pg + 1}}</button>
           <button (click)="carregar(currentPage + 1)" [disabled]="currentPage === totalPages - 1">&raquo;</button>
@@ -80,7 +82,7 @@ import { Prato, Categoria } from '../../shared/models/models';
             <label>Descricao</label>
             <textarea class="form-control" formControlName="descricao" rows="2"></textarea>
           </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="form-grid">
             <div class="form-group">
               <label>Preco de Venda (R$)</label>
               <input type="number" class="form-control" formControlName="precoVenda" step="0.01">
@@ -108,7 +110,12 @@ import { Prato, Categoria } from '../../shared/models/models';
         </form>
       </div>
     </div>
-  `
+  `,
+  styles: [`
+    .empty-row { text-align: center; color: var(--text-tertiary); padding: 32px !important; }
+    .table-footer { display: flex; align-items: center; margin-top: var(--space-4); }
+    .table-footer .pagination { margin-top: 0; }
+  `]
 })
 export class PratosComponent implements OnInit {
   pratos: Prato[] = [];

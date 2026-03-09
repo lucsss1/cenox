@@ -25,24 +25,26 @@ import { Categoria } from '../../shared/models/models';
           <thead><tr><th>ID</th><th>Nome</th><th>Descricao</th><th>Status</th><th>Acoes</th></tr></thead>
           <tbody>
             <tr *ngFor="let cat of categorias">
-              <td style="color:#DC2626;font-weight:600;">#{{cat.id}}</td>
-              <td><strong style="color:#F3F4F6;">{{cat.nome}}</strong></td>
+              <td><span class="id-col">#{{cat.id}}</span></td>
+              <td><strong>{{cat.nome}}</strong></td>
               <td>{{cat.descricao || '&mdash;'}}</td>
               <td><span class="badge badge-success"><span class="badge-dot"></span> {{cat.status}}</span></td>
               <td>
-                <div style="display:flex;gap:6px;">
+                <div class="action-bar">
                   <button class="btn-icon btn-icon-warning" (click)="editar(cat)" title="Editar"><i class="fas fa-edit"></i></button>
                   <button class="btn-icon btn-icon-danger" (click)="excluir(cat.id)" title="Desativar"><i class="fas fa-trash"></i></button>
                 </div>
               </td>
             </tr>
-            <tr *ngIf="categorias.length === 0"><td colspan="5" style="text-align:center;color:#6B7280;padding:30px;">Nenhuma categoria encontrada</td></tr>
+            <tr *ngIf="categorias.length === 0">
+              <td colspan="5" class="empty-row">Nenhuma categoria encontrada</td>
+            </tr>
           </tbody>
         </table>
       </div>
-      <div style="display:flex;align-items:center;margin-top:16px;" *ngIf="!loading && totalPages > 1">
+      <div class="table-footer" *ngIf="!loading && totalPages > 1">
         <span class="pagination-info">Exibindo {{categorias.length}} registros</span>
-        <div class="pagination" style="margin-top:0;">
+        <div class="pagination">
           <button (click)="carregar(currentPage - 1)" [disabled]="currentPage === 0">&laquo;</button>
           <button *ngFor="let p of pages" (click)="carregar(p)" [class.active]="p === currentPage">{{p + 1}}</button>
           <button (click)="carregar(currentPage + 1)" [disabled]="currentPage === totalPages - 1">&raquo;</button>
@@ -73,7 +75,12 @@ import { Categoria } from '../../shared/models/models';
         </form>
       </div>
     </div>
-  `
+  `,
+  styles: [`
+    .empty-row { text-align: center; color: var(--text-tertiary); padding: 32px !important; }
+    .table-footer { display: flex; align-items: center; margin-top: var(--space-4); }
+    .table-footer .pagination { margin-top: 0; }
+  `]
 })
 export class CategoriasComponent implements OnInit {
   categorias: Categoria[] = [];

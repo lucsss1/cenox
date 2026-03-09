@@ -28,17 +28,15 @@ Chart.register(...registerables);
           <thead><tr><th>ID</th><th>Nome</th><th>Categoria</th><th>Unidade</th><th>Estoque</th><th>Min.</th><th>Custo Medio</th><th>Validade</th><th>Fornecedor</th><th>Status Est.</th><th>Acoes</th></tr></thead>
           <tbody>
             <tr *ngFor="let i of insumos">
-              <td style="color:#DC2626;font-weight:600;">#{{i.id}}</td>
-              <td><strong style="color:#F3F4F6;">{{i.nome}}</strong></td>
+              <td><span class="id-col">#{{i.id}}</span></td>
+              <td><strong>{{i.nome}}</strong></td>
               <td>{{i.categoria || '&mdash;'}}</td>
               <td>{{i.unidadeMedida}}</td>
               <td>{{i.quantidadeEstoque | number:'1.0-3'}}</td>
               <td>{{i.estoqueMinimo | number:'1.0-3'}}</td>
               <td>{{i.custoMedio ? 'R$ ' + (i.custoMedio | number:'1.2-2') : '&mdash;'}}</td>
               <td>
-                <span *ngIf="i.dataValidade" [style.color]="isVencido(i.dataValidade) ? '#EF4444' : isProximoVencer(i.dataValidade) ? '#F59E0B' : '#6B7280'">
-                  {{i.dataValidade}}
-                </span>
+                <span *ngIf="i.dataValidade" [class]="getValidadeClass(i.dataValidade)">{{i.dataValidade}}</span>
                 <span *ngIf="!i.dataValidade">&mdash;</span>
               </td>
               <td>{{i.fornecedorNome || '&mdash;'}}</td>
@@ -49,22 +47,24 @@ Chart.register(...registerables);
                 </span>
               </td>
               <td>
-                <div style="display:flex;gap:6px;">
+                <div class="action-bar">
                   <button class="btn-icon" (click)="verCotacao(i)" title="Cotacao"><i class="fas fa-search-dollar"></i></button>
-                  <button class="btn-icon" (click)="verHistorico(i)" title="Historico" style="border-color:rgba(124,58,237,0.3);color:#A78BFA;"><i class="fas fa-chart-line"></i></button>
+                  <button class="btn-icon btn-icon-purple" (click)="verHistorico(i)" title="Historico"><i class="fas fa-chart-line"></i></button>
                   <button class="btn-icon btn-icon-warning" (click)="abrirSaida(i)" title="Saida Manual"><i class="fas fa-arrow-down"></i></button>
                   <button class="btn-icon btn-icon-warning" (click)="editar(i)" title="Editar"><i class="fas fa-edit"></i></button>
                   <button class="btn-icon btn-icon-danger" (click)="excluir(i.id)" title="Excluir"><i class="fas fa-trash"></i></button>
                 </div>
               </td>
             </tr>
-            <tr *ngIf="insumos.length === 0"><td colspan="11" style="text-align:center;color:#6B7280;padding:30px;">Nenhum insumo encontrado</td></tr>
+            <tr *ngIf="insumos.length === 0">
+              <td colspan="11" class="empty-row">Nenhum insumo encontrado</td>
+            </tr>
           </tbody>
         </table>
       </div>
-      <div style="display:flex;align-items:center;margin-top:16px;" *ngIf="!loading && totalPages > 1">
+      <div class="table-footer" *ngIf="!loading && totalPages > 1">
         <span class="pagination-info">Exibindo {{insumos.length}} registros</span>
-        <div class="pagination" style="margin-top:0;">
+        <div class="pagination">
           <button (click)="carregar(currentPage - 1)" [disabled]="currentPage === 0">&laquo;</button>
           <button *ngFor="let p of pages" (click)="carregar(p)" [class.active]="p === currentPage">{{p + 1}}</button>
           <button (click)="carregar(currentPage + 1)" [disabled]="currentPage === totalPages - 1">&raquo;</button>
@@ -80,11 +80,11 @@ Chart.register(...registerables);
           <button class="modal-close" (click)="fecharModal()">&times;</button>
         </div>
         <form [formGroup]="form" (ngSubmit)="salvar()">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="form-grid">
             <div class="form-group"><label>Nome *</label><input type="text" class="form-control" formControlName="nome"></div>
             <div class="form-group"><label>Categoria</label><input type="text" class="form-control" formControlName="categoria" placeholder="Ex: Hortifruti, Carnes..."></div>
           </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="form-grid">
             <div class="form-group">
               <label>Unidade de Medida *</label>
               <select class="form-control" formControlName="unidadeMedida">
@@ -101,11 +101,11 @@ Chart.register(...registerables);
               </select>
             </div>
           </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="form-grid">
             <div class="form-group"><label>Estoque Minimo *</label><input type="number" class="form-control" formControlName="estoqueMinimo" step="0.001"></div>
             <div class="form-group"><label>Custo Medio (R$)</label><input type="number" class="form-control" formControlName="custoMedio" step="0.01"></div>
           </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="form-grid">
             <div class="form-group"><label>Data de Entrada</label><input type="date" class="form-control" formControlName="dataEntradaEstoque"></div>
             <div class="form-group"><label>Data de Validade</label><input type="date" class="form-control" formControlName="dataValidade"></div>
           </div>
@@ -119,7 +119,7 @@ Chart.register(...registerables);
 
     <!-- Modal Saida Manual -->
     <div class="modal-overlay" *ngIf="showSaidaModal" (click)="showSaidaModal=false">
-      <div class="modal-content" (click)="$event.stopPropagation()" style="max-width:400px;">
+      <div class="modal-content modal-sm" (click)="$event.stopPropagation()">
         <div class="modal-header">
           <h3>Saida Manual - {{saidaInsumoNome}}</h3>
           <button class="modal-close" (click)="showSaidaModal=false">&times;</button>
@@ -147,9 +147,9 @@ Chart.register(...registerables);
 
     <!-- Modal Cotacao Comparativa -->
     <div class="modal-overlay" *ngIf="showCotacaoModal" (click)="showCotacaoModal=false">
-      <div class="modal-content" (click)="$event.stopPropagation()" style="max-width:600px;">
+      <div class="modal-content" (click)="$event.stopPropagation()">
         <div class="modal-header">
-          <h3><i class="fas fa-search-dollar" style="color:var(--primary);margin-right:8px;"></i> Cotacao - {{cotacaoInsumoNome}}</h3>
+          <h3><i class="fas fa-search-dollar header-icon"></i> Cotacao - {{cotacaoInsumoNome}}</h3>
           <button class="modal-close" (click)="showCotacaoModal=false">&times;</button>
         </div>
         <table *ngIf="cotacaoItens.length > 0">
@@ -157,38 +157,53 @@ Chart.register(...registerables);
           <tbody>
             <tr *ngFor="let c of cotacaoItens; let idx = index">
               <td><span class="rank-number" [class.rank-1]="idx === 0">{{idx + 1}}</span></td>
-              <td><strong style="color:#F3F4F6;">{{c.fornecedorNome}}</strong></td>
-              <td><strong style="color:#F3F4F6;">R$ {{c.preco | number:'1.4-4'}}</strong></td>
+              <td><strong>{{c.fornecedorNome}}</strong></td>
+              <td><strong>R$ {{c.preco | number:'1.4-4'}}</strong></td>
               <td>{{c.unidadeVenda}}</td>
             </tr>
           </tbody>
         </table>
-        <p *ngIf="cotacaoItens.length === 0" style="text-align:center;color:#6B7280;padding:20px;">Nenhum fornecedor cadastrado para este insumo</p>
+        <p *ngIf="cotacaoItens.length === 0" class="empty-row">Nenhum fornecedor cadastrado para este insumo</p>
       </div>
     </div>
 
     <!-- Modal Historico de Precos -->
     <div class="modal-overlay" *ngIf="showHistoricoModal" (click)="showHistoricoModal=false">
-      <div class="modal-content" (click)="$event.stopPropagation()" style="max-width:700px;">
+      <div class="modal-content modal-wide" (click)="$event.stopPropagation()">
         <div class="modal-header">
-          <h3><i class="fas fa-chart-line" style="color:#A78BFA;margin-right:8px;"></i> Historico de Precos - {{historicoInsumoNome}}</h3>
+          <h3><i class="fas fa-chart-line header-icon-purple"></i> Historico de Precos - {{historicoInsumoNome}}</h3>
           <button class="modal-close" (click)="showHistoricoModal=false">&times;</button>
         </div>
         <canvas #historicoChart></canvas>
-        <table *ngIf="historicoItens.length > 0" style="margin-top:16px;">
+        <table *ngIf="historicoItens.length > 0" class="mt-table">
           <thead><tr><th>Data</th><th>Fornecedor</th><th>Preco</th></tr></thead>
           <tbody>
             <tr *ngFor="let h of historicoItens">
               <td>{{h.dataRegistro}}</td>
-              <td><strong style="color:#F3F4F6;">{{h.fornecedorNome}}</strong></td>
-              <td><strong style="color:#F3F4F6;">R$ {{h.preco | number:'1.4-4'}}</strong></td>
+              <td><strong>{{h.fornecedorNome}}</strong></td>
+              <td><strong>R$ {{h.preco | number:'1.4-4'}}</strong></td>
             </tr>
           </tbody>
         </table>
-        <p *ngIf="historicoItens.length === 0" style="text-align:center;color:#6B7280;padding:20px;">Nenhum historico de precos disponivel</p>
+        <p *ngIf="historicoItens.length === 0" class="empty-row">Nenhum historico de precos disponivel</p>
       </div>
     </div>
-  `
+  `,
+  styles: [`
+    .empty-row { text-align: center; color: var(--text-tertiary); padding: 32px !important; }
+    .table-footer { display: flex; align-items: center; margin-top: var(--space-4); }
+    .table-footer .pagination { margin-top: 0; }
+    .modal-sm { max-width: 400px; }
+    .modal-wide { max-width: 700px; }
+    .header-icon { color: var(--primary); margin-right: 8px; }
+    .header-icon-purple { color: #A78BFA; margin-right: 8px; }
+    .mt-table { margin-top: var(--space-4); }
+    .btn-icon-purple { border-color: rgba(124,58,237,0.3); color: #A78BFA; }
+    .btn-icon-purple:hover { border-color: rgba(124,58,237,0.5); color: #C4B5FD; background: rgba(124,58,237,0.08); }
+    .validade-vencido { color: #EF4444; }
+    .validade-proximo { color: #F59E0B; }
+    .validade-ok { color: var(--text-tertiary); }
+  `]
 })
 export class InsumosComponent implements OnInit {
   @ViewChild('historicoChart') historicoRef!: ElementRef<HTMLCanvasElement>;
@@ -294,6 +309,12 @@ export class InsumosComponent implements OnInit {
     });
   }
 
+  getValidadeClass(data: string): string {
+    if (this.isVencido(data)) return 'validade-vencido';
+    if (this.isProximoVencer(data)) return 'validade-proximo';
+    return 'validade-ok';
+  }
+
   isVencido(data: string): boolean {
     return new Date(data) < new Date();
   }
@@ -322,7 +343,7 @@ export class InsumosComponent implements OnInit {
           label: 'Preco (R$)',
           data: valores,
           borderColor: '#7C3AED',
-          backgroundColor: 'rgba(124,58,237,0.08)',
+          backgroundColor: 'rgba(124,58,237,0.06)',
           fill: true, tension: 0.3, pointRadius: 4, borderWidth: 2
         }]
       },
@@ -330,8 +351,8 @@ export class InsumosComponent implements OnInit {
         responsive: true,
         plugins: { legend: { display: false } },
         scales: {
-          y: { beginAtZero: false, ticks: { color: '#555' }, grid: { color: '#1A1A1A' }, border: { display: false } },
-          x: { ticks: { color: '#555' }, grid: { display: false }, border: { display: false } }
+          y: { beginAtZero: false, ticks: { color: '#52525B' }, grid: { color: '#27272A' }, border: { display: false } },
+          x: { ticks: { color: '#52525B' }, grid: { display: false }, border: { display: false } }
         }
       }
     });

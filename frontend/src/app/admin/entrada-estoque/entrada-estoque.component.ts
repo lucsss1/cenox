@@ -17,7 +17,7 @@ import { Insumo } from '../../shared/models/models';
       </div>
     </div>
 
-    <div class="card" style="max-width:600px;">
+    <div class="card entry-card">
       <div class="loading" *ngIf="loading"><div class="spinner"></div></div>
       <form *ngIf="!loading" (ngSubmit)="registrar()">
         <div class="form-group">
@@ -30,7 +30,7 @@ import { Insumo } from '../../shared/models/models';
           </select>
         </div>
 
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="form-grid-half">
           <div class="form-group">
             <label>Quantidade *</label>
             <input type="number" class="form-control" [(ngModel)]="quantidade" name="quantidade"
@@ -48,24 +48,24 @@ import { Insumo } from '../../shared/models/models';
             placeholder="Ex: NF 12345, Fornecedor X..." maxlength="255">
         </div>
 
-        <div *ngIf="insumoSelecionado" style="background:rgba(220,38,38,0.05);border:1px solid rgba(220,38,38,0.15);border-radius:8px;padding:12px;margin-bottom:16px;">
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;font-size:13px;">
+        <div *ngIf="insumoSelecionado" class="preview-box">
+          <div class="preview-grid">
             <div>
-              <span style="color:#6B7280;">Estoque atual</span><br>
-              <strong style="color:#F3F4F6;">{{insumoSelecionado.quantidadeEstoque | number:'1.0-3'}} {{insumoSelecionado.unidadeMedida}}</strong>
+              <span class="preview-label">Estoque atual</span><br>
+              <strong>{{insumoSelecionado.quantidadeEstoque | number:'1.0-3'}} {{insumoSelecionado.unidadeMedida}}</strong>
             </div>
             <div>
-              <span style="color:#6B7280;">Estoque minimo</span><br>
-              <strong style="color:#F3F4F6;">{{insumoSelecionado.estoqueMinimo | number:'1.0-3'}} {{insumoSelecionado.unidadeMedida}}</strong>
+              <span class="preview-label">Estoque minimo</span><br>
+              <strong>{{insumoSelecionado.estoqueMinimo | number:'1.0-3'}} {{insumoSelecionado.unidadeMedida}}</strong>
             </div>
             <div>
-              <span style="color:#6B7280;">Apos entrada</span><br>
-              <strong style="color:#10B981;">{{(insumoSelecionado.quantidadeEstoque + quantidade) | number:'1.0-3'}} {{insumoSelecionado.unidadeMedida}}</strong>
+              <span class="preview-label">Apos entrada</span><br>
+              <strong class="text-success">{{(insumoSelecionado.quantidadeEstoque + quantidade) | number:'1.0-3'}} {{insumoSelecionado.unidadeMedida}}</strong>
             </div>
           </div>
         </div>
 
-        <div style="display:flex;gap:12px;justify-content:flex-end;">
+        <div class="form-actions">
           <button type="button" class="btn btn-secondary" (click)="limpar()">Limpar</button>
           <button type="submit" class="btn btn-primary" [disabled]="salvando || !insumoId || quantidade <= 0">
             <i class="fas fa-check"></i> {{salvando ? 'Registrando...' : 'Registrar Entrada'}}
@@ -75,20 +75,32 @@ import { Insumo } from '../../shared/models/models';
     </div>
 
     <!-- Ultimas entradas -->
-    <div class="card" style="margin-top:20px;" *ngIf="ultimasEntradas.length > 0">
-      <h3 style="margin-bottom:12px;color:#F3F4F6;"><i class="fas fa-history" style="color:var(--primary);margin-right:8px;"></i>Entradas registradas nesta sessao</h3>
+    <div class="card history-card" *ngIf="ultimasEntradas.length > 0">
+      <h3 class="history-title"><i class="fas fa-history history-icon"></i>Entradas registradas nesta sessao</h3>
       <table>
         <thead><tr><th>Produto</th><th>Quantidade</th><th>Observacao</th></tr></thead>
         <tbody>
           <tr *ngFor="let e of ultimasEntradas">
-            <td><strong style="color:#F3F4F6;">{{e.nome}}</strong></td>
+            <td><strong>{{e.nome}}</strong></td>
             <td>{{e.quantidade | number:'1.0-3'}} {{e.unidade}}</td>
             <td>{{e.observacao || '&mdash;'}}</td>
           </tr>
         </tbody>
       </table>
     </div>
-  `
+  `,
+  styles: [`
+    .entry-card { max-width: 600px; }
+    .form-grid-half { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .preview-box { background: var(--primary-subtle); border: 1px solid rgba(220,38,38,0.15); border-radius: 8px; padding: 12px; margin-bottom: 16px; }
+    .preview-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; font-size: 13px; }
+    .preview-label { color: var(--text-tertiary); }
+    .text-success { color: var(--success); }
+    .form-actions { display: flex; gap: 12px; justify-content: flex-end; }
+    .history-card { margin-top: 20px; }
+    .history-title { margin-bottom: 12px; color: var(--text-primary); }
+    .history-icon { color: var(--primary); margin-right: 8px; }
+  `]
 })
 export class EntradaEstoqueComponent implements OnInit {
   insumos: Insumo[] = [];

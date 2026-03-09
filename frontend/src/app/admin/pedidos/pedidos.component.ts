@@ -16,8 +16,8 @@ import { Pedido } from '../../shared/models/models';
         <h2><i class="fas fa-clipboard-list"></i> Gestao de Pedidos</h2>
         <p class="page-subtitle">Gerencie todos os pedidos do restaurante</p>
       </div>
-      <div class="filter-bar" style="margin-bottom:0;">
-        <select class="form-control" [(ngModel)]="filtroStatus" (change)="carregar(0)" style="width:auto;padding:8px 12px;font-size:13px;">
+      <div class="filter-bar filter-inline">
+        <select class="form-control status-select" [(ngModel)]="filtroStatus" (change)="carregar(0)">
           <option value="">Todos os status</option>
           <option value="PENDENTE">Pendente</option>
           <option value="EM_PREPARO">Em Preparo</option>
@@ -35,12 +35,12 @@ import { Pedido } from '../../shared/models/models';
           <thead><tr><th>#</th><th>Cliente</th><th>Itens</th><th>Total</th><th>Status</th><th>Data</th><th>Acoes</th></tr></thead>
           <tbody>
             <tr *ngFor="let p of pedidos">
-              <td style="color:#DC2626;font-weight:600;">#{{p.id}}</td>
-              <td><strong style="color:#F3F4F6;">{{p.clienteNome}}</strong></td>
+              <td><span class="id-col">#{{p.id}}</span></td>
+              <td><strong>{{p.clienteNome}}</strong></td>
               <td>
-                <div *ngFor="let i of p.itens" style="font-size:12px;color:#9CA3AF;">{{i.quantidade}}x {{i.pratoNome}}</div>
+                <div *ngFor="let i of p.itens" class="item-line">{{i.quantidade}}x {{i.pratoNome}}</div>
               </td>
-              <td><strong style="color:#F3F4F6;">R$ {{p.total | number:'1.2-2'}}</strong></td>
+              <td><strong>R$ {{p.total | number:'1.2-2'}}</strong></td>
               <td>
                 <span class="badge" [ngClass]="{
                   'badge-warning': p.statusPedido === 'PENDENTE',
@@ -48,35 +48,37 @@ import { Pedido } from '../../shared/models/models';
                   'badge-success': p.statusPedido === 'PRONTO' || p.statusPedido === 'ENTREGUE',
                   'badge-danger': p.statusPedido === 'CANCELADO'
                 }"><span class="badge-dot"></span> {{p.statusPedido}}</span>
-                <div *ngIf="p.motivoCancelamento" style="font-size:11px;color:#FCA5A5;margin-top:4px;">
+                <div *ngIf="p.motivoCancelamento" class="cancel-reason">
                   <i class="fas fa-info-circle"></i> {{p.motivoCancelamento}}
                 </div>
               </td>
-              <td style="font-size:12px;color:#6B7280;">{{p.createdAt | date:'dd/MM/yy HH:mm'}}</td>
+              <td class="date-col">{{p.createdAt | date:'dd/MM/yy HH:mm'}}</td>
               <td>
-                <div style="display:flex;gap:6px;">
-                  <button *ngIf="p.statusPedido === 'PENDENTE'" class="btn btn-info btn-sm" (click)="alterarStatus(p.id, 'EM_PREPARO')" title="Iniciar Preparo">
+                <div class="action-bar">
+                  <button *ngIf="p.statusPedido === 'PENDENTE'" class="btn btn-info btn-sm" (click)="alterarStatus(p.id, 'EM_PREPARO')">
                     <i class="fas fa-fire"></i> Preparar
                   </button>
-                  <button *ngIf="p.statusPedido === 'EM_PREPARO'" class="btn btn-success btn-sm" (click)="alterarStatus(p.id, 'PRONTO')" title="Marcar Pronto">
+                  <button *ngIf="p.statusPedido === 'EM_PREPARO'" class="btn btn-success btn-sm" (click)="alterarStatus(p.id, 'PRONTO')">
                     <i class="fas fa-check"></i> Pronto
                   </button>
-                  <button *ngIf="p.statusPedido === 'PRONTO'" class="btn btn-success btn-sm" (click)="alterarStatus(p.id, 'ENTREGUE')" title="Entregar">
+                  <button *ngIf="p.statusPedido === 'PRONTO'" class="btn btn-success btn-sm" (click)="alterarStatus(p.id, 'ENTREGUE')">
                     <i class="fas fa-hand-holding"></i> Entregar
                   </button>
-                  <button *ngIf="canCancel(p)" class="btn btn-danger btn-sm" (click)="abrirCancelamento(p)" title="Cancelar">
+                  <button *ngIf="canCancel(p)" class="btn btn-danger btn-sm" (click)="abrirCancelamento(p)">
                     <i class="fas fa-times"></i> Cancelar
                   </button>
                 </div>
               </td>
             </tr>
-            <tr *ngIf="pedidos.length === 0"><td colspan="7" style="text-align:center;color:#6B7280;padding:30px;">Nenhum pedido encontrado</td></tr>
+            <tr *ngIf="pedidos.length === 0">
+              <td colspan="7" class="empty-row">Nenhum pedido encontrado</td>
+            </tr>
           </tbody>
         </table>
       </div>
-      <div style="display:flex;align-items:center;margin-top:16px;" *ngIf="!loading && totalPages > 1">
+      <div class="table-footer" *ngIf="!loading && totalPages > 1">
         <span class="pagination-info">Exibindo {{pedidos.length}} pedidos</span>
-        <div class="pagination" style="margin-top:0;">
+        <div class="pagination">
           <button (click)="carregar(currentPage - 1)" [disabled]="currentPage === 0">&laquo;</button>
           <button *ngFor="let pg of pages" (click)="carregar(pg)" [class.active]="pg === currentPage">{{pg + 1}}</button>
           <button (click)="carregar(currentPage + 1)" [disabled]="currentPage === totalPages - 1">&raquo;</button>
@@ -86,7 +88,7 @@ import { Pedido } from '../../shared/models/models';
 
     <!-- Modal de Cancelamento -->
     <div class="modal-overlay" *ngIf="showCancelModal" (click)="fecharCancelamento()">
-      <div class="modal-content" (click)="$event.stopPropagation()" style="max-width:450px;">
+      <div class="modal-content modal-sm" (click)="$event.stopPropagation()">
         <div class="modal-header">
           <h3>Cancelar Pedido #{{cancelPedidoId}}</h3>
           <button class="modal-close" (click)="fecharCancelamento()">&times;</button>
@@ -96,7 +98,7 @@ import { Pedido } from '../../shared/models/models';
           <textarea class="form-control" [(ngModel)]="motivoCancelamento" rows="3"
                     placeholder="Informe o motivo do cancelamento..."></textarea>
         </div>
-        <p *ngIf="cancelEstorno" style="font-size:13px;color:#FCD34D;margin:8px 0;">
+        <p *ngIf="cancelEstorno" class="estorno-notice">
           <i class="fas fa-exclamation-triangle"></i> O estoque dos insumos sera estornado automaticamente.
         </p>
         <div class="modal-footer">
@@ -105,7 +107,19 @@ import { Pedido } from '../../shared/models/models';
         </div>
       </div>
     </div>
-  `
+  `,
+  styles: [`
+    .empty-row { text-align: center; color: var(--text-tertiary); padding: 32px !important; }
+    .table-footer { display: flex; align-items: center; margin-top: var(--space-4); }
+    .table-footer .pagination { margin-top: 0; }
+    .filter-inline { margin-bottom: 0; }
+    .status-select { width: auto; padding: 7px 12px; font-size: 13px; }
+    .item-line { font-size: 12px; color: var(--text-secondary); line-height: 1.6; }
+    .cancel-reason { font-size: 11px; color: #FCA5A5; margin-top: 4px; }
+    .date-col { font-size: 12px; color: var(--text-tertiary); }
+    .modal-sm { max-width: 450px; }
+    .estorno-notice { font-size: 13px; color: #FCD34D; margin: var(--space-2) 0; }
+  `]
 })
 export class PedidosAdminComponent implements OnInit {
   pedidos: Pedido[] = [];
@@ -153,9 +167,7 @@ export class PedidosAdminComponent implements OnInit {
     this.showCancelModal = true;
   }
 
-  fecharCancelamento(): void {
-    this.showCancelModal = false;
-  }
+  fecharCancelamento(): void { this.showCancelModal = false; }
 
   confirmarCancelamento(): void {
     if (!this.motivoCancelamento.trim()) return;

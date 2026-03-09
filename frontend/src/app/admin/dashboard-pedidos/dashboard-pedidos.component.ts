@@ -23,7 +23,7 @@ Chart.register(...registerables);
     <div class="loading" *ngIf="loading"><div class="spinner"></div></div>
 
     <div *ngIf="!loading && data">
-      <div class="kpi-grid" style="margin-bottom:20px;">
+      <div class="kpi-grid kpi-grid-mb">
         <div class="kpi-card kpi-card-blue">
           <div class="kpi-icon-corner"><i class="fas fa-clipboard-list"></i></div>
           <span class="kpi-label">PEDIDOS NO MES</span>
@@ -36,12 +36,12 @@ Chart.register(...registerables);
         </div>
       </div>
 
-      <div class="card" style="padding:20px;">
-        <div style="margin-bottom:16px;">
-          <h3 style="font-size:15px;font-weight:600;color:#F3F4F6;">Pedidos por Status</h3>
-          <span style="font-size:12px;color:#6B7280;">Distribuicao atual</span>
+      <div class="card chart-card">
+        <div class="chart-header-block">
+          <h3 class="chart-title">Pedidos por Status</h3>
+          <span class="chart-subtitle">Distribuicao atual</span>
         </div>
-        <div style="max-width:400px;margin:0 auto;">
+        <div class="chart-container">
           <canvas #statusChart></canvas>
         </div>
       </div>
@@ -53,7 +53,13 @@ Chart.register(...registerables);
       display: inline-flex; align-items: center; gap: 6px;
       margin-bottom: 4px; transition: color 0.2s;
     }
-    .back-link:hover { color: #E5E7EB; }
+    .back-link:hover { color: var(--text-primary); }
+    .kpi-grid-mb { margin-bottom: 20px; }
+    .chart-card { padding: 20px; }
+    .chart-header-block { margin-bottom: 16px; }
+    .chart-title { font-size: 15px; font-weight: 600; color: var(--text-primary); }
+    .chart-subtitle { font-size: 12px; color: var(--text-tertiary); }
+    .chart-container { max-width: 400px; margin: 0 auto; }
   `]
 })
 export class DashboardPedidosComponent implements OnInit, AfterViewInit {

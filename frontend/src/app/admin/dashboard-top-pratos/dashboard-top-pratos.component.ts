@@ -13,16 +13,16 @@ import { TopPratos } from '../../shared/models/models';
     <div class="page-header">
       <div>
         <a routerLink="/admin/dashboard" class="back-link"><i class="fas fa-arrow-left"></i> Dashboards</a>
-        <h2><i class="fas fa-trophy" style="color:#FCD34D;"></i> Top 5 Pratos Mais Vendidos</h2>
+        <h2><i class="fas fa-trophy trophy-icon"></i> Top 5 Pratos Mais Vendidos</h2>
         <p class="page-subtitle">Ranking por periodo</p>
       </div>
     </div>
 
-    <div class="card" style="padding:20px;">
-      <div style="display:flex;gap:8px;align-items:center;margin-bottom:20px;flex-wrap:wrap;">
-        <input type="date" class="form-control" style="width:auto;padding:6px 10px;font-size:13px;" [(ngModel)]="topInicio">
-        <span style="color:#555;font-size:12px;">&mdash;</span>
-        <input type="date" class="form-control" style="width:auto;padding:6px 10px;font-size:13px;" [(ngModel)]="topFim">
+    <div class="card content-card">
+      <div class="filter-row">
+        <input type="date" class="form-control date-input" [(ngModel)]="topInicio">
+        <span class="date-separator">&mdash;</span>
+        <input type="date" class="form-control date-input" [(ngModel)]="topFim">
         <button class="btn btn-primary btn-sm" (click)="carregar()">
           <i class="fas fa-filter"></i> Filtrar
         </button>
@@ -33,7 +33,7 @@ import { TopPratos } from '../../shared/models/models';
       <table *ngIf="!loading && topPratos.length > 0">
         <thead>
           <tr>
-            <th style="width:50px;">#</th>
+            <th class="rank-col">#</th>
             <th>PRATO</th>
             <th>VENDAS</th>
           </tr>
@@ -43,17 +43,17 @@ import { TopPratos } from '../../shared/models/models';
             <td>
               <span class="rank-number" [ngClass]="{'rank-1': i===0, 'rank-2': i===1}">{{i + 1}}</span>
             </td>
-            <td><strong style="color:#F3F4F6;">{{t.pratoNome}}</strong></td>
+            <td><strong>{{t.pratoNome}}</strong></td>
             <td>
-              <span style="display:inline-flex;align-items:center;gap:4px;">
-                <i class="fas fa-chart-line" style="color:var(--primary);font-size:11px;"></i>
+              <span class="sales-value">
+                <i class="fas fa-chart-line sales-icon"></i>
                 {{t.quantidadeVendida}}
               </span>
             </td>
           </tr>
         </tbody>
       </table>
-      <div *ngIf="!loading && topPratos.length === 0" style="text-align:center;padding:30px;color:#6B7280;">
+      <div *ngIf="!loading && topPratos.length === 0" class="empty-state">
         Nenhum prato vendido no periodo selecionado.
       </div>
     </div>
@@ -64,7 +64,16 @@ import { TopPratos } from '../../shared/models/models';
       display: inline-flex; align-items: center; gap: 6px;
       margin-bottom: 4px; transition: color 0.2s;
     }
-    .back-link:hover { color: #E5E7EB; }
+    .back-link:hover { color: var(--text-primary); }
+    .trophy-icon { color: #FCD34D; }
+    .content-card { padding: 20px; }
+    .filter-row { display: flex; gap: 8px; align-items: center; margin-bottom: 20px; flex-wrap: wrap; }
+    .date-input { width: auto; padding: 6px 10px; font-size: 13px; }
+    .date-separator { color: var(--text-muted); font-size: 12px; }
+    .rank-col { width: 50px; }
+    .sales-value { display: inline-flex; align-items: center; gap: 4px; }
+    .sales-icon { color: var(--primary); font-size: 11px; }
+    .empty-state { text-align: center; padding: 30px; color: var(--text-tertiary); }
   `]
 })
 export class DashboardTopPratosComponent implements OnInit {

@@ -25,8 +25,8 @@ import { Usuario } from '../../shared/models/models';
           <thead><tr><th>ID</th><th>Nome</th><th>Email</th><th>Perfil</th><th>Status</th><th>Acoes</th></tr></thead>
           <tbody>
             <tr *ngFor="let u of usuarios">
-              <td style="color:#DC2626;font-weight:600;">#{{u.id}}</td>
-              <td><strong style="color:#F3F4F6;">{{u.nome}}</strong></td>
+              <td><span class="id-col">#{{u.id}}</span></td>
+              <td><strong>{{u.nome}}</strong></td>
               <td>{{u.email}}</td>
               <td><span class="badge badge-info">{{u.perfil}}</span></td>
               <td><span class="badge badge-success"><span class="badge-dot"></span> {{u.status}}</span></td>
@@ -37,9 +37,9 @@ import { Usuario } from '../../shared/models/models';
           </tbody>
         </table>
       </div>
-      <div style="display:flex;align-items:center;margin-top:16px;" *ngIf="!loading && totalPages > 1">
+      <div class="table-footer" *ngIf="!loading && totalPages > 1">
         <span class="pagination-info">Exibindo {{usuarios.length}} registros</span>
-        <div class="pagination" style="margin-top:0;">
+        <div class="pagination">
           <button (click)="carregar(currentPage - 1)" [disabled]="currentPage === 0">&laquo;</button>
           <button *ngFor="let p of pages" (click)="carregar(p)" [class.active]="p === currentPage">{{p + 1}}</button>
           <button (click)="carregar(currentPage + 1)" [disabled]="currentPage === totalPages - 1">&raquo;</button>
@@ -73,7 +73,11 @@ import { Usuario } from '../../shared/models/models';
         </form>
       </div>
     </div>
-  `
+  `,
+  styles: [`
+    .table-footer { display: flex; align-items: center; margin-top: 16px; }
+    .table-footer .pagination { margin-top: 0; }
+  `]
 })
 export class UsuariosComponent implements OnInit {
   usuarios: Usuario[] = [];

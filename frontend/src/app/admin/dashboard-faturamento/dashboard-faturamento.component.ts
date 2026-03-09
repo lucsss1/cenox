@@ -23,7 +23,7 @@ Chart.register(...registerables);
     <div class="loading" *ngIf="loading"><div class="spinner"></div></div>
 
     <div *ngIf="!loading && data">
-      <div class="kpi-grid" style="margin-bottom:20px;">
+      <div class="kpi-grid kpi-grid-mb">
         <div class="kpi-card kpi-card-green">
           <div class="kpi-icon-corner"><i class="fas fa-dollar-sign"></i></div>
           <span class="kpi-label">FATURAMENTO MENSAL</span>
@@ -41,15 +41,15 @@ Chart.register(...registerables);
         </div>
       </div>
 
-      <div class="card" style="padding:20px;">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;">
+      <div class="card chart-card">
+        <div class="chart-header">
           <div>
-            <h3 style="font-size:15px;font-weight:600;color:#F3F4F6;">Faturamento Diario</h3>
-            <span style="font-size:12px;color:#6B7280;">Ultimos 30 dias</span>
+            <h3 class="chart-title">Faturamento Diario</h3>
+            <span class="chart-subtitle">Ultimos 30 dias</span>
           </div>
-          <div style="display:flex;gap:12px;align-items:center;">
-            <span style="display:flex;align-items:center;gap:6px;font-size:12px;color:#9CA3AF;">
-              <span style="width:8px;height:8px;border-radius:50%;background:var(--primary);"></span> Receita
+          <div class="chart-legend">
+            <span class="legend-item">
+              <span class="legend-dot"></span> Receita
             </span>
           </div>
         </div>
@@ -63,7 +63,15 @@ Chart.register(...registerables);
       display: inline-flex; align-items: center; gap: 6px;
       margin-bottom: 4px; transition: color 0.2s;
     }
-    .back-link:hover { color: #E5E7EB; }
+    .back-link:hover { color: var(--text-primary); }
+    .kpi-grid-mb { margin-bottom: 20px; }
+    .chart-card { padding: 20px; }
+    .chart-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+    .chart-title { font-size: 15px; font-weight: 600; color: var(--text-primary); }
+    .chart-subtitle { font-size: 12px; color: var(--text-tertiary); }
+    .chart-legend { display: flex; gap: 12px; align-items: center; }
+    .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); }
+    .legend-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--primary); }
   `]
 })
 export class DashboardFaturamentoComponent implements OnInit, AfterViewInit {
@@ -115,11 +123,11 @@ export class DashboardFaturamentoComponent implements OnInit, AfterViewInit {
           scales: {
             y: {
               beginAtZero: true,
-              ticks: { color: '#555', font: { size: 11 }, callback: (v) => 'R$' + Number(v).toLocaleString('pt-BR') },
-              grid: { color: '#1A1A1A' }, border: { display: false }
+              ticks: { color: '#52525B', font: { size: 11 }, callback: (v) => 'R$' + Number(v).toLocaleString('pt-BR') },
+              grid: { color: '#27272A' }, border: { display: false }
             },
             x: {
-              ticks: { color: '#555', font: { size: 11 }, maxTicksLimit: 8 },
+              ticks: { color: '#52525B', font: { size: 11 }, maxTicksLimit: 8 },
               grid: { display: false }, border: { display: false }
             }
           }

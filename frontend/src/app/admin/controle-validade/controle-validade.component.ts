@@ -13,12 +13,12 @@ import { Insumo } from '../../shared/models/models';
         <h2><i class="fas fa-calendar-check"></i> Controle de Validade</h2>
         <p class="page-subtitle">FIFO — produtos ordenados pela validade mais proxima</p>
       </div>
-      <div style="display:flex;gap:8px;">
+      <div class="filter-actions">
         <button class="btn" [class.btn-danger]="filtro === 'vencidos'" [class.btn-secondary]="filtro !== 'vencidos'" (click)="mudarFiltro('vencidos')">
-          <i class="fas fa-exclamation-triangle"></i> Vencidos <span *ngIf="totalVencidos > 0" style="background:rgba(255,255,255,0.2);padding:2px 8px;border-radius:10px;margin-left:4px;">{{totalVencidos}}</span>
+          <i class="fas fa-exclamation-triangle"></i> Vencidos <span *ngIf="totalVencidos > 0" class="count-badge">{{totalVencidos}}</span>
         </button>
         <button class="btn" [class.btn-primary]="filtro === 'proximos'" [class.btn-secondary]="filtro !== 'proximos'" (click)="mudarFiltro('proximos')">
-          <i class="fas fa-clock"></i> Proximos (3 dias) <span *ngIf="totalProximos > 0" style="background:rgba(255,255,255,0.2);padding:2px 8px;border-radius:10px;margin-left:4px;">{{totalProximos}}</span>
+          <i class="fas fa-clock"></i> Proximos (3 dias) <span *ngIf="totalProximos > 0" class="count-badge">{{totalProximos}}</span>
         </button>
         <button class="btn" [class.btn-primary]="filtro === 'todos'" [class.btn-secondary]="filtro !== 'todos'" (click)="mudarFiltro('todos')">
           <i class="fas fa-list"></i> Todos
@@ -27,18 +27,18 @@ import { Insumo } from '../../shared/models/models';
     </div>
 
     <!-- Resumo rapido -->
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:20px;">
-      <div class="card" style="border-left:4px solid #EF4444;padding:16px;">
-        <div style="font-size:13px;color:#6B7280;">Vencidos</div>
-        <div style="font-size:28px;font-weight:700;color:#EF4444;">{{totalVencidos}}</div>
+    <div class="summary-grid">
+      <div class="card summary-card summary-danger">
+        <div class="summary-label">Vencidos</div>
+        <div class="summary-value text-danger">{{totalVencidos}}</div>
       </div>
-      <div class="card" style="border-left:4px solid #F59E0B;padding:16px;">
-        <div style="font-size:13px;color:#6B7280;">Vencem em ate 3 dias</div>
-        <div style="font-size:28px;font-weight:700;color:#F59E0B;">{{totalProximos}}</div>
+      <div class="card summary-card summary-warning">
+        <div class="summary-label">Vencem em ate 3 dias</div>
+        <div class="summary-value text-warning">{{totalProximos}}</div>
       </div>
-      <div class="card" style="border-left:4px solid #10B981;padding:16px;">
-        <div style="font-size:13px;color:#6B7280;">Com validade registrada</div>
-        <div style="font-size:28px;font-weight:700;color:#10B981;">{{totalTodos}}</div>
+      <div class="card summary-card summary-success">
+        <div class="summary-label">Com validade registrada</div>
+        <div class="summary-value text-success">{{totalTodos}}</div>
       </div>
     </div>
 
@@ -59,11 +59,11 @@ import { Insumo } from '../../shared/models/models';
           </thead>
           <tbody>
             <tr *ngFor="let i of itensExibidos">
-              <td><strong style="color:#F3F4F6;">{{i.nome}}</strong></td>
+              <td><strong>{{i.nome}}</strong></td>
               <td>{{i.categoria || '&mdash;'}}</td>
               <td [style.color]="corValidade(i)"><strong>{{i.dataValidade}}</strong></td>
               <td>
-                <span [style.color]="corValidade(i)" style="font-weight:600;">
+                <span [style.color]="corValidade(i)" class="font-semibold">
                   {{diasRestantes(i.dataValidade)}}
                 </span>
               </td>
@@ -76,8 +76,8 @@ import { Insumo } from '../../shared/models/models';
               </td>
             </tr>
             <tr *ngIf="itensExibidos.length === 0">
-              <td colspan="7" style="text-align:center;color:#6B7280;padding:30px;">
-                <i class="fas fa-check-circle" style="font-size:24px;color:#10B981;display:block;margin-bottom:8px;"></i>
+              <td colspan="7" class="empty-row">
+                <i class="fas fa-check-circle empty-icon"></i>
                 {{filtro === 'vencidos' ? 'Nenhum produto vencido' : filtro === 'proximos' ? 'Nenhum produto proximo do vencimento' : 'Nenhum produto com validade registrada'}}
               </td>
             </tr>
@@ -85,7 +85,28 @@ import { Insumo } from '../../shared/models/models';
         </table>
       </div>
     </div>
-  `
+  `,
+  styles: [`
+    .filter-actions { display: flex; gap: 8px; }
+    .count-badge { background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 10px; margin-left: 4px; }
+    .summary-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+    .summary-card { border-left-width: 4px; border-left-style: solid; padding: 16px; }
+    .summary-danger { border-left-color: var(--danger); }
+    .summary-warning { border-left-color: var(--warning); }
+    .summary-success { border-left-color: var(--success); }
+    .summary-label { font-size: 13px; color: var(--text-tertiary); }
+    .summary-value { font-size: 28px; font-weight: 700; }
+    .text-danger { color: var(--danger); }
+    .text-warning { color: var(--warning); }
+    .text-success { color: var(--success); }
+    .font-semibold { font-weight: 600; }
+    .empty-row { text-align: center; color: var(--text-tertiary); padding: 30px; }
+    .empty-icon { font-size: 24px; color: var(--success); display: block; margin-bottom: 8px; }
+    @media (max-width: 768px) {
+      .summary-grid { grid-template-columns: 1fr; }
+      .filter-actions { flex-wrap: wrap; }
+    }
+  `]
 })
 export class ControleValidadeComponent implements OnInit {
   loading = true;

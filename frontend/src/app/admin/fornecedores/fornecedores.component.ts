@@ -25,33 +25,35 @@ import { Fornecedor, CatalogoFornecedor, Insumo } from '../../shared/models/mode
           <thead><tr><th>ID</th><th>Empresa</th><th>CNPJ</th><th>Responsavel</th><th>Telefone</th><th>Status</th><th>Acoes</th></tr></thead>
           <tbody>
             <tr *ngFor="let f of fornecedores">
-              <td style="color:#DC2626;font-weight:600;">#{{f.id}}</td>
-              <td><strong style="color:#F3F4F6;">{{f.nomeEmpresa}}</strong></td>
+              <td><span class="id-col">#{{f.id}}</span></td>
+              <td><strong>{{f.nomeEmpresa}}</strong></td>
               <td>{{f.cnpj}}</td>
               <td>{{f.responsavelComercial || '&mdash;'}}</td>
               <td>{{f.telefone || '&mdash;'}}</td>
               <td>
-                <span class="status-badge" [ngClass]="{
-                  'status-em-avaliacao': f.statusFornecedor === 'EM_AVALIACAO',
-                  'status-homologado': f.statusFornecedor === 'HOMOLOGADO',
-                  'status-bloqueado': f.statusFornecedor === 'BLOQUEADO'
-                }">{{formatStatus(f.statusFornecedor)}}</span>
+                <span class="badge" [ngClass]="{
+                  'badge-warning': f.statusFornecedor === 'EM_AVALIACAO',
+                  'badge-success': f.statusFornecedor === 'HOMOLOGADO',
+                  'badge-danger': f.statusFornecedor === 'BLOQUEADO'
+                }"><span class="badge-dot"></span> {{formatStatus(f.statusFornecedor)}}</span>
               </td>
               <td>
-                <div style="display:flex;gap:6px;">
+                <div class="action-bar">
                   <button class="btn-icon" (click)="verCatalogo(f)" title="Catalogo"><i class="fas fa-list-alt"></i></button>
                   <button class="btn-icon btn-icon-warning" (click)="editar(f)" title="Editar"><i class="fas fa-edit"></i></button>
                   <button class="btn-icon btn-icon-danger" (click)="excluir(f.id)" title="Excluir"><i class="fas fa-trash"></i></button>
                 </div>
               </td>
             </tr>
-            <tr *ngIf="fornecedores.length === 0"><td colspan="7" style="text-align:center;color:#6B7280;padding:30px;">Nenhum fornecedor</td></tr>
+            <tr *ngIf="fornecedores.length === 0">
+              <td colspan="7" class="empty-row">Nenhum fornecedor</td>
+            </tr>
           </tbody>
         </table>
       </div>
-      <div style="display:flex;align-items:center;margin-top:16px;" *ngIf="!loading && totalPages > 1">
+      <div class="table-footer" *ngIf="!loading && totalPages > 1">
         <span class="pagination-info">Exibindo {{fornecedores.length}} registros</span>
-        <div class="pagination" style="margin-top:0;">
+        <div class="pagination">
           <button (click)="carregar(currentPage - 1)" [disabled]="currentPage === 0">&laquo;</button>
           <button *ngFor="let p of pages" (click)="carregar(p)" [class.active]="p === currentPage">{{p + 1}}</button>
           <button (click)="carregar(currentPage + 1)" [disabled]="currentPage === totalPages - 1">&raquo;</button>
@@ -68,15 +70,15 @@ import { Fornecedor, CatalogoFornecedor, Insumo } from '../../shared/models/mode
         </div>
         <form [formGroup]="form" (ngSubmit)="salvar()">
           <div class="form-group"><label>Nome da Empresa</label><input type="text" class="form-control" formControlName="nomeEmpresa"></div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="form-grid">
             <div class="form-group"><label>CNPJ</label><input type="text" class="form-control" formControlName="cnpj" placeholder="00.000.000/0000-00"></div>
             <div class="form-group"><label>Responsavel Comercial</label><input type="text" class="form-control" formControlName="responsavelComercial"></div>
           </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="form-grid">
             <div class="form-group"><label>Email</label><input type="email" class="form-control" formControlName="email"></div>
             <div class="form-group"><label>Telefone</label><input type="text" class="form-control" formControlName="telefone"></div>
           </div>
-          <div style="display:grid;grid-template-columns:2fr 1fr;gap:12px;">
+          <div class="form-grid-auto">
             <div class="form-group"><label>Endereco</label><input type="text" class="form-control" formControlName="endereco"></div>
             <div class="form-group">
               <label>Status</label>
@@ -97,25 +99,25 @@ import { Fornecedor, CatalogoFornecedor, Insumo } from '../../shared/models/mode
 
     <!-- Modal Catalogo do Fornecedor -->
     <div class="modal-overlay" *ngIf="showCatalogoModal" (click)="showCatalogoModal=false">
-      <div class="modal-content" (click)="$event.stopPropagation()" style="max-width:700px;">
+      <div class="modal-content modal-wide" (click)="$event.stopPropagation()">
         <div class="modal-header">
-          <h3><i class="fas fa-list-alt" style="color:var(--primary);margin-right:8px;"></i> Catalogo - {{catalogoFornecedorNome}}</h3>
+          <h3><i class="fas fa-list-alt header-icon"></i> Catalogo - {{catalogoFornecedorNome}}</h3>
           <button class="modal-close" (click)="showCatalogoModal=false">&times;</button>
         </div>
 
-        <div style="display:grid;grid-template-columns:2fr 1fr 1fr auto auto;gap:8px;align-items:end;margin-bottom:16px;">
-          <div class="form-group" style="margin-bottom:0;">
+        <div class="catalog-form">
+          <div class="form-group form-group-inline">
             <label>Insumo</label>
             <select class="form-control" [(ngModel)]="catInsumoId">
               <option [ngValue]="0">Selecione...</option>
               <option *ngFor="let ins of insumosDisponiveis" [ngValue]="ins.id">{{ins.nome}} ({{ins.unidadeMedida}})</option>
             </select>
           </div>
-          <div class="form-group" style="margin-bottom:0;">
+          <div class="form-group form-group-inline">
             <label>Preco (R$)</label>
             <input type="number" class="form-control" [(ngModel)]="catPreco" step="0.0001" min="0.0001">
           </div>
-          <div class="form-group" style="margin-bottom:0;">
+          <div class="form-group form-group-inline">
             <label>Unid. Venda</label>
             <select class="form-control" [(ngModel)]="catUnidade">
               <option value="">Selecione...</option>
@@ -124,11 +126,11 @@ import { Fornecedor, CatalogoFornecedor, Insumo } from '../../shared/models/mode
               <option value="CX">CX</option><option value="PCT">PCT</option>
             </select>
           </div>
-          <button class="btn btn-primary btn-sm" style="height:38px;" [disabled]="!catInsumoId || !catPreco || !catUnidade"
+          <button class="btn btn-primary btn-sm catalog-btn" [disabled]="!catInsumoId || !catPreco || !catUnidade"
                   (click)="catEditId ? atualizarCatalogo() : adicionarCatalogo()">
             <i [class]="catEditId ? 'fas fa-check' : 'fas fa-plus'"></i> {{catEditId ? 'Salvar' : 'Add'}}
           </button>
-          <button *ngIf="catEditId" class="btn btn-secondary btn-sm" style="height:38px;" (click)="cancelarEdicaoCatalogo()">
+          <button *ngIf="catEditId" class="btn btn-secondary btn-sm catalog-btn" (click)="cancelarEdicaoCatalogo()">
             <i class="fas fa-times"></i>
           </button>
         </div>
@@ -137,11 +139,11 @@ import { Fornecedor, CatalogoFornecedor, Insumo } from '../../shared/models/mode
           <thead><tr><th>Insumo</th><th>Preco</th><th>Unid. Venda</th><th>Acoes</th></tr></thead>
           <tbody>
             <tr *ngFor="let c of catalogoItens">
-              <td><strong style="color:#F3F4F6;">{{c.insumoNome}}</strong></td>
+              <td><strong>{{c.insumoNome}}</strong></td>
               <td>R$ {{c.preco | number:'1.4-4'}}</td>
               <td>{{c.unidadeVenda}}</td>
               <td>
-                <div style="display:flex;gap:6px;">
+                <div class="action-bar">
                   <button class="btn-icon btn-icon-warning" (click)="editarCatalogo(c)" title="Editar"><i class="fas fa-edit"></i></button>
                   <button class="btn-icon btn-icon-danger" (click)="excluirCatalogo(c.id)" title="Remover"><i class="fas fa-trash"></i></button>
                 </div>
@@ -149,15 +151,24 @@ import { Fornecedor, CatalogoFornecedor, Insumo } from '../../shared/models/mode
             </tr>
           </tbody>
         </table>
-        <p *ngIf="catalogoItens.length === 0" style="text-align:center;color:#6B7280;padding:20px;">Nenhum produto cadastrado no catalogo deste fornecedor</p>
+        <p *ngIf="catalogoItens.length === 0" class="empty-row">Nenhum produto cadastrado no catalogo deste fornecedor</p>
       </div>
     </div>
   `,
   styles: [`
-    .status-badge { padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; }
-    .status-em-avaliacao { background: rgba(234,179,8,0.15); color: #EAB308; }
-    .status-homologado { background: rgba(34,197,94,0.15); color: #22C55E; }
-    .status-bloqueado { background: rgba(239,68,68,0.15); color: #EF4444; }
+    .empty-row { text-align: center; color: var(--text-tertiary); padding: 32px !important; }
+    .table-footer { display: flex; align-items: center; margin-top: var(--space-4); }
+    .table-footer .pagination { margin-top: 0; }
+    .header-icon { color: var(--primary); margin-right: 8px; }
+    .catalog-form {
+      display: grid; grid-template-columns: 2fr 1fr 1fr auto auto;
+      gap: var(--space-2); align-items: end; margin-bottom: var(--space-4);
+    }
+    .form-group-inline { margin-bottom: 0; }
+    .catalog-btn { height: 36px; }
+    @media (max-width: 768px) {
+      .catalog-form { grid-template-columns: 1fr; }
+    }
   `]
 })
 export class FornecedoresComponent implements OnInit {
