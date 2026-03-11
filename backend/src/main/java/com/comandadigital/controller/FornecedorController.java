@@ -33,6 +33,12 @@ public class FornecedorController {
         return ResponseEntity.ok(service.listarTodos());
     }
 
+    @GetMapping("/homologados")
+    @PreAuthorize("hasAnyRole('ADMIN', 'GERENTE')")
+    public ResponseEntity<List<FornecedorResponse>> listarHomologados() {
+        return ResponseEntity.ok(service.listarHomologados());
+    }
+
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'GERENTE')")
     public ResponseEntity<FornecedorResponse> buscarPorId(@PathVariable Long id) {

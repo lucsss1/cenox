@@ -22,8 +22,12 @@ public class MovimentacaoEstoque {
     @JoinColumn(name = "insumo_id", nullable = false)
     private Insumo insumo;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "lote_id")
+    private Lote lote;
+
     @Enumerated(EnumType.STRING)
-    @Column(name = "tipo", nullable = false, length = 10)
+    @Column(name = "tipo", nullable = false, length = 20)
     private TipoMovimentacao tipo;
 
     @Column(nullable = false, precision = 10, scale = 3)
@@ -31,6 +35,9 @@ public class MovimentacaoEstoque {
 
     @Column(length = 255)
     private String motivo;
+
+    @Column(length = 100)
+    private String origem;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

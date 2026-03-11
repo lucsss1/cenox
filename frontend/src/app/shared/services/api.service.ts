@@ -63,6 +63,7 @@ export class ApiService {
   // Fornecedores
   getFornecedores(page: number): Observable<M.Page<M.Fornecedor>> { return this.http.get<M.Page<M.Fornecedor>>(`${this.api}/fornecedores`, { params: this.pageParams(page) }); }
   getFornecedoresTodos(): Observable<M.Fornecedor[]> { return this.http.get<M.Fornecedor[]>(`${this.api}/fornecedores/todos`); }
+  getFornecedoresHomologados(): Observable<M.Fornecedor[]> { return this.http.get<M.Fornecedor[]>(`${this.api}/fornecedores/homologados`); }
   createFornecedor(r: M.FornecedorRequest): Observable<M.Fornecedor> { return this.http.post<M.Fornecedor>(`${this.api}/fornecedores`, r); }
   updateFornecedor(id: number, r: M.FornecedorRequest): Observable<M.Fornecedor> { return this.http.put<M.Fornecedor>(`${this.api}/fornecedores/${id}`, r); }
   deleteFornecedor(id: number): Observable<void> { return this.http.delete<void>(`${this.api}/fornecedores/${id}`); }
@@ -88,6 +89,19 @@ export class ApiService {
   getVencidos(): Observable<M.Insumo[]> { return this.http.get<M.Insumo[]>(`${this.api}/estoque/vencidos`); }
   getOrdenadoValidade(): Observable<M.Insumo[]> { return this.http.get<M.Insumo[]>(`${this.api}/estoque/ordenado-validade`); }
 
+  // Lotes
+  getLotes(page: number): Observable<M.Page<M.Lote>> { return this.http.get<M.Page<M.Lote>>(`${this.api}/lotes`, { params: this.pageParams(page) }); }
+  getLotesPorInsumo(insumoId: number, page: number): Observable<M.Page<M.Lote>> { return this.http.get<M.Page<M.Lote>>(`${this.api}/lotes/insumo/${insumoId}`, { params: this.pageParams(page) }); }
+  getLotesVencidos(): Observable<M.Lote[]> { return this.http.get<M.Lote[]>(`${this.api}/lotes/vencidos`); }
+  getLotesProximosVencimento(): Observable<M.Lote[]> { return this.http.get<M.Lote[]>(`${this.api}/lotes/proximos-vencimento`); }
+  getLotesOrdenadoValidade(): Observable<M.Lote[]> { return this.http.get<M.Lote[]>(`${this.api}/lotes/ordenado-validade`); }
+  createLote(r: any): Observable<M.Lote> { return this.http.post<M.Lote>(`${this.api}/lotes`, r); }
+  deleteLote(id: number): Observable<void> { return this.http.delete<void>(`${this.api}/lotes/${id}`); }
+
+  // Sugestoes de Compra
+  calcularSugestoes(): Observable<M.SugestaoCompra[]> { return this.http.post<M.SugestaoCompra[]>(`${this.api}/sugestoes-compra/calcular`, {}); }
+  getSugestoesPendentes(): Observable<M.SugestaoCompra[]> { return this.http.get<M.SugestaoCompra[]>(`${this.api}/sugestoes-compra`); }
+
   // Usuarios
   getUsuarios(page: number): Observable<M.Page<M.Usuario>> { return this.http.get<M.Page<M.Usuario>>(`${this.api}/usuarios`, { params: this.pageParams(page) }); }
   createUsuario(r: M.UsuarioRequest): Observable<M.Usuario> { return this.http.post<M.Usuario>(`${this.api}/usuarios`, r); }
@@ -100,4 +114,6 @@ export class ApiService {
   getDashboardProximosVencimento(): Observable<M.Insumo[]> { return this.http.get<M.Insumo[]>(`${this.api}/dashboard/proximos-vencimento`); }
   getDashboardVencidos(): Observable<M.Insumo[]> { return this.http.get<M.Insumo[]>(`${this.api}/dashboard/vencidos`); }
   getDashboardUltimasEntradas(): Observable<M.MovimentacaoEstoque[]> { return this.http.get<M.MovimentacaoEstoque[]>(`${this.api}/dashboard/ultimas-entradas`); }
+  getDashboardLotesVencidos(): Observable<M.Lote[]> { return this.http.get<M.Lote[]>(`${this.api}/dashboard/lotes-vencidos`); }
+  getDashboardLotesProximosVencimento(): Observable<M.Lote[]> { return this.http.get<M.Lote[]>(`${this.api}/dashboard/lotes-proximos-vencimento`); }
 }

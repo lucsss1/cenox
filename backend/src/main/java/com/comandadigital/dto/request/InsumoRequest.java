@@ -24,6 +24,9 @@ public class InsumoRequest {
     @PositiveOrZero(message = "Estoque minimo deve ser zero ou positivo")
     private BigDecimal estoqueMinimo;
 
+    @PositiveOrZero(message = "Estoque ideal deve ser zero ou positivo")
+    private BigDecimal estoqueIdeal;
+
     @PositiveOrZero(message = "Custo medio deve ser zero ou positivo")
     private BigDecimal custoMedio;
 

@@ -26,13 +26,16 @@ export interface PratoRequest {
 export interface Insumo {
   id: number; nome: string; unidadeMedida: string;
   quantidadeEstoque: number; estoqueMinimo: number;
-  custoMedio: number; abaixoEstoqueMinimo: boolean;
+  estoqueIdeal: number; custoMedio: number;
+  ultimoCustoCompra: number; consumoMedioDiario: number;
+  abaixoEstoqueMinimo: boolean; nivelEstoque: string;
   categoria: string; dataEntradaEstoque: string; dataValidade: string;
   fornecedorId: number; fornecedorNome: string; status: string;
 }
 export interface InsumoRequest {
   nome: string; unidadeMedida: string;
-  estoqueMinimo: number; custoMedio: number;
+  estoqueMinimo: number; estoqueIdeal: number;
+  custoMedio: number;
   categoria: string; dataEntradaEstoque: string; dataValidade: string;
   fornecedorId: number | null;
 }
@@ -72,12 +75,17 @@ export interface PedidoRequest {
 export interface Fornecedor {
   id: number; nomeEmpresa: string; cnpj: string;
   email: string; telefone: string; endereco: string;
-  responsavelComercial: string; statusFornecedor: string; status: string;
+  responsavelComercial: string; statusFornecedor: string;
+  dataHomologacao: string; avaliacao: number;
+  observacoes: string; prazoEntregaDias: number;
+  status: string;
 }
 export interface FornecedorRequest {
   nomeEmpresa: string; cnpj: string; email: string;
   telefone: string; endereco: string;
   responsavelComercial: string; statusFornecedor: string;
+  dataHomologacao: string; avaliacao: number;
+  observacoes: string; prazoEntregaDias: number;
 }
 
 export interface Compra {
@@ -111,7 +119,29 @@ export interface HistoricoPreco {
 
 export interface MovimentacaoEstoque {
   id: number; insumoId: number; insumoNome: string;
-  tipo: string; quantidade: number; motivo: string; createdAt: string;
+  loteId: number; loteNumero: string;
+  tipo: string; quantidade: number; motivo: string;
+  origem: string; createdAt: string;
+}
+
+export interface Lote {
+  id: number; insumoId: number; insumoNome: string;
+  unidadeMedida: string; numeroLote: string;
+  quantidade: number; quantidadeInicial: number;
+  dataValidade: string; fornecedorId: number; fornecedorNome: string;
+  compraId: number; status: string;
+  vencido: boolean; proximoVencimento: boolean;
+  diasParaVencimento: number; createdAt: string;
+}
+
+export interface SugestaoCompra {
+  id: number; insumoId: number; insumoNome: string;
+  unidadeMedida: string; fornecedorId: number; fornecedorNome: string;
+  quantidadeSugerida: number; estoqueAtual: number;
+  estoqueMinimo: number; estoqueIdeal: number;
+  consumoMedioDiario: number; diasCobertura: number;
+  prioridade: string; status: string;
+  custoEstimado: number; createdAt: string;
 }
 
 export interface TopPratos {

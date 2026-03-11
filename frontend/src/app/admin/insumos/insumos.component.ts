@@ -43,9 +43,13 @@ Chart.register(...registerables);
               </td>
               <td>{{i.fornecedorNome || '&mdash;'}}</td>
               <td>
-                <span [class]="i.abaixoEstoqueMinimo ? 'badge badge-danger' : 'badge badge-success'">
+                <span class="badge" [ngClass]="{
+                  'badge-danger': i.nivelEstoque === 'CRITICO' || i.nivelEstoque === 'SEM_ESTOQUE',
+                  'badge-warning': i.nivelEstoque === 'BAIXO',
+                  'badge-success': i.nivelEstoque === 'NORMAL' || i.nivelEstoque === 'IDEAL'
+                }">
                   <span class="badge-dot"></span>
-                  {{i.abaixoEstoqueMinimo ? 'BAIXO' : 'OK'}}
+                  {{i.nivelEstoque || (i.abaixoEstoqueMinimo ? 'BAIXO' : 'OK')}}
                 </span>
               </td>
               <td>

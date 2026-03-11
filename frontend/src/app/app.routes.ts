@@ -30,6 +30,8 @@ export const routes: Routes = [
       { path: 'pedidos', loadComponent: () => import('./admin/pedidos/pedidos.component').then(m => m.PedidosAdminComponent) },
       { path: 'fornecedores', loadComponent: () => import('./admin/fornecedores/fornecedores.component').then(m => m.FornecedoresComponent) },
       { path: 'compras', loadComponent: () => import('./admin/compras/compras.component').then(m => m.ComprasComponent) },
+      { path: 'lotes', loadComponent: () => import('./admin/lotes/lotes.component').then(m => m.LotesComponent) },
+      { path: 'sugestoes-compra', loadComponent: () => import('./admin/sugestoes-compra/sugestoes-compra.component').then(m => m.SugestaoCompraComponent) },
       { path: 'usuarios', loadComponent: () => import('./admin/usuarios/usuarios.component').then(m => m.UsuariosComponent), data: { roles: ['ADMIN'] } },
     ]
   },

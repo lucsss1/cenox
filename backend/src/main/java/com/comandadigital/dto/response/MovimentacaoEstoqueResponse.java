@@ -17,8 +17,11 @@ public class MovimentacaoEstoqueResponse {
     private Long id;
     private Long insumoId;
     private String insumoNome;
+    private Long loteId;
+    private String loteNumero;
     private TipoMovimentacao tipo;
     private BigDecimal quantidade;
     private String motivo;
+    private String origem;
     private LocalDateTime createdAt;
 }

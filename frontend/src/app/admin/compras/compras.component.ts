@@ -200,7 +200,7 @@ export class ComprasComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.api.getFornecedoresTodos().subscribe(f => this.fornecedores = f);
+    this.api.getFornecedoresHomologados().subscribe(f => this.fornecedores = f);
     this.api.getInsumos(0).subscribe(p => this.insumos = p.content);
     this.carregar(0);
   }

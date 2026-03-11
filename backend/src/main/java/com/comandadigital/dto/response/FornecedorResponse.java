@@ -7,6 +7,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -20,5 +23,9 @@ public class FornecedorResponse {
     private String endereco;
     private String responsavelComercial;
     private StatusFornecedor statusFornecedor;
+    private LocalDate dataHomologacao;
+    private BigDecimal avaliacao;
+    private String observacoes;
+    private Integer prazoEntregaDias;
     private StatusGeral status;
 }

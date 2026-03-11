@@ -33,8 +33,17 @@ public class Insumo {
     @Column(name = "estoque_minimo", nullable = false, precision = 10, scale = 3)
     private BigDecimal estoqueMinimo;
 
+    @Column(name = "estoque_ideal", precision = 10, scale = 3)
+    private BigDecimal estoqueIdeal;
+
     @Column(name = "custo_medio", precision = 10, scale = 2)
     private BigDecimal custoMedio;
+
+    @Column(name = "ultimo_custo_compra", precision = 10, scale = 2)
+    private BigDecimal ultimoCustoCompra;
+
+    @Column(name = "consumo_medio_diario", precision = 10, scale = 3)
+    private BigDecimal consumoMedioDiario;
 
     @Column(length = 100)
     private String categoria;
@@ -65,10 +74,21 @@ public class Insumo {
         this.updatedAt = LocalDateTime.now();
         if (this.status == null) this.status = StatusGeral.ATIVO;
         if (this.quantidadeEstoque == null) this.quantidadeEstoque = BigDecimal.ZERO;
+        if (this.estoqueIdeal == null) this.estoqueIdeal = BigDecimal.ZERO;
+        if (this.consumoMedioDiario == null) this.consumoMedioDiario = BigDecimal.ZERO;
     }
 
     @PreUpdate
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
+    }
+
+    public boolean isAbaixoEstoqueMinimo() {
+        return this.quantidadeEstoque.compareTo(this.estoqueMinimo) <= 0;
+    }
+
+    public boolean isEstoqueCritico() {
+        BigDecimal limitesCritico = this.estoqueMinimo.multiply(new BigDecimal("0.5"));
+        return this.quantidadeEstoque.compareTo(limitesCritico) <= 0;
     }
 }

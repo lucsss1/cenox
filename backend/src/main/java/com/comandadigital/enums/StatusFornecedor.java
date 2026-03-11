@@ -2,6 +2,9 @@ package com.comandadigital.enums;
 
 public enum StatusFornecedor {
     EM_AVALIACAO,
+    EM_HOMOLOGACAO,
     HOMOLOGADO,
-    BLOQUEADO
+    SUSPENSO,
+    BLOQUEADO,
+    INATIVO
 }

@@ -20,8 +20,12 @@ public class InsumoResponse {
     private UnidadeMedida unidadeMedida;
     private BigDecimal quantidadeEstoque;
     private BigDecimal estoqueMinimo;
+    private BigDecimal estoqueIdeal;
     private BigDecimal custoMedio;
+    private BigDecimal ultimoCustoCompra;
+    private BigDecimal consumoMedioDiario;
     private boolean abaixoEstoqueMinimo;
+    private String nivelEstoque;
     private String categoria;
     private LocalDate dataEntradaEstoque;
     private LocalDate dataValidade;

@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { ApiService } from '../../shared/services/api.service';
-import { Insumo, MovimentacaoEstoque } from '../../shared/models/models';
+import { Insumo, MovimentacaoEstoque, Lote } from '../../shared/models/models';
 
 @Component({
   selector: 'app-dashboard-estoque',
@@ -25,7 +25,7 @@ import { Insumo, MovimentacaoEstoque } from '../../shared/models/models';
 
     <div *ngIf="!loading">
       <!-- Summary Cards -->
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px;">
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px;">
         <div class="card" style="border-left:4px solid #EF4444;padding:16px;cursor:pointer;" (click)="scrollTo('vencidos')">
           <div style="font-size:13px;color:#6B7280;">Produtos Vencidos</div>
           <div style="font-size:32px;font-weight:700;color:#EF4444;">{{vencidos.length}}</div>
@@ -40,6 +40,11 @@ import { Insumo, MovimentacaoEstoque } from '../../shared/models/models';
           <div style="font-size:13px;color:#6B7280;">Estoque Baixo</div>
           <div style="font-size:32px;font-weight:700;color:#3B82F6;">{{estoqueBaixo.length}}</div>
           <div style="font-size:12px;color:#6B7280;">abaixo do minimo</div>
+        </div>
+        <div class="card" style="border-left:4px solid #8B5CF6;padding:16px;cursor:pointer;" (click)="scrollTo('lotes')">
+          <div style="font-size:13px;color:#6B7280;">Lotes Vencidos</div>
+          <div style="font-size:32px;font-weight:700;color:#8B5CF6;">{{lotesVencidos.length}}</div>
+          <div style="font-size:12px;color:#6B7280;">lotes com validade expirada</div>
         </div>
       </div>
 
@@ -91,6 +96,22 @@ import { Insumo, MovimentacaoEstoque } from '../../shared/models/models';
           </table>
         </div>
 
+        <!-- Lotes Vencidos -->
+        <div class="card" id="lotes" *ngIf="lotesVencidos.length > 0">
+          <div class="card-header" style="color:#C4B5FD;"><i class="fas fa-layer-group"></i> Lotes Vencidos</div>
+          <table>
+            <thead><tr><th>Lote</th><th>Insumo</th><th>Validade</th><th>Qtd</th></tr></thead>
+            <tbody>
+              <tr *ngFor="let l of lotesVencidos">
+                <td style="color:#8B5CF6;font-weight:600;">{{l.numeroLote}}</td>
+                <td><strong style="color:#F3F4F6;">{{l.insumoNome}}</strong></td>
+                <td style="color:#EF4444;font-weight:600;">{{l.dataValidade}}</td>
+                <td>{{l.quantidade}} {{l.unidadeMedida}}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
         <!-- Ultimas Entradas -->
         <div class="card">
           <div class="card-header" style="color:#6EE7B7;"><i class="fas fa-truck-loading"></i> Ultimas Entradas</div>
@@ -124,17 +145,19 @@ export class DashboardEstoqueComponent implements OnInit {
   proximos: Insumo[] = [];
   estoqueBaixo: Insumo[] = [];
   ultimasEntradas: MovimentacaoEstoque[] = [];
+  lotesVencidos: Lote[] = [];
 
   constructor(private api: ApiService) {}
 
   ngOnInit(): void {
     let loaded = 0;
-    const check = () => { loaded++; if (loaded === 4) this.loading = false; };
+    const check = () => { loaded++; if (loaded === 5) this.loading = false; };
 
     this.api.getDashboardVencidos().subscribe({ next: (d) => { this.vencidos = d; check(); }, error: () => check() });
     this.api.getDashboardProximosVencimento().subscribe({ next: (d) => { this.proximos = d; check(); }, error: () => check() });
     this.api.getDashboardEstoqueBaixo().subscribe({ next: (d) => { this.estoqueBaixo = d; check(); }, error: () => check() });
     this.api.getDashboardUltimasEntradas().subscribe({ next: (d) => { this.ultimasEntradas = d; check(); }, error: () => check() });
+    this.api.getDashboardLotesVencidos().subscribe({ next: (d) => { this.lotesVencidos = d; check(); }, error: () => check() });
   }
 
   diasRestantes(dataValidade: string): string {

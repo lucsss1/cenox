@@ -1,12 +1,10 @@
 package com.comandadigital.controller;
 
-import com.comandadigital.dto.response.DashboardResponse;
-import com.comandadigital.dto.response.InsumoResponse;
-import com.comandadigital.dto.response.MovimentacaoEstoqueResponse;
-import com.comandadigital.dto.response.TopPratosResponse;
+import com.comandadigital.dto.response.*;
 import com.comandadigital.service.DashboardService;
 import com.comandadigital.service.EstoqueService;
 import com.comandadigital.service.InsumoService;
+import com.comandadigital.service.LoteService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +22,7 @@ public class DashboardController {
     private final DashboardService service;
     private final EstoqueService estoqueService;
     private final InsumoService insumoService;
+    private final LoteService loteService;
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'GERENTE')")
@@ -61,5 +60,17 @@ public class DashboardController {
     @PreAuthorize("hasAnyRole('ADMIN', 'GERENTE')")
     public ResponseEntity<List<MovimentacaoEstoqueResponse>> ultimasEntradas() {
         return ResponseEntity.ok(estoqueService.listarUltimasEntradas());
+    }
+
+    @GetMapping("/lotes-vencidos")
+    @PreAuthorize("hasAnyRole('ADMIN', 'GERENTE')")
+    public ResponseEntity<List<LoteResponse>> lotesVencidos() {
+        return ResponseEntity.ok(loteService.listarLotesVencidos());
+    }
+
+    @GetMapping("/lotes-proximos-vencimento")
+    @PreAuthorize("hasAnyRole('ADMIN', 'GERENTE')")
+    public ResponseEntity<List<LoteResponse>> lotesProximosVencimento() {
+        return ResponseEntity.ok(loteService.listarLotesProximosVencimento());
     }
 }

@@ -6,6 +6,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+
 @Data
 public class FornecedorRequest {
 
@@ -28,4 +31,12 @@ public class FornecedorRequest {
     private String responsavelComercial;
 
     private StatusFornecedor statusFornecedor;
+
+    private LocalDate dataHomologacao;
+
+    private BigDecimal avaliacao;
+
+    private String observacoes;
+
+    private Integer prazoEntregaDias;
 }

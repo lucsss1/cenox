@@ -5,6 +5,7 @@ import com.comandadigital.dto.request.ItemCompraRequest;
 import com.comandadigital.dto.response.CompraResponse;
 import com.comandadigital.entity.*;
 import com.comandadigital.enums.StatusCompra;
+import com.comandadigital.enums.StatusFornecedor;
 import com.comandadigital.exception.BusinessException;
 import com.comandadigital.exception.ResourceNotFoundException;
 import com.comandadigital.mapper.CompraMapper;
@@ -32,6 +33,7 @@ public class CompraService {
     private final FornecedorService fornecedorService;
     private final InsumoService insumoService;
     private final EstoqueService estoqueService;
+    private final LoteService loteService;
     private final FichaTecnicaService fichaTecnicaService;
     private final InsumoRepository insumoRepository;
     private final HistoricoPrecoRepository historicoPrecoRepository;
@@ -50,10 +52,19 @@ public class CompraService {
 
     /**
      * Cria pedido de compra como RASCUNHO (sem impacto no estoque).
+     * Valida que o fornecedor esta HOMOLOGADO.
      */
     @Transactional
     public CompraResponse criar(CompraRequest request) {
         Fornecedor fornecedor = fornecedorService.findActiveById(request.getFornecedorId());
+
+        // Validar que apenas fornecedores HOMOLOGADOS podem receber pedidos de compra
+        if (fornecedor.getStatusFornecedor() != StatusFornecedor.HOMOLOGADO) {
+            throw new BusinessException(
+                    "Apenas fornecedores com status HOMOLOGADO podem receber pedidos de compra. " +
+                    "Status atual do fornecedor '" + fornecedor.getNomeEmpresa() + "': " + fornecedor.getStatusFornecedor()
+            );
+        }
 
         Compra compra = Compra.builder()
                 .fornecedor(fornecedor)
@@ -113,7 +124,7 @@ public class CompraService {
     /**
      * Altera status do pedido de compra.
      * RASCUNHO -> ENVIADO -> RECEBIDO
-     * Ao receber (RECEBIDO): atualiza estoque, custo medio e historico de precos.
+     * Ao receber (RECEBIDO): cria lotes, atualiza estoque, custo medio e historico de precos.
      */
     @Transactional
     public CompraResponse alterarStatus(Long id, StatusCompra novoStatus) {
@@ -138,12 +149,27 @@ public class CompraService {
             // Atualizar custo medio ponderado
             atualizarCustoMedio(insumo, item.getQuantidade(), item.getPrecoUnitario());
 
-            // Registrar entrada no estoque
+            // Atualizar ultimo custo de compra
+            insumo.setUltimoCustoCompra(item.getPrecoUnitario());
+            insumoRepository.save(insumo);
+
+            // Criar lote para o recebimento
+            Lote lote = loteService.criarLoteInterno(
+                    insumo,
+                    item.getQuantidade(),
+                    null, // dataValidade pode ser definida depois ou na entrada
+                    compra.getFornecedor(),
+                    compra
+            );
+
+            // Registrar entrada no estoque com referencia ao lote
             estoqueService.registrarEntrada(
                     insumo,
                     item.getQuantidade(),
                     "Recebimento - Compra #" + compra.getId() +
-                    " NF: " + (compra.getNotaFiscal() != null ? compra.getNotaFiscal() : "S/N")
+                    " NF: " + (compra.getNotaFiscal() != null ? compra.getNotaFiscal() : "S/N"),
+                    lote,
+                    "COMPRA_RECEBIMENTO"
             );
 
             // Registrar historico de preco

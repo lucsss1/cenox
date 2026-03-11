@@ -1,6 +1,7 @@
 package com.comandadigital.repository;
 
 import com.comandadigital.entity.Fornecedor;
+import com.comandadigital.enums.StatusFornecedor;
 import com.comandadigital.enums.StatusGeral;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,4 +18,6 @@ public interface FornecedorRepository extends JpaRepository<Fornecedor, Long> {
     Page<Fornecedor> findByStatus(StatusGeral status, Pageable pageable);
 
     List<Fornecedor> findAllByStatus(StatusGeral status);
+
+    List<Fornecedor> findAllByStatusAndStatusFornecedor(StatusGeral status, StatusFornecedor statusFornecedor);
 }

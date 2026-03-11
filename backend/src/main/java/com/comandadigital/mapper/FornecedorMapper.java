@@ -18,6 +18,10 @@ public class FornecedorMapper {
                 .endereco(entity.getEndereco())
                 .responsavelComercial(entity.getResponsavelComercial())
                 .statusFornecedor(entity.getStatusFornecedor())
+                .dataHomologacao(entity.getDataHomologacao())
+                .avaliacao(entity.getAvaliacao())
+                .observacoes(entity.getObservacoes())
+                .prazoEntregaDias(entity.getPrazoEntregaDias())
                 .status(entity.getStatus())
                 .build();
     }
@@ -31,6 +35,10 @@ public class FornecedorMapper {
                 .endereco(request.getEndereco())
                 .responsavelComercial(request.getResponsavelComercial())
                 .statusFornecedor(request.getStatusFornecedor())
+                .dataHomologacao(request.getDataHomologacao())
+                .avaliacao(request.getAvaliacao())
+                .observacoes(request.getObservacoes())
+                .prazoEntregaDias(request.getPrazoEntregaDias())
                 .build();
     }
 }

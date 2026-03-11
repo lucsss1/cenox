@@ -52,6 +52,9 @@ public class InsumoService {
         insumo.setNome(request.getNome());
         insumo.setUnidadeMedida(request.getUnidadeMedida());
         insumo.setEstoqueMinimo(request.getEstoqueMinimo());
+        if (request.getEstoqueIdeal() != null) {
+            insumo.setEstoqueIdeal(request.getEstoqueIdeal());
+        }
         if (request.getCustoMedio() != null) {
             insumo.setCustoMedio(request.getCustoMedio());
         }

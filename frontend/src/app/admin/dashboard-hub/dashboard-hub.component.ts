@@ -164,6 +164,13 @@ export class DashboardHubComponent {
       icon: 'fa-exclamation-triangle',
       color: '#EF4444',
       route: '/admin/dashboard/alertas'
+    },
+    {
+      title: 'Sugestoes de Compra',
+      description: 'Sugestoes automaticas baseadas em consumo e lead time',
+      icon: 'fa-lightbulb',
+      color: '#8B5CF6',
+      route: '/admin/sugestoes-compra'
     }
   ];
 }

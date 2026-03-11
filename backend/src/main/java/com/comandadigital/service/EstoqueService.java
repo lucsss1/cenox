@@ -1,14 +1,17 @@
 package com.comandadigital.service;
 
 import com.comandadigital.dto.response.InsumoResponse;
+import com.comandadigital.dto.response.LoteResponse;
 import com.comandadigital.dto.response.MovimentacaoEstoqueResponse;
 import com.comandadigital.entity.Insumo;
+import com.comandadigital.entity.Lote;
 import com.comandadigital.entity.MovimentacaoEstoque;
 import com.comandadigital.enums.MotivoSaida;
 import com.comandadigital.enums.TipoMovimentacao;
 import com.comandadigital.exception.BusinessException;
 import com.comandadigital.mapper.InsumoMapper;
 import com.comandadigital.repository.InsumoRepository;
+import com.comandadigital.repository.LoteRepository;
 import com.comandadigital.repository.MovimentacaoEstoqueRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -27,24 +30,46 @@ public class EstoqueService {
 
     private final InsumoRepository insumoRepository;
     private final MovimentacaoEstoqueRepository movimentacaoRepository;
+    private final LoteRepository loteRepository;
     private final InsumoMapper insumoMapper;
 
+    /**
+     * Registra entrada de estoque e cria movimentacao.
+     * Se um lote for fornecido, associa a movimentacao ao lote.
+     */
     @Transactional
     public void registrarEntrada(Insumo insumo, BigDecimal quantidade, String motivo) {
+        registrarEntrada(insumo, quantidade, motivo, null, null);
+    }
+
+    @Transactional
+    public void registrarEntrada(Insumo insumo, BigDecimal quantidade, String motivo, Lote lote, String origem) {
         insumo.setQuantidadeEstoque(insumo.getQuantidadeEstoque().add(quantidade));
+        insumo.setDataEntradaEstoque(LocalDate.now());
         insumoRepository.save(insumo);
 
         MovimentacaoEstoque movimentacao = MovimentacaoEstoque.builder()
                 .insumo(insumo)
+                .lote(lote)
                 .tipo(TipoMovimentacao.ENTRADA)
                 .quantidade(quantidade)
                 .motivo(motivo)
+                .origem(origem)
                 .build();
         movimentacaoRepository.save(movimentacao);
     }
 
+    /**
+     * Registra saida de estoque usando FIFO (First In, First Out).
+     * Consome dos lotes com validade mais proxima primeiro.
+     */
     @Transactional
     public void registrarSaida(Insumo insumo, BigDecimal quantidade, String motivo) {
+        registrarSaidaFIFO(insumo, quantidade, motivo, null);
+    }
+
+    @Transactional
+    public void registrarSaidaFIFO(Insumo insumo, BigDecimal quantidade, String motivo, String origem) {
         if (insumo.getQuantidadeEstoque().compareTo(quantidade) < 0) {
             throw new BusinessException(
                     "Estoque insuficiente para o insumo: " + insumo.getNome() +
@@ -53,16 +78,49 @@ public class EstoqueService {
             );
         }
 
+        // FIFO: consume from lots with earliest expiration first
+        List<Lote> lotes = loteRepository.findLotesDisponiveisFIFO(insumo.getId());
+        BigDecimal restante = quantidade;
+
+        for (Lote lote : lotes) {
+            if (restante.compareTo(BigDecimal.ZERO) <= 0) break;
+
+            BigDecimal disponivel = lote.getQuantidade();
+            BigDecimal consumir = restante.min(disponivel);
+
+            lote.setQuantidade(disponivel.subtract(consumir));
+            loteRepository.save(lote);
+
+            // Record per-lot movement
+            MovimentacaoEstoque movLote = MovimentacaoEstoque.builder()
+                    .insumo(insumo)
+                    .lote(lote)
+                    .tipo(TipoMovimentacao.SAIDA)
+                    .quantidade(consumir)
+                    .motivo(motivo)
+                    .origem(origem)
+                    .build();
+            movimentacaoRepository.save(movLote);
+
+            restante = restante.subtract(consumir);
+        }
+
+        // If there's remaining quantity not covered by lots, still record
+        // (for backward compatibility with insumos that have no lots yet)
+        if (restante.compareTo(BigDecimal.ZERO) > 0) {
+            MovimentacaoEstoque movimentacao = MovimentacaoEstoque.builder()
+                    .insumo(insumo)
+                    .tipo(TipoMovimentacao.SAIDA)
+                    .quantidade(restante)
+                    .motivo(motivo + " (sem lote)")
+                    .origem(origem)
+                    .build();
+            movimentacaoRepository.save(movimentacao);
+        }
+
+        // Update aggregate stock
         insumo.setQuantidadeEstoque(insumo.getQuantidadeEstoque().subtract(quantidade));
         insumoRepository.save(insumo);
-
-        MovimentacaoEstoque movimentacao = MovimentacaoEstoque.builder()
-                .insumo(insumo)
-                .tipo(TipoMovimentacao.SAIDA)
-                .quantidade(quantidade)
-                .motivo(motivo)
-                .build();
-        movimentacaoRepository.save(movimentacao);
     }
 
     @Transactional
@@ -75,28 +133,28 @@ public class EstoqueService {
                 .tipo(TipoMovimentacao.ESTORNO)
                 .quantidade(quantidade)
                 .motivo(motivo)
+                .origem("CANCELAMENTO_PEDIDO")
                 .build();
         movimentacaoRepository.save(movimentacao);
     }
 
     @Transactional
     public void registrarSaidaManual(Insumo insumo, BigDecimal quantidade, MotivoSaida motivoSaida) {
-        if (insumo.getQuantidadeEstoque().compareTo(quantidade) < 0) {
-            throw new BusinessException(
-                    "Estoque insuficiente para o insumo: " + insumo.getNome() +
-                    ". Disponivel: " + insumo.getQuantidadeEstoque() +
-                    ", Solicitado: " + quantidade
-            );
-        }
+        registrarSaidaFIFO(insumo, quantidade, "Saida manual - " + motivoSaida.name(), "SAIDA_MANUAL");
+    }
 
-        insumo.setQuantidadeEstoque(insumo.getQuantidadeEstoque().subtract(quantidade));
+    @Transactional
+    public void registrarAjuste(Insumo insumo, BigDecimal novaQuantidade, String motivo) {
+        BigDecimal diferenca = novaQuantidade.subtract(insumo.getQuantidadeEstoque());
+        insumo.setQuantidadeEstoque(novaQuantidade);
         insumoRepository.save(insumo);
 
         MovimentacaoEstoque movimentacao = MovimentacaoEstoque.builder()
                 .insumo(insumo)
-                .tipo(TipoMovimentacao.SAIDA)
-                .quantidade(quantidade)
-                .motivo("Saida manual - " + motivoSaida.name())
+                .tipo(TipoMovimentacao.AJUSTE)
+                .quantidade(diferenca.abs())
+                .motivo(motivo + " (ajuste de " + insumo.getQuantidadeEstoque() + " para " + novaQuantidade + ")")
+                .origem("AJUSTE_MANUAL")
                 .build();
         movimentacaoRepository.save(movimentacao);
     }
@@ -109,15 +167,7 @@ public class EstoqueService {
     @Transactional(readOnly = true)
     public Page<MovimentacaoEstoqueResponse> listarMovimentacoes(Long insumoId, Pageable pageable) {
         return movimentacaoRepository.findByInsumoId(insumoId, pageable)
-                .map(m -> MovimentacaoEstoqueResponse.builder()
-                        .id(m.getId())
-                        .insumoId(m.getInsumo().getId())
-                        .insumoNome(m.getInsumo().getNome())
-                        .tipo(m.getTipo())
-                        .quantidade(m.getQuantidade())
-                        .motivo(m.getMotivo())
-                        .createdAt(m.getCreatedAt())
-                        .build());
+                .map(this::toMovimentacaoResponse);
     }
 
     @Transactional(readOnly = true)
@@ -147,15 +197,22 @@ public class EstoqueService {
     public List<MovimentacaoEstoqueResponse> listarUltimasEntradas() {
         return movimentacaoRepository.findTop20ByTipoOrderByCreatedAtDesc(TipoMovimentacao.ENTRADA)
                 .stream()
-                .map(m -> MovimentacaoEstoqueResponse.builder()
-                        .id(m.getId())
-                        .insumoId(m.getInsumo().getId())
-                        .insumoNome(m.getInsumo().getNome())
-                        .tipo(m.getTipo())
-                        .quantidade(m.getQuantidade())
-                        .motivo(m.getMotivo())
-                        .createdAt(m.getCreatedAt())
-                        .build())
+                .map(this::toMovimentacaoResponse)
                 .collect(Collectors.toList());
+    }
+
+    private MovimentacaoEstoqueResponse toMovimentacaoResponse(MovimentacaoEstoque m) {
+        return MovimentacaoEstoqueResponse.builder()
+                .id(m.getId())
+                .insumoId(m.getInsumo().getId())
+                .insumoNome(m.getInsumo().getNome())
+                .loteId(m.getLote() != null ? m.getLote().getId() : null)
+                .loteNumero(m.getLote() != null ? m.getLote().getNumeroLote() : null)
+                .tipo(m.getTipo())
+                .quantidade(m.getQuantidade())
+                .motivo(m.getMotivo())
+                .origem(m.getOrigem())
+                .createdAt(m.getCreatedAt())
+                .build();
     }
 }

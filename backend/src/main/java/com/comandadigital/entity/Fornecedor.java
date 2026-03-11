@@ -5,6 +5,8 @@ import com.comandadigital.enums.StatusGeral;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -43,6 +45,18 @@ public class Fornecedor {
     @Column(name = "status_fornecedor", nullable = false, length = 20)
     private StatusFornecedor statusFornecedor;
 
+    @Column(name = "data_homologacao")
+    private LocalDate dataHomologacao;
+
+    @Column(precision = 3, scale = 1)
+    private BigDecimal avaliacao;
+
+    @Column(columnDefinition = "TEXT")
+    private String observacoes;
+
+    @Column(name = "prazo_entrega_dias")
+    private Integer prazoEntregaDias;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 10)
     private StatusGeral status;
@@ -64,5 +78,9 @@ public class Fornecedor {
     @PreUpdate
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
+    }
+
+    public boolean isHomologado() {
+        return this.statusFornecedor == StatusFornecedor.HOMOLOGADO;
     }
 }
