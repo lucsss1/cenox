@@ -35,6 +35,12 @@ public class PedidoController {
         return ResponseEntity.ok(service.listarPorCliente(usuario.getId(), pageable));
     }
 
+    @GetMapping("/ativos")
+    @PreAuthorize("hasAnyRole('ADMIN', 'GERENTE', 'COZINHEIRO')")
+    public ResponseEntity<java.util.List<PedidoResponse>> listarAtivos() {
+        return ResponseEntity.ok(service.listarAtivos());
+    }
+
     @GetMapping("/status/{status}")
     @PreAuthorize("hasAnyRole('ADMIN', 'GERENTE', 'COZINHEIRO')")
     public ResponseEntity<Page<PedidoResponse>> listarPorStatus(

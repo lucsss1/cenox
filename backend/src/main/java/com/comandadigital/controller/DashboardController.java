@@ -1,9 +1,7 @@
 package com.comandadigital.controller;
 
-import com.comandadigital.dto.response.DashboardResponse;
-import com.comandadigital.dto.response.InsumoResponse;
-import com.comandadigital.dto.response.MovimentacaoEstoqueResponse;
-import com.comandadigital.dto.response.TopPratosResponse;
+import com.comandadigital.dto.response.*;
+
 import com.comandadigital.service.DashboardService;
 import com.comandadigital.service.EstoqueService;
 import com.comandadigital.service.InsumoService;
@@ -61,5 +59,29 @@ public class DashboardController {
     @PreAuthorize("hasAnyRole('ADMIN', 'GERENTE')")
     public ResponseEntity<List<MovimentacaoEstoqueResponse>> ultimasEntradas() {
         return ResponseEntity.ok(estoqueService.listarUltimasEntradas());
+    }
+
+    @GetMapping("/relatorio-financeiro")
+    @PreAuthorize("hasAnyRole('ADMIN', 'GERENTE')")
+    public ResponseEntity<RelatorioFinanceiroResponse> relatorioFinanceiro(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate inicio,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fim) {
+        return ResponseEntity.ok(service.getRelatorioFinanceiro(inicio, fim));
+    }
+
+    @GetMapping("/pico-horario")
+    @PreAuthorize("hasAnyRole('ADMIN', 'GERENTE')")
+    public ResponseEntity<List<PicoHorarioResponse>> picoHorario(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate inicio,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fim) {
+        return ResponseEntity.ok(service.getPicoHorario(inicio, fim));
+    }
+
+    @GetMapping("/ingredientes-mais-usados")
+    @PreAuthorize("hasAnyRole('ADMIN', 'GERENTE')")
+    public ResponseEntity<List<IngredienteMaisUsadoResponse>> ingredientesMaisUsados(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate inicio,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fim) {
+        return ResponseEntity.ok(service.getIngredientesMaisUsados(inicio, fim));
     }
 }

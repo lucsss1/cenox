@@ -39,4 +39,20 @@ public interface PedidoRepository extends JpaRepository<Pedido, Long> {
            "WHERE ip.pedido.statusPedido = 'ENTREGUE' AND ip.pedido.createdAt BETWEEN :inicio AND :fim " +
            "GROUP BY ip.prato.id, ip.prato.nome ORDER BY total DESC")
     List<Object[]> findTopPratosVendidos(@Param("inicio") LocalDateTime inicio, @Param("fim") LocalDateTime fim, Pageable pageable);
+
+    @Query("SELECT ip.prato.id, ip.prato.nome, SUM(ip.quantidade) as total FROM ItemPedido ip " +
+           "WHERE ip.pedido.statusPedido = 'ENTREGUE' AND ip.pedido.createdAt BETWEEN :inicio AND :fim " +
+           "GROUP BY ip.prato.id, ip.prato.nome ORDER BY total ASC")
+    List<Object[]> findPioresPratosVendidos(@Param("inicio") LocalDateTime inicio, @Param("fim") LocalDateTime fim, Pageable pageable);
+
+    @Query("SELECT p FROM Pedido p WHERE p.statusPedido IN ('PENDENTE', 'EM_PREPARO', 'PRONTO') ORDER BY p.createdAt ASC")
+    List<Pedido> findPedidosAtivos();
+
+    @Query(value = "SELECT HOUR(created_at) as hora, COUNT(*) as quantidade FROM pedidos " +
+                   "WHERE created_at BETWEEN :inicio AND :fim GROUP BY HOUR(created_at) ORDER BY hora",
+           nativeQuery = true)
+    List<Object[]> countPedidosPorHora(@Param("inicio") LocalDateTime inicio, @Param("fim") LocalDateTime fim);
+
+    @Query("SELECT COALESCE(AVG(p.total), 0) FROM Pedido p WHERE p.statusPedido = 'ENTREGUE' AND p.createdAt BETWEEN :inicio AND :fim")
+    BigDecimal ticketMedio(@Param("inicio") LocalDateTime inicio, @Param("fim") LocalDateTime fim);
 }

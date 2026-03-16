@@ -11,13 +11,12 @@ import { Insumo, MovimentacaoEstoque } from '../../shared/models/models';
   template: `
     <div class="page-header">
       <div>
-        <a routerLink="/admin/dashboard" class="back-link"><i class="fas fa-arrow-left"></i> Dashboards</a>
+        <a routerLink="/admin/overview" class="back-link"><i class="fas fa-arrow-left"></i> Overview</a>
         <h2><i class="fas fa-warehouse"></i> Painel de Estoque</h2>
-        <p class="page-subtitle">Visao geral do estoque — atualizado agora</p>
+        <p class="page-subtitle">Visão geral do estoque — atualizado agora</p>
       </div>
       <div style="display:flex;gap:8px;">
-        <a routerLink="/admin/entrada-estoque" class="btn btn-primary"><i class="fas fa-plus"></i> Nova Entrada</a>
-        <a routerLink="/admin/controle-validade" class="btn btn-secondary"><i class="fas fa-calendar-check"></i> Validades</a>
+        <a routerLink="/admin/estoque/insumos" class="btn btn-primary"><i class="fas fa-cubes"></i> Ir para Insumos</a>
       </div>
     </div>
 
