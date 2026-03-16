@@ -14,8 +14,8 @@ Chart.register(...registerables);
   template: `
     <div class="page-header">
       <div>
-        <a routerLink="/admin/dashboard" class="back-link"><i class="fas fa-arrow-left"></i> Dashboards</a>
-        <h2><i class="fas fa-dollar-sign"></i> Faturamento Diario</h2>
+        <a routerLink="/admin/overview" class="back-link"><i class="fas fa-arrow-left"></i> Overview</a>
+        <h2><i class="fas fa-dollar-sign"></i> Faturamento Diário</h2>
         <p class="page-subtitle">Receita dos ultimos 30 dias</p>
       </div>
     </div>

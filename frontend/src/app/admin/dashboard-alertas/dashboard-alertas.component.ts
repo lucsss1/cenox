@@ -11,7 +11,7 @@ import { Dashboard, Insumo } from '../../shared/models/models';
   template: `
     <div class="page-header">
       <div>
-        <a routerLink="/admin/dashboard" class="back-link"><i class="fas fa-arrow-left"></i> Dashboards</a>
+        <a routerLink="/admin/overview" class="back-link"><i class="fas fa-arrow-left"></i> Overview</a>
         <h2><i class="fas fa-exclamation-triangle"></i> Alertas Operacionais</h2>
         <p class="page-subtitle">Problemas que requerem atencao</p>
       </div>

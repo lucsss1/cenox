@@ -51,6 +51,12 @@ public class PedidoService {
     }
 
     @Transactional(readOnly = true)
+    public List<PedidoResponse> listarAtivos() {
+        return repository.findPedidosAtivos()
+                .stream().map(mapper::toResponse).collect(java.util.stream.Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
     public PedidoResponse buscarPorId(Long id) {
         Pedido pedido = findById(id);
         return mapper.toResponse(pedido);

@@ -1,95 +1,96 @@
 import { Component } from '@angular/core';
-import { RouterOutlet, Router, RouterLink } from '@angular/router';
+import { RouterOutlet, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from './shared/services/auth.service';
 import { ToastComponent } from './shared/components/toast.component';
+import { SidebarComponent } from './shared/components/sidebar/sidebar.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, CommonModule, ToastComponent],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, CommonModule, ToastComponent, SidebarComponent],
   template: `
+    <!-- Public navbar -->
     <nav class="navbar" *ngIf="!isAdminRoute()">
-      <div class="nav-container">
+      <div class="nav-inner">
+
         <a routerLink="/cardapio" class="nav-brand">
-          <i class="fas fa-fire"></i> Comanda Digital
+          <div class="brand-flame">
+            <i class="fas fa-fire"></i>
+          </div>
+          <span>Comanda <strong>Digital</strong></span>
         </a>
+
         <div class="nav-links">
-          <a routerLink="/cardapio" class="nav-link">Cardapio</a>
+          <a routerLink="/cardapio" routerLinkActive="link-active" class="nav-link">
+            Cardápio
+          </a>
+
           <ng-container *ngIf="auth.isLoggedIn()">
-            <a routerLink="/carrinho" class="nav-link cart-link">
-              <i class="fas fa-shopping-cart"></i> Carrinho
-              <span class="cart-badge" *ngIf="auth.getCartCount() > 0">{{auth.getCartCount()}}</span>
+            <a routerLink="/meus-pedidos" routerLinkActive="link-active" class="nav-link"
+               *ngIf="auth.hasRole('CLIENTE')">
+              Meus Pedidos
             </a>
-            <a routerLink="/meus-pedidos" class="nav-link" *ngIf="auth.hasRole('CLIENTE')">Meus Pedidos</a>
-            <a routerLink="/admin" class="nav-link" *ngIf="auth.hasAnyRole(['ADMIN','GERENTE','COZINHEIRO'])">Painel Admin</a>
-            <button class="btn btn-secondary btn-sm" (click)="logout()">Sair</button>
+
+            <a routerLink="/carrinho" class="nav-cart" *ngIf="auth.isLoggedIn()">
+              <i class="fas fa-shopping-bag"></i>
+              <span>Carrinho</span>
+              <span class="cart-count" *ngIf="auth.getCartCount() > 0">
+                {{auth.getCartCount()}}
+              </span>
+            </a>
+
+            <a routerLink="/admin" class="btn btn-secondary btn-sm"
+               *ngIf="auth.hasAnyRole(['ADMIN','GERENTE','COZINHEIRO'])">
+              <i class="fas fa-th-large"></i> Admin
+            </a>
+
+            <button class="nav-logout" (click)="logout()">
+              <i class="fas fa-sign-out-alt"></i>
+            </button>
           </ng-container>
+
           <ng-container *ngIf="!auth.isLoggedIn()">
-            <a routerLink="/login" class="nav-link nav-link-btn">Entrar</a>
+            <a routerLink="/login" class="nav-link-outline">Entrar</a>
             <a routerLink="/registrar" class="btn btn-primary btn-sm">Cadastrar</a>
           </ng-container>
         </div>
+
       </div>
     </nav>
 
+    <!-- Admin layout -->
     <div *ngIf="isAdminRoute()" class="admin-layout">
-      <aside class="sidebar">
-        <div class="sidebar-header">
-          <div class="sidebar-logo">
-            <i class="fas fa-fire"></i>
+      <app-sidebar></app-sidebar>
+      <div class="admin-main">
+
+        <!-- Topbar -->
+        <header class="admin-topbar">
+          <nav class="topbar-breadcrumb">
+            <i class="fas fa-fire crumb-root"></i>
+            <span class="crumb-sep">/</span>
+            <span class="crumb-current">{{currentSection}}</span>
+          </nav>
+          <div class="topbar-spacer"></div>
+          <div class="topbar-actions">
+            <a routerLink="/admin/cozinha" class="btn btn-ghost btn-sm"
+               *ngIf="auth.hasAnyRole(['ADMIN','GERENTE','COZINHEIRO']) && !isCozinhaRoute()">
+              <i class="fas fa-fire"></i> Cozinha
+            </a>
+            <div class="topbar-user" *ngIf="topbarUserName">
+              <div class="topbar-avatar"><i class="fas fa-user"></i></div>
+              <span class="topbar-user-name">{{topbarUserName}}</span>
+            </div>
           </div>
-          <span class="sidebar-brand">Comanda Digital</span>
-        </div>
-        <nav class="sidebar-nav">
-          <a routerLink="/admin/dashboard" class="sidebar-link" [class.active]="isDashboardRoute()">
-            <i class="fas fa-th-large"></i> <span>Dashboards</span>
-          </a>
-          <a routerLink="/admin/pedidos" class="sidebar-link" [class.active]="isRoute('/admin/pedidos')">
-            <i class="fas fa-clipboard-list"></i> <span>Pedidos</span>
-          </a>
-          <a routerLink="/admin/categorias" class="sidebar-link" [class.active]="isRoute('/admin/categorias')" *ngIf="auth.hasAnyRole(['ADMIN','GERENTE'])">
-            <i class="fas fa-tags"></i> <span>Categorias</span>
-          </a>
-          <a routerLink="/admin/pratos" class="sidebar-link" [class.active]="isRoute('/admin/pratos')" *ngIf="auth.hasAnyRole(['ADMIN','GERENTE'])">
-            <i class="fas fa-hamburger"></i> <span>Pratos</span>
-          </a>
-          <a routerLink="/admin/fichas-tecnicas" class="sidebar-link" [class.active]="isRoute('/admin/fichas-tecnicas')" *ngIf="auth.hasAnyRole(['ADMIN','GERENTE'])">
-            <i class="fas fa-file-alt"></i> <span>Fichas Tecnicas</span>
-          </a>
-          <a routerLink="/admin/insumos" class="sidebar-link" [class.active]="isRoute('/admin/insumos')" *ngIf="auth.hasAnyRole(['ADMIN','GERENTE'])">
-            <i class="fas fa-boxes"></i> <span>Insumos</span>
-          </a>
-          <a routerLink="/admin/entrada-estoque" class="sidebar-link" [class.active]="isRoute('/admin/entrada-estoque')" *ngIf="auth.hasAnyRole(['ADMIN','GERENTE'])">
-            <i class="fas fa-arrow-circle-down"></i> <span>Entrada Estoque</span>
-          </a>
-          <a routerLink="/admin/controle-validade" class="sidebar-link" [class.active]="isRoute('/admin/controle-validade')" *ngIf="auth.hasAnyRole(['ADMIN','GERENTE'])">
-            <i class="fas fa-calendar-check"></i> <span>Validades</span>
-          </a>
-          <a routerLink="/admin/fornecedores" class="sidebar-link" [class.active]="isRoute('/admin/fornecedores')" *ngIf="auth.hasAnyRole(['ADMIN','GERENTE'])">
-            <i class="fas fa-truck"></i> <span>Fornecedores</span>
-          </a>
-          <a routerLink="/admin/compras" class="sidebar-link" [class.active]="isRoute('/admin/compras')" *ngIf="auth.hasAnyRole(['ADMIN','GERENTE'])">
-            <i class="fas fa-shopping-bag"></i> <span>Compras</span>
-          </a>
-          <a routerLink="/admin/usuarios" class="sidebar-link" [class.active]="isRoute('/admin/usuarios')" *ngIf="auth.hasRole('ADMIN')">
-            <i class="fas fa-users"></i> <span>Usuarios</span>
-          </a>
-        </nav>
-        <div class="sidebar-footer">
-          <a routerLink="/cardapio" class="sidebar-link">
-            <i class="fas fa-globe"></i> <span>Voltar ao Site</span>
-          </a>
-          <button class="sidebar-link sidebar-btn" (click)="logout()">
-            <i class="fas fa-sign-out-alt"></i> <span>Sair</span>
-          </button>
-        </div>
-      </aside>
-      <main class="admin-content">
-        <router-outlet></router-outlet>
-      </main>
+        </header>
+
+        <main class="admin-content">
+          <router-outlet></router-outlet>
+        </main>
+      </div>
     </div>
 
+    <!-- Public content -->
     <div *ngIf="!isAdminRoute()" class="public-content">
       <router-outlet></router-outlet>
     </div>
@@ -97,85 +98,160 @@ import { ToastComponent } from './shared/components/toast.component';
     <app-toast></app-toast>
   `,
   styles: [`
-    /* ---- Public Navbar ---- */
+    /* ---- Navbar ---- */
     .navbar {
-      background: #0A0A0A; border-bottom: 1px solid #1A1A1A;
-      position: sticky; top: 0; z-index: 100; backdrop-filter: blur(12px);
+      background: rgba(8,8,8,0.96);
+      border-bottom: 1px solid #161616;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
     }
-    .nav-container {
-      max-width: 1200px; margin: 0 auto; padding: 14px 20px;
-      display: flex; justify-content: space-between; align-items: center;
-    }
-    .nav-brand {
-      font-size: 18px; font-weight: 700; color: #DC2626; text-decoration: none;
-      display: flex; align-items: center; gap: 8px;
-    }
-    .nav-brand i { font-size: 20px; }
-    .nav-links { display: flex; align-items: center; gap: 20px; }
-    .nav-link {
-      text-decoration: none; color: #9CA3AF; font-size: 14px;
-      font-weight: 500; position: relative; transition: color 0.2s;
-    }
-    .nav-link:hover { color: #E5E7EB; }
-    .nav-link-btn {
-      padding: 7px 16px; border: 1px solid #333; border-radius: 8px;
-      transition: all 0.2s;
-    }
-    .nav-link-btn:hover { border-color: #555; color: #F9FAFB; }
-    .cart-link { display: flex; align-items: center; gap: 6px; }
-    .cart-badge {
-      background: #DC2626; color: white; font-size: 10px; font-weight: 700;
-      padding: 2px 6px; border-radius: 10px; min-width: 18px; text-align: center;
-    }
-    .public-content { max-width: 1200px; margin: 0 auto; padding: 20px; }
 
-    /* ---- Admin Layout ---- */
+    .nav-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 24px;
+      height: 58px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* Brand */
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: #F3F4F6;
+      font-size: 16px;
+      font-weight: 500;
+    }
+    .nav-brand strong { font-weight: 700; }
+    .brand-flame {
+      width: 32px;
+      height: 32px;
+      background: rgba(220,38,38,0.12);
+      border: 1px solid rgba(220,38,38,0.2);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .brand-flame i { color: #DC2626; font-size: 13px; }
+
+    /* Links */
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .nav-link {
+      padding: 6px 12px;
+      border-radius: 7px;
+      text-decoration: none;
+      color: #6B7280;
+      font-size: 13.5px;
+      font-weight: 500;
+      transition: all 0.18s ease;
+    }
+    .nav-link:hover { color: #D1D5DB; background: rgba(255,255,255,0.04); }
+    .nav-link.link-active { color: #F3F4F6; background: rgba(255,255,255,0.05); }
+
+    .nav-link-outline {
+      padding: 6px 14px;
+      border: 1px solid #262626;
+      border-radius: 7px;
+      text-decoration: none;
+      color: #9CA3AF;
+      font-size: 13.5px;
+      font-weight: 500;
+      transition: all 0.18s ease;
+      margin-left: 4px;
+    }
+    .nav-link-outline:hover {
+      border-color: #383838;
+      color: #E5E7EB;
+      background: rgba(255,255,255,0.03);
+    }
+
+    /* Cart */
+    .nav-cart {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 14px;
+      border-radius: 7px;
+      text-decoration: none;
+      color: #9CA3AF;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.18s ease;
+      position: relative;
+      border: 1px solid #1E1E1E;
+      margin-left: 4px;
+    }
+    .nav-cart:hover { color: #E5E7EB; border-color: #2A2A2A; background: rgba(255,255,255,0.03); }
+    .cart-count {
+      background: #DC2626;
+      color: white;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 10px;
+      min-width: 18px;
+      text-align: center;
+    }
+
+    /* Logout */
+    .nav-logout {
+      width: 32px;
+      height: 32px;
+      border-radius: 7px;
+      background: transparent;
+      border: 1px solid #1E1E1E;
+      color: #4B5563;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      transition: all 0.18s ease;
+      margin-left: 4px;
+    }
+    .nav-logout:hover { color: #FCA5A5; border-color: rgba(220,38,38,0.2); background: rgba(220,38,38,0.05); }
+
+    /* ---- Public content ---- */
+    .public-content {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    /* ---- Admin layout ---- */
     .admin-layout { display: flex; min-height: 100vh; }
-    .sidebar {
-      width: 240px; background: #0A0A0A; color: white;
-      display: flex; flex-direction: column; position: fixed; height: 100vh;
-      border-right: 1px solid #1A1A1A; z-index: 50;
-    }
-    .sidebar-header {
-      padding: 18px 18px; display: flex; align-items: center; gap: 10px;
-      border-bottom: 1px solid #1A1A1A;
-    }
-    .sidebar-logo {
-      width: 32px; height: 32px; border-radius: 8px;
-      background: rgba(220,38,38,0.12); display: flex;
-      align-items: center; justify-content: center; flex-shrink: 0;
-    }
-    .sidebar-logo i { color: #DC2626; font-size: 14px; }
-    .sidebar-brand { font-size: 16px; font-weight: 700; color: #F9FAFB; }
-    .sidebar-nav { flex: 1; padding: 12px 0; overflow-y: auto; }
-    .sidebar-link {
-      display: flex; align-items: center; gap: 12px;
-      padding: 10px 18px; color: #6B7280; text-decoration: none;
-      font-size: 13px; transition: all 0.2s; border-left: 3px solid transparent;
-      margin: 1px 0;
-    }
-    .sidebar-link:hover { background: rgba(255,255,255,0.03); color: #E5E7EB; }
-    .sidebar-link.active {
-      color: #F9FAFB; background: rgba(220,38,38,0.06);
-      border-left-color: #DC2626;
-    }
-    .sidebar-link i { width: 18px; text-align: center; font-size: 14px; }
-    .sidebar-footer { border-top: 1px solid #1A1A1A; padding: 8px 0; }
-    .sidebar-btn {
-      width: 100%; text-align: left; border: none; background: none;
-      cursor: pointer; font-size: inherit; font-family: inherit;
+    .admin-main {
+      margin-left: 240px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      min-height: 100vh;
     }
     .admin-content {
-      margin-left: 240px; flex: 1; padding: 28px; min-height: 100vh;
+      flex: 1;
+      padding: 28px 32px;
     }
 
     @media (max-width: 768px) {
-      .nav-links { gap: 10px; }
-      .sidebar { width: 56px; }
-      .sidebar-brand, .sidebar-link span { display: none; }
-      .sidebar-header { justify-content: center; padding: 16px 8px; }
-      .sidebar-link { justify-content: center; padding: 12px; border-left: none; }
-      .admin-content { margin-left: 56px; }
+      .nav-inner { padding: 0 16px; }
+      .nav-link span, .nav-cart span { display: none; }
+      .admin-main { margin-left: 56px; }
+      .admin-topbar { padding: 0 16px; }
+      .admin-content { padding: 20px 16px; }
     }
   `]
 })
@@ -186,12 +262,33 @@ export class AppComponent {
     return this.router.url.startsWith('/admin');
   }
 
-  isRoute(path: string): boolean {
-    return this.router.url === path || this.router.url.startsWith(path + '/');
+  isCozinhaRoute(): boolean {
+    return this.router.url.includes('/cozinha');
   }
 
-  isDashboardRoute(): boolean {
-    return this.router.url === '/admin/dashboard' || this.router.url.startsWith('/admin/dashboard/');
+  get topbarUserName(): string {
+    const u = this.auth.getUsuario();
+    return u?.nome ?? u?.email?.split('@')[0] ?? '';
+  }
+
+  get currentSection(): string {
+    const url = this.router.url;
+    if (url.includes('/kanban'))                    return 'Kanban';
+    if (url.includes('/cozinha'))                   return 'Modo Cozinha';
+    if (url.includes('/admin/pedidos'))             return 'Pedidos';
+    if (url.includes('/cardapio/categorias'))       return 'Categorias';
+    if (url.includes('/cardapio/pratos'))           return 'Pratos';
+    if (url.includes('/cardapio/receitas'))         return 'Receitas';
+    if (url.includes('/estoque/insumos'))           return 'Insumos';
+    if (url.includes('/estoque/fornecedores'))      return 'Fornecedores';
+    if (url.includes('/estoque/compras'))           return 'Compras';
+    if (url.includes('/relatorios/financeiro'))     return 'Rel. Financeiro';
+    if (url.includes('/relatorios/pedidos'))        return 'Rel. Pedidos';
+    if (url.includes('/relatorios/cardapio'))       return 'Rel. Cardápio';
+    if (url.includes('/relatorios/estoque'))        return 'Rel. Estoque';
+    if (url.includes('/configuracoes/usuarios'))    return 'Usuários';
+    if (url.includes('/overview'))                  return 'Overview';
+    return 'Dashboard';
   }
 
   logout(): void {

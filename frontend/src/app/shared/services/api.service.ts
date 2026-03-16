@@ -100,4 +100,10 @@ export class ApiService {
   getDashboardProximosVencimento(): Observable<M.Insumo[]> { return this.http.get<M.Insumo[]>(`${this.api}/dashboard/proximos-vencimento`); }
   getDashboardVencidos(): Observable<M.Insumo[]> { return this.http.get<M.Insumo[]>(`${this.api}/dashboard/vencidos`); }
   getDashboardUltimasEntradas(): Observable<M.MovimentacaoEstoque[]> { return this.http.get<M.MovimentacaoEstoque[]>(`${this.api}/dashboard/ultimas-entradas`); }
+  getRelatorioFinanceiro(inicio: string, fim: string): Observable<M.RelatorioFinanceiro> { return this.http.get<M.RelatorioFinanceiro>(`${this.api}/dashboard/relatorio-financeiro?inicio=${inicio}&fim=${fim}`); }
+  getPicoHorario(inicio: string, fim: string): Observable<M.PicoHorario[]> { return this.http.get<M.PicoHorario[]>(`${this.api}/dashboard/pico-horario?inicio=${inicio}&fim=${fim}`); }
+  getIngredientesMaisUsados(inicio: string, fim: string): Observable<M.IngredienteMaisUsado[]> { return this.http.get<M.IngredienteMaisUsado[]>(`${this.api}/dashboard/ingredientes-mais-usados?inicio=${inicio}&fim=${fim}`); }
+
+  // Pedidos ativos (Kanban / Cozinha)
+  getPedidosAtivos(): Observable<M.Pedido[]> { return this.http.get<M.Pedido[]>(`${this.api}/pedidos/ativos`); }
 }

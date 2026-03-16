@@ -133,3 +133,26 @@ export interface Page<T> {
 }
 
 export interface CartItem { prato: Prato; quantidade: number; observacao: string; }
+
+export interface RelatorioFinanceiro {
+  faturamentoTotal: number;
+  totalPedidos: number;
+  ticketMedio: number;
+  totalCompras: number;
+  lucroEstimado: number;
+  faturamentoDiario: { data: string; valor: number; }[];
+  topPratos: TopPratos[];
+  pioresPratos: TopPratos[];
+}
+
+export interface PicoHorario {
+  hora: number;
+  quantidade: number;
+}
+
+export interface IngredienteMaisUsado {
+  insumoId: number;
+  insumoNome: string;
+  quantidadeTotal: number;
+  unidadeMedida: string;
+}

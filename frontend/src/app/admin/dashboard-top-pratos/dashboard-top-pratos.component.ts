@@ -12,7 +12,7 @@ import { TopPratos } from '../../shared/models/models';
   template: `
     <div class="page-header">
       <div>
-        <a routerLink="/admin/dashboard" class="back-link"><i class="fas fa-arrow-left"></i> Dashboards</a>
+        <a routerLink="/admin/overview" class="back-link"><i class="fas fa-arrow-left"></i> Overview</a>
         <h2><i class="fas fa-trophy" style="color:#FCD34D;"></i> Top 5 Pratos Mais Vendidos</h2>
         <p class="page-subtitle">Ranking por periodo</p>
       </div>
