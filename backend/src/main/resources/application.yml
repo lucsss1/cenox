@@ -22,6 +22,9 @@ spring:
     locations: classpath:db/migration
     baseline-on-migrate: true
 
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:4200}
+
 jwt:
   secret: Y29tYW5kYURpZ2l0YWxTZWNyZXRLZXlKV1RUb2tlbjIwMjRTZWN1cml0eQ==
   expiration: 28800000

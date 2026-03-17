@@ -90,6 +90,62 @@ Sistema completo de gerenciamento de restaurante com cardapio digital, gestao de
 
 4. Concluído. O frontend estara disponivel em: **http://localhost:4200**
 
+## Deploy na Vercel (Frontend)
+
+> O frontend Angular pode ser publicado gratuitamente na Vercel. O backend Spring Boot precisa ser hospedado separadamente em uma plataforma com suporte a Java (ex: Railway, Render, Fly.io).
+
+### 1. Deploy do Backend (obrigatório antes do frontend)
+
+Escolha uma plataforma Java (ex: Railway):
+1. Crie uma conta em [railway.app](https://railway.app)
+2. Crie um novo projeto e adicione um banco **MySQL** (plugin MySQL)
+3. Conecte seu repositório e configure as variáveis de ambiente:
+   | Variável | Valor |
+   |----------|-------|
+   | `SPRING_DATASOURCE_URL` | `jdbc:mysql://<host>:<port>/<db>` |
+   | `SPRING_DATASOURCE_USERNAME` | usuário do banco |
+   | `SPRING_DATASOURCE_PASSWORD` | senha do banco |
+   | `JWT_SECRET` | string secreta longa e aleatória |
+4. O Railway detectará o `pom.xml` automaticamente e fará o build com Maven
+5. Anote a URL pública gerada (ex: `https://meu-backend.up.railway.app`)
+
+### 2. Configurar a URL do Backend no Frontend
+
+Antes de fazer o deploy, edite o arquivo `frontend/src/environments/environment.prod.ts` e substitua o valor de `apiUrl` pela URL do seu backend:
+
+```ts
+export const environment = {
+  production: true,
+  apiUrl: 'https://meu-backend.up.railway.app/api'
+};
+```
+
+### 3. Deploy do Frontend na Vercel
+
+**Opção A — Via interface web (recomendado):**
+1. Acesse [vercel.com](https://vercel.com) e faça login com sua conta GitHub
+2. Clique em **"Add New Project"** e importe o repositório
+3. Em **"Root Directory"**, selecione `comanda-digital/frontend`
+4. As configurações de build são detectadas automaticamente pelo `vercel.json`:
+   - **Build Command:** `npm run build`
+   - **Output Directory:** `dist/comanda-digital/browser`
+5. Clique em **Deploy**
+
+**Opção B — Via CLI:**
+```bash
+npm install -g vercel
+cd comanda-digital/frontend
+vercel --prod
+```
+
+### 4. Verificar o Deploy
+
+Após o deploy, acesse a URL gerada pela Vercel. O frontend se comunicará com o backend pela URL configurada em `environment.prod.ts`.
+
+> **Atenção:** Certifique-se de que o backend permite requisições CORS da URL do seu frontend Vercel. No Spring Boot, adicione a URL da Vercel nas origens permitidas na configuração de CORS (`WebSecurityConfig` ou `@CrossOrigin`).
+
+---
+
 ## Swagger / API Docs
 Acesse a documentacao da API em:
 - **http://localhost:8080/swagger-ui.html**
