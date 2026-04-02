@@ -10,108 +10,248 @@ import { Pedido } from '../../shared/models/models';
   selector: 'app-pedidos-admin',
   standalone: true,
   imports: [CommonModule, FormsModule],
+  styleUrls: ['./pedidos.component.css'],
   template: `
-    <div class="page-header">
-      <div>
-        <h2><i class="fas fa-clipboard-list"></i> Gestao de Pedidos</h2>
-        <p class="page-subtitle">Gerencie todos os pedidos do restaurante</p>
+    <!-- Page Header -->
+    <div class="orders-header">
+      <div class="orders-header__left">
+        <h1 class="orders-title">Pedidos</h1>
+        <div class="live-indicator">
+          <span class="live-dot"></span>
+          <span class="live-label">Ao vivo</span>
+        </div>
       </div>
-      <div class="filter-bar" style="margin-bottom:0;">
-        <select class="form-control" [(ngModel)]="filtroStatus" (change)="carregar(0)" style="width:auto;padding:8px 12px;font-size:13px;">
-          <option value="">Todos os status</option>
-          <option value="PENDENTE">Pendente</option>
-          <option value="EM_PREPARO">Em Preparo</option>
-          <option value="PRONTO">Pronto</option>
-          <option value="ENTREGUE">Entregue</option>
-          <option value="CANCELADO">Cancelado</option>
-        </select>
+      <div class="orders-header__filters">
+        <button class="qf" [class.qf--active]="filtroStatus === ''"    (click)="filtroStatus='';carregar(0)">Todos</button>
+        <button class="qf" [class.qf--active]="filtroStatus === 'PENDENTE'"   (click)="filtroStatus='PENDENTE';carregar(0)">Novos</button>
+        <button class="qf" [class.qf--active]="filtroStatus === 'EM_PREPARO'" (click)="filtroStatus='EM_PREPARO';carregar(0)">Preparando</button>
+        <button class="qf" [class.qf--active]="filtroStatus === 'PRONTO'"     (click)="filtroStatus='PRONTO';carregar(0)">Prontos</button>
+        <button class="qf" [class.qf--active]="filtroStatus === 'ENTREGUE'"   (click)="filtroStatus='ENTREGUE';carregar(0)">Entregues</button>
+        <button class="qf" [class.qf--active]="filtroStatus === 'CANCELADO'"  (click)="filtroStatus='CANCELADO';carregar(0)">Cancelados</button>
       </div>
     </div>
 
-    <div class="card">
-      <div class="loading" *ngIf="loading"><div class="spinner"></div></div>
-      <div class="table-container" *ngIf="!loading">
-        <table>
-          <thead><tr><th>#</th><th>Cliente</th><th>Itens</th><th>Total</th><th>Status</th><th>Data</th><th>Acoes</th></tr></thead>
-          <tbody>
-            <tr *ngFor="let p of pedidos">
-              <td style="color:#DC2626;font-weight:600;">#{{p.id}}</td>
-              <td><strong style="color:#F3F4F6;">{{p.clienteNome}}</strong></td>
-              <td>
-                <div *ngFor="let i of p.itens" style="font-size:12px;color:#9CA3AF;">{{i.quantidade}}x {{i.pratoNome}}</div>
-              </td>
-              <td><strong style="color:#F3F4F6;">R$ {{p.total | number:'1.2-2'}}</strong></td>
-              <td>
-                <span class="badge" [ngClass]="{
-                  'badge-warning': p.statusPedido === 'PENDENTE',
-                  'badge-info': p.statusPedido === 'EM_PREPARO',
-                  'badge-success': p.statusPedido === 'PRONTO' || p.statusPedido === 'ENTREGUE',
-                  'badge-danger': p.statusPedido === 'CANCELADO'
-                }"><span class="badge-dot"></span> {{p.statusPedido}}</span>
-                <div *ngIf="p.motivoCancelamento" style="font-size:11px;color:#FCA5A5;margin-top:4px;">
-                  <i class="fas fa-info-circle"></i> {{p.motivoCancelamento}}
-                </div>
-              </td>
-              <td style="font-size:12px;color:#6B7280;">{{p.createdAt | date:'dd/MM/yy HH:mm'}}</td>
-              <td>
-                <div style="display:flex;gap:6px;">
-                  <button *ngIf="p.statusPedido === 'PENDENTE'" class="btn btn-info btn-sm" (click)="alterarStatus(p.id, 'EM_PREPARO')" title="Iniciar Preparo">
-                    <i class="fas fa-fire"></i> Preparar
-                  </button>
-                  <button *ngIf="p.statusPedido === 'EM_PREPARO'" class="btn btn-success btn-sm" (click)="alterarStatus(p.id, 'PRONTO')" title="Marcar Pronto">
-                    <i class="fas fa-check"></i> Pronto
-                  </button>
-                  <button *ngIf="p.statusPedido === 'PRONTO'" class="btn btn-success btn-sm" (click)="alterarStatus(p.id, 'ENTREGUE')" title="Entregar">
-                    <i class="fas fa-hand-holding"></i> Entregar
-                  </button>
-                  <button *ngIf="canCancel(p)" class="btn btn-danger btn-sm" (click)="abrirCancelamento(p)" title="Cancelar">
-                    <i class="fas fa-times"></i> Cancelar
-                  </button>
-                </div>
-              </td>
-            </tr>
-            <tr *ngIf="pedidos.length === 0"><td colspan="7" style="text-align:center;color:#6B7280;padding:30px;">Nenhum pedido encontrado</td></tr>
-          </tbody>
-        </table>
+    <!-- Loading state -->
+    <div class="orders-loading" *ngIf="loading">
+      <div class="sk sk--card"></div>
+      <div class="sk sk--card"></div>
+      <div class="sk sk--card"></div>
+    </div>
+
+    <!-- Kanban Board -->
+    <div class="kanban-brigade" *ngIf="!loading">
+
+      <!-- NOVO -->
+      <div class="kanban-brigade__col kanban-brigade__col--new">
+        <div class="kanban-brigade__col-header">
+          <i class="fas fa-bell" style="color:var(--info);font-size:12px;"></i>
+          <span class="kanban-brigade__col-label">Novo</span>
+          <span class="kanban-brigade__col-count">{{pendentes.length}}</span>
+        </div>
+        <div class="kanban-brigade__cards">
+          <div *ngIf="pendentes.length === 0" class="kanban-empty">Nenhum pedido aguardando</div>
+          <div *ngFor="let p of pendentes" class="order-card order-card--new">
+            <div class="order-card__top">
+              <span class="order-card__number">#{{p.id}}</span>
+              <span class="order-card__timer" [class.order-card__timer--warning]="isWarning(p.createdAt)" [class.order-card__timer--urgent]="isUrgent(p.createdAt)">
+                <i class="fas fa-clock"></i> {{getAge(p.createdAt)}}
+              </span>
+            </div>
+            <div class="order-card__client">{{p.clienteNome}}</div>
+            <div class="order-card__items">
+              <div *ngFor="let i of p.itens" class="order-card__item">
+                <span class="order-card__item-qty">{{i.quantidade}}x</span>
+                <span class="order-card__item-name">{{i.pratoNome}}</span>
+              </div>
+            </div>
+            <div class="order-card__obs" *ngIf="p.observacao">
+              <i class="fas fa-comment-alt"></i> {{p.observacao}}
+            </div>
+            <div class="order-card__footer">
+              <span class="order-card__total">R$ {{p.total | number:'1.2-2'}}</span>
+              <button *ngIf="canCancel(p)" class="order-card__cancel" (click)="abrirCancelamento(p)">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+            <button class="order-card__action order-card__action--confirm" (click)="alterarStatus(p.id, 'EM_PREPARO')">
+              <i class="fas fa-fire"></i> Iniciar preparo
+            </button>
+          </div>
+        </div>
       </div>
-      <div style="display:flex;align-items:center;margin-top:16px;" *ngIf="!loading && totalPages > 1">
-        <span class="pagination-info">Exibindo {{pedidos.length}} pedidos</span>
-        <div class="pagination" style="margin-top:0;">
-          <button (click)="carregar(currentPage - 1)" [disabled]="currentPage === 0">&laquo;</button>
-          <button *ngFor="let pg of pages" (click)="carregar(pg)" [class.active]="pg === currentPage">{{pg + 1}}</button>
-          <button (click)="carregar(currentPage + 1)" [disabled]="currentPage === totalPages - 1">&raquo;</button>
+
+      <!-- PREPARANDO -->
+      <div class="kanban-brigade__col kanban-brigade__col--prep">
+        <div class="kanban-brigade__col-header">
+          <i class="fas fa-fire" style="color:var(--warning);font-size:12px;"></i>
+          <span class="kanban-brigade__col-label">Preparando</span>
+          <span class="kanban-brigade__col-count">{{emPreparo.length}}</span>
+        </div>
+        <div class="kanban-brigade__cards">
+          <div *ngIf="emPreparo.length === 0" class="kanban-empty">Nenhum pedido em preparo</div>
+          <div *ngFor="let p of emPreparo" class="order-card order-card--preparing">
+            <div class="order-card__top">
+              <span class="order-card__number">#{{p.id}}</span>
+              <span class="order-card__timer" [class.order-card__timer--warning]="isWarning(p.createdAt)" [class.order-card__timer--urgent]="isUrgent(p.createdAt)">
+                <i class="fas fa-clock"></i> {{getAge(p.createdAt)}}
+              </span>
+            </div>
+            <div class="order-card__client">{{p.clienteNome}}</div>
+            <div class="order-card__items">
+              <div *ngFor="let i of p.itens" class="order-card__item">
+                <span class="order-card__item-qty">{{i.quantidade}}x</span>
+                <span class="order-card__item-name">{{i.pratoNome}}</span>
+              </div>
+            </div>
+            <div class="order-card__obs" *ngIf="p.observacao">
+              <i class="fas fa-comment-alt"></i> {{p.observacao}}
+            </div>
+            <div class="order-card__footer">
+              <span class="order-card__total">R$ {{p.total | number:'1.2-2'}}</span>
+              <button *ngIf="canCancel(p)" class="order-card__cancel" (click)="abrirCancelamento(p)">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+            <button class="order-card__action order-card__action--ready" (click)="alterarStatus(p.id, 'PRONTO')">
+              <i class="fas fa-check"></i> Marcar como pronto
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- PRONTO -->
+      <div class="kanban-brigade__col kanban-brigade__col--ready">
+        <div class="kanban-brigade__col-header">
+          <i class="fas fa-check-circle" style="color:var(--success);font-size:12px;"></i>
+          <span class="kanban-brigade__col-label">Pronto</span>
+          <span class="kanban-brigade__col-count">{{prontos.length}}</span>
+        </div>
+        <div class="kanban-brigade__cards">
+          <div *ngIf="prontos.length === 0" class="kanban-empty">Nenhum pedido pronto</div>
+          <div *ngFor="let p of prontos" class="order-card order-card--ready">
+            <div class="order-card__top">
+              <span class="order-card__number">#{{p.id}}</span>
+              <span class="order-card__timer">
+                <i class="fas fa-clock"></i> {{getAge(p.createdAt)}}
+              </span>
+            </div>
+            <div class="order-card__client">{{p.clienteNome}}</div>
+            <div class="order-card__items">
+              <div *ngFor="let i of p.itens" class="order-card__item">
+                <span class="order-card__item-qty">{{i.quantidade}}x</span>
+                <span class="order-card__item-name">{{i.pratoNome}}</span>
+              </div>
+            </div>
+            <div class="order-card__footer">
+              <span class="order-card__total">R$ {{p.total | number:'1.2-2'}}</span>
+              <button *ngIf="canCancel(p)" class="order-card__cancel" (click)="abrirCancelamento(p)">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+            <button class="order-card__action order-card__action--deliver" (click)="alterarStatus(p.id, 'ENTREGUE')">
+              <i class="fas fa-hand-holding"></i> Confirmar entrega
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Histórico (entregues/cancelados) — visível quando filtrado -->
+    <div class="history-section" *ngIf="!loading && (filtroStatus === 'ENTREGUE' || filtroStatus === 'CANCELADO')">
+      <div class="card" style="margin-top:16px;">
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th><th>Cliente</th><th>Itens</th><th>Total</th><th>Status</th><th>Data</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let p of pedidos">
+                <td class="col-id">#{{p.id}}</td>
+                <td><strong>{{p.clienteNome}}</strong></td>
+                <td>
+                  <div *ngFor="let i of p.itens" class="item-row">{{i.quantidade}}x {{i.pratoNome}}</div>
+                </td>
+                <td class="col-mono">R$ {{p.total | number:'1.2-2'}}</td>
+                <td>
+                  <span class="badge" [ngClass]="{
+                    'badge-success': p.statusPedido === 'ENTREGUE',
+                    'badge-danger': p.statusPedido === 'CANCELADO'
+                  }"><span class="badge-dot"></span> {{p.statusPedido}}</span>
+                  <div *ngIf="p.motivoCancelamento" class="cancel-reason">
+                    {{p.motivoCancelamento}}
+                  </div>
+                </td>
+                <td class="col-date">{{p.createdAt | date:'dd/MM HH:mm'}}</td>
+              </tr>
+              <tr *ngIf="pedidos.length === 0">
+                <td colspan="6" class="empty-row">Nenhum pedido encontrado</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pag-row" *ngIf="totalPages > 1">
+          <span class="pagination-info">{{pedidos.length}} pedidos</span>
+          <div class="pagination" style="margin-top:0;">
+            <button (click)="carregar(currentPage - 1)" [disabled]="currentPage === 0">&laquo;</button>
+            <button *ngFor="let pg of pages" (click)="carregar(pg)" [class.active]="pg === currentPage">{{pg + 1}}</button>
+            <button (click)="carregar(currentPage + 1)" [disabled]="currentPage === totalPages - 1">&raquo;</button>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- Modal de Cancelamento -->
     <div class="modal-overlay" *ngIf="showCancelModal" (click)="fecharCancelamento()">
-      <div class="modal-content" (click)="$event.stopPropagation()" style="max-width:450px;">
-        <div class="modal-header">
-          <h3>Cancelar Pedido #{{cancelPedidoId}}</h3>
-          <button class="modal-close" (click)="fecharCancelamento()">&times;</button>
-        </div>
-        <div class="form-group">
+      <div class="confirm-modal" (click)="$event.stopPropagation()">
+        <p class="confirm-modal__title">Cancelar Pedido #{{cancelPedidoId}}</p>
+        <div class="form-group" style="margin-bottom:0;">
           <label>Motivo do cancelamento *</label>
           <textarea class="form-control" [(ngModel)]="motivoCancelamento" rows="3"
                     placeholder="Informe o motivo do cancelamento..."></textarea>
         </div>
-        <p *ngIf="cancelEstorno" style="font-size:13px;color:#FCD34D;margin:8px 0;">
+        <p *ngIf="cancelEstorno" class="estorno-warn">
           <i class="fas fa-exclamation-triangle"></i> O estoque dos insumos sera estornado automaticamente.
         </p>
-        <div class="modal-footer">
+        <div class="confirm-modal__actions" style="margin-top:20px;">
           <button class="btn btn-secondary" (click)="fecharCancelamento()">Voltar</button>
-          <button class="btn btn-danger" [disabled]="!motivoCancelamento.trim()" (click)="confirmarCancelamento()">Confirmar Cancelamento</button>
+          <button class="btn btn-danger" [disabled]="!motivoCancelamento.trim()" (click)="confirmarCancelamento()">
+            Confirmar cancelamento
+          </button>
         </div>
       </div>
     </div>
   `
 })
+
 export class PedidosAdminComponent implements OnInit {
   pedidos: Pedido[] = [];
   loading = true;
   filtroStatus = '';
   currentPage = 0; totalPages = 0; pages: number[] = [];
+
+  // UI state only
+  get pendentes(): Pedido[] { return this.pedidos.filter(p => p.statusPedido === 'PENDENTE'); }
+  get emPreparo(): Pedido[] { return this.pedidos.filter(p => p.statusPedido === 'EM_PREPARO'); }
+  get prontos():   Pedido[] { return this.pedidos.filter(p => p.statusPedido === 'PRONTO'); }
+
+  getAge(createdAt: string): string {
+    if (!createdAt) return '';
+    const diff = Math.floor((Date.now() - new Date(createdAt).getTime()) / 60000);
+    return diff < 60 ? `${diff}min` : `${Math.floor(diff/60)}h${diff%60}m`;
+  }
+
+  isWarning(createdAt: string): boolean {
+    const diff = Math.floor((Date.now() - new Date(createdAt).getTime()) / 60000);
+    return diff >= 15 && diff < 25;
+  }
+
+  isUrgent(createdAt: string): boolean {
+    const diff = Math.floor((Date.now() - new Date(createdAt).getTime()) / 60000);
+    return diff >= 25;
+  }
 
   showCancelModal = false;
   cancelPedidoId = 0;

@@ -25,8 +25,8 @@ import { Fornecedor, CatalogoFornecedor, Insumo } from '../../shared/models/mode
           <thead><tr><th>ID</th><th>Empresa</th><th>CNPJ</th><th>Responsavel</th><th>Telefone</th><th>Status</th><th>Acoes</th></tr></thead>
           <tbody>
             <tr *ngFor="let f of fornecedores">
-              <td style="color:#DC2626;font-weight:600;">#{{f.id}}</td>
-              <td><strong style="color:#F3F4F6;">{{f.nomeEmpresa}}</strong></td>
+              <td style="color:var(--primary);font-weight:600;font-family:var(--font-mono);">#{{f.id}}</td>
+              <td><strong style="color:var(--text-primary);">{{f.nomeEmpresa}}</strong></td>
               <td>{{f.cnpj}}</td>
               <td>{{f.responsavelComercial || '&mdash;'}}</td>
               <td>{{f.telefone || '&mdash;'}}</td>
@@ -137,7 +137,7 @@ import { Fornecedor, CatalogoFornecedor, Insumo } from '../../shared/models/mode
           <thead><tr><th>Insumo</th><th>Preco</th><th>Unid. Venda</th><th>Acoes</th></tr></thead>
           <tbody>
             <tr *ngFor="let c of catalogoItens">
-              <td><strong style="color:#F3F4F6;">{{c.insumoNome}}</strong></td>
+              <td><strong style="color:var(--text-primary);">{{c.insumoNome}}</strong></td>
               <td>R$ {{c.preco | number:'1.4-4'}}</td>
               <td>{{c.unidadeVenda}}</td>
               <td>
@@ -153,12 +153,7 @@ import { Fornecedor, CatalogoFornecedor, Insumo } from '../../shared/models/mode
       </div>
     </div>
   `,
-  styles: [`
-    .status-badge { padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; }
-    .status-em-avaliacao { background: rgba(234,179,8,0.15); color: #EAB308; }
-    .status-homologado { background: rgba(34,197,94,0.15); color: #22C55E; }
-    .status-bloqueado { background: rgba(239,68,68,0.15); color: #EF4444; }
-  `]
+  styleUrls: ['./fornecedores.component.css']
 })
 export class FornecedoresComponent implements OnInit {
   fornecedores: Fornecedor[] = [];

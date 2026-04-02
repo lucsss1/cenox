@@ -39,7 +39,7 @@ import { Dashboard, Insumo } from '../../shared/models/models';
       <!-- No alerts -->
       <div class="card" style="text-align:center;padding:30px;" *ngIf="vencidos.length === 0 && estoqueBaixo.length === 0 && foodCostAlto.length === 0">
         <i class="fas fa-check-circle" style="font-size:36px;color:#10B981;display:block;margin-bottom:12px;"></i>
-        <strong style="color:#F3F4F6;font-size:16px;">Tudo certo!</strong>
+        <strong style="color:var(--text-primary);font-size:16px;">Tudo certo!</strong>
         <p style="color:#6B7280;margin-top:4px;">Nenhum alerta operacional no momento.</p>
       </div>
 
@@ -51,7 +51,7 @@ import { Dashboard, Insumo } from '../../shared/models/models';
             <thead><tr><th>Produto</th><th>Validade</th><th>Estoque</th></tr></thead>
             <tbody>
               <tr *ngFor="let i of vencidos">
-                <td><strong style="color:#F3F4F6;">{{i.nome}}</strong></td>
+                <td><strong style="color:var(--text-primary);">{{i.nome}}</strong></td>
                 <td style="color:#EF4444;font-weight:600;">{{i.dataValidade}}</td>
                 <td>{{i.quantidadeEstoque | number:'1.0-3'}} {{i.unidadeMedida}}</td>
               </tr>
@@ -66,7 +66,7 @@ import { Dashboard, Insumo } from '../../shared/models/models';
             <thead><tr><th>Insumo</th><th>Estoque</th><th>Minimo</th></tr></thead>
             <tbody>
               <tr *ngFor="let i of estoqueBaixo">
-                <td><strong style="color:#F3F4F6;">{{i.nome}}</strong></td>
+                <td><strong style="color:var(--text-primary);">{{i.nome}}</strong></td>
                 <td><span class="badge badge-danger">{{i.quantidadeEstoque | number:'1.3-3'}} {{i.unidadeMedida}}</span></td>
                 <td>{{i.estoqueMinimo | number:'1.3-3'}} {{i.unidadeMedida}}</td>
               </tr>
@@ -81,7 +81,7 @@ import { Dashboard, Insumo } from '../../shared/models/models';
             <thead><tr><th>Prato</th><th>Food Cost</th><th>Custo</th><th>Preco</th></tr></thead>
             <tbody>
               <tr *ngFor="let p of foodCostAlto">
-                <td><strong style="color:#F3F4F6;">{{p.nome}}</strong></td>
+                <td><strong style="color:var(--text-primary);">{{p.nome}}</strong></td>
                 <td><span class="badge badge-danger">{{p.foodCost | number:'1.1-1'}}%</span></td>
                 <td>R$ {{p.custoProducao | number:'1.2-2'}}</td>
                 <td>R$ {{p.precoVenda | number:'1.2-2'}}</td>

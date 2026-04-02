@@ -9,6 +9,7 @@ import { Categoria } from '../../shared/models/models';
   selector: 'app-categorias',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
+  styleUrls: ['./categorias.component.css'],
   template: `
     <div class="page-header">
       <div>
@@ -25,8 +26,8 @@ import { Categoria } from '../../shared/models/models';
           <thead><tr><th>ID</th><th>Nome</th><th>Descricao</th><th>Status</th><th>Acoes</th></tr></thead>
           <tbody>
             <tr *ngFor="let cat of categorias">
-              <td style="color:#DC2626;font-weight:600;">#{{cat.id}}</td>
-              <td><strong style="color:#F3F4F6;">{{cat.nome}}</strong></td>
+              <td style="color:var(--primary);font-weight:600;font-family:var(--font-mono);">#{{cat.id}}</td>
+              <td><strong style="color:var(--text-primary);">{{cat.nome}}</strong></td>
               <td>{{cat.descricao || '&mdash;'}}</td>
               <td><span class="badge badge-success"><span class="badge-dot"></span> {{cat.status}}</span></td>
               <td>

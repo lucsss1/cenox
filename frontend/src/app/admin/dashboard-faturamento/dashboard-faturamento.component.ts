@@ -44,7 +44,7 @@ Chart.register(...registerables);
       <div class="card" style="padding:20px;">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;">
           <div>
-            <h3 style="font-size:15px;font-weight:600;color:#F3F4F6;">Faturamento Diario</h3>
+            <h3 style="font-size:15px;font-weight:600;color:var(--text-primary);">Faturamento Diario</h3>
             <span style="font-size:12px;color:#6B7280;">Ultimos 30 dias</span>
           </div>
           <div style="display:flex;gap:12px;align-items:center;">
@@ -103,8 +103,8 @@ export class DashboardFaturamentoComponent implements OnInit, AfterViewInit {
           datasets: [{
             label: 'Faturamento (R$)',
             data: this.data.faturamentoDiario.map(d => d.valor),
-            borderColor: '#DC2626',
-            backgroundColor: 'rgba(220,38,38,0.08)',
+            borderColor: '#E8FF00',
+            backgroundColor: 'rgba(232,255,0,0.06)',
             fill: true, tension: 0.4, pointRadius: 0,
             pointHoverRadius: 4, borderWidth: 2
           }]

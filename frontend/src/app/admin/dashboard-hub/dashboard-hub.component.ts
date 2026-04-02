@@ -104,7 +104,7 @@ interface DashboardCard {
       flex: 1; min-width: 0;
     }
     .hub-card-body h3 {
-      font-size: 16px; font-weight: 600; color: #F3F4F6;
+      font-size: 16px; font-weight: 600; color: var(--text-primary);
       margin: 0 0 4px 0;
     }
     .hub-card-body p {

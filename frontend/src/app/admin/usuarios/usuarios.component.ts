@@ -25,8 +25,8 @@ import { Usuario } from '../../shared/models/models';
           <thead><tr><th>ID</th><th>Nome</th><th>Email</th><th>Perfil</th><th>Status</th><th>Acoes</th></tr></thead>
           <tbody>
             <tr *ngFor="let u of usuarios">
-              <td style="color:#DC2626;font-weight:600;">#{{u.id}}</td>
-              <td><strong style="color:#F3F4F6;">{{u.nome}}</strong></td>
+              <td style="color:var(--primary);font-weight:600;font-family:var(--font-mono);">#{{u.id}}</td>
+              <td><strong style="color:var(--text-primary);">{{u.nome}}</strong></td>
               <td>{{u.email}}</td>
               <td><span class="badge badge-info">{{u.perfil}}</span></td>
               <td><span class="badge badge-success"><span class="badge-dot"></span> {{u.status}}</span></td>

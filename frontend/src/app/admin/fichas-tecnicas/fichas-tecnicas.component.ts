@@ -9,6 +9,7 @@ import { FichaTecnica, Prato, Insumo } from '../../shared/models/models';
   selector: 'app-fichas-tecnicas',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
+  styleUrls: ['./fichas-tecnicas.component.css'],
   template: `
     <div class="page-header">
       <div>
@@ -25,8 +26,8 @@ import { FichaTecnica, Prato, Insumo } from '../../shared/models/models';
           <thead><tr><th>ID</th><th>Prato</th><th>Rendimento</th><th>Custo Total</th><th>Custo/Porcao</th><th>Food Cost</th><th>Acoes</th></tr></thead>
           <tbody>
             <tr *ngFor="let f of fichas">
-              <td style="color:#DC2626;font-weight:600;">#{{f.id}}</td>
-              <td><strong style="color:#F3F4F6;">{{f.pratoNome}}</strong></td>
+              <td style="color:var(--primary);font-weight:600;font-family:var(--font-mono);">#{{f.id}}</td>
+              <td><strong style="color:var(--text-primary);">{{f.pratoNome}}</strong></td>
               <td>{{f.rendimento}} porcoes</td>
               <td>R$ {{f.custoTotal | number:'1.2-2'}}</td>
               <td>R$ {{f.custoPorPorcao | number:'1.2-2'}}</td>
@@ -65,15 +66,15 @@ import { FichaTecnica, Prato, Insumo } from '../../shared/models/models';
           <button class="modal-close" (click)="showDetalhes=false">&times;</button>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px;">
-          <div><span style="font-size:12px;color:#6B7280;text-transform:uppercase;">Rendimento</span><br><strong style="color:#F3F4F6;">{{fichaDetalhe?.rendimento}} porcoes</strong></div>
-          <div><span style="font-size:12px;color:#6B7280;text-transform:uppercase;">Custo Total</span><br><strong style="color:#F3F4F6;">R$ {{fichaDetalhe?.custoTotal | number:'1.2-2'}}</strong></div>
-          <div><span style="font-size:12px;color:#6B7280;text-transform:uppercase;">Custo/Porcao</span><br><strong style="color:#F3F4F6;">R$ {{fichaDetalhe?.custoPorPorcao | number:'1.2-2'}}</strong></div>
+          <div><span style="font-size:12px;color:#6B7280;text-transform:uppercase;">Rendimento</span><br><strong style="color:var(--text-primary);">{{fichaDetalhe?.rendimento}} porcoes</strong></div>
+          <div><span style="font-size:12px;color:#6B7280;text-transform:uppercase;">Custo Total</span><br><strong style="color:var(--text-primary);">R$ {{fichaDetalhe?.custoTotal | number:'1.2-2'}}</strong></div>
+          <div><span style="font-size:12px;color:#6B7280;text-transform:uppercase;">Custo/Porcao</span><br><strong style="color:var(--text-primary);">R$ {{fichaDetalhe?.custoPorPorcao | number:'1.2-2'}}</strong></div>
         </div>
         <table>
           <thead><tr><th>Insumo</th><th>Unid.</th><th>Qtd Bruta</th><th>FC</th><th>Qtd Liquida</th><th>Custo</th></tr></thead>
           <tbody>
             <tr *ngFor="let item of fichaDetalhe?.itens">
-              <td><strong style="color:#F3F4F6;">{{item.insumoNome}}</strong></td>
+              <td><strong style="color:var(--text-primary);">{{item.insumoNome}}</strong></td>
               <td>{{item.unidadeMedida}}</td>
               <td>{{item.quantidadeBruta | number:'1.3-3'}}</td>
               <td>{{item.fatorCorrecao | number:'1.2-2'}}</td>
@@ -107,7 +108,7 @@ import { FichaTecnica, Prato, Insumo } from '../../shared/models/models';
             </div>
           </div>
 
-          <h4 style="margin:16px 0 8px;color:#F3F4F6;font-size:14px;">Ingredientes</h4>
+          <h4 style="margin:16px 0 8px;color:var(--text-primary);font-size:14px;">Ingredientes</h4>
           <div formArrayName="itens">
             <div *ngFor="let item of itensArray.controls; let i=index" [formGroupName]="i"
                  style="display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:8px;margin-bottom:8px;align-items:end;">
