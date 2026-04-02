@@ -54,8 +54,8 @@ type ValidadeFilter = 'proximos' | 'vencidos' | 'todos';
             </thead>
             <tbody>
               <tr *ngFor="let i of insumos">
-                <td style="color:#DC2626;font-weight:600;">#{{i.id}}</td>
-                <td><strong style="color:#F3F4F6;">{{i.nome}}</strong></td>
+                <td style="color:var(--primary);font-weight:600;font-family:var(--font-mono);">#{{i.id}}</td>
+                <td><strong style="color:var(--text-primary);">{{i.nome}}</strong></td>
                 <td>{{i.categoria || '&mdash;'}}</td>
                 <td>{{i.unidadeMedida}}</td>
                 <td>{{i.quantidadeEstoque | number:'1.0-3'}}</td>
@@ -122,7 +122,7 @@ type ValidadeFilter = 'proximos' | 'vencidos' | 'todos';
             </thead>
             <tbody>
               <tr *ngFor="let i of insumosBaixo">
-                <td><strong style="color:#F3F4F6;">{{i.nome}}</strong></td>
+                <td><strong style="color:var(--text-primary);">{{i.nome}}</strong></td>
                 <td><span class="badge badge-danger"><span class="badge-dot"></span>{{i.quantidadeEstoque | number:'1.0-3'}} {{i.unidadeMedida}}</span></td>
                 <td>{{i.estoqueMinimo | number:'1.0-3'}} {{i.unidadeMedida}}</td>
                 <td>{{i.fornecedorNome || '&mdash;'}}</td>
@@ -181,7 +181,7 @@ type ValidadeFilter = 'proximos' | 'vencidos' | 'todos';
             </thead>
             <tbody>
               <tr *ngFor="let i of validadeExibidos">
-                <td><strong style="color:#F3F4F6;">{{i.nome}}</strong></td>
+                <td><strong style="color:var(--text-primary);">{{i.nome}}</strong></td>
                 <td>{{i.categoria || '&mdash;'}}</td>
                 <td [style.color]="corValidade(i)"><strong>{{i.dataValidade}}</strong></td>
                 <td><span [style.color]="corValidade(i)" style="font-weight:600;">{{diasRestantes(i.dataValidade)}}</span></td>
@@ -319,8 +319,8 @@ type ValidadeFilter = 'proximos' | 'vencidos' | 'todos';
           <tbody>
             <tr *ngFor="let c of cotacaoItens; let idx = index">
               <td><span class="rank-number" [class.rank-1]="idx === 0">{{idx + 1}}</span></td>
-              <td><strong style="color:#F3F4F6;">{{c.fornecedorNome}}</strong></td>
-              <td><strong style="color:#F3F4F6;">R$ {{c.preco | number:'1.4-4'}}</strong></td>
+              <td><strong style="color:var(--text-primary);">{{c.fornecedorNome}}</strong></td>
+              <td><strong style="color:var(--text-primary);">R$ {{c.preco | number:'1.4-4'}}</strong></td>
               <td>{{c.unidadeVenda}}</td>
             </tr>
           </tbody>
@@ -342,8 +342,8 @@ type ValidadeFilter = 'proximos' | 'vencidos' | 'todos';
           <tbody>
             <tr *ngFor="let h of historicoItens">
               <td>{{h.dataRegistro}}</td>
-              <td><strong style="color:#F3F4F6;">{{h.fornecedorNome}}</strong></td>
-              <td><strong style="color:#F3F4F6;">R$ {{h.preco | number:'1.4-4'}}</strong></td>
+              <td><strong style="color:var(--text-primary);">{{h.fornecedorNome}}</strong></td>
+              <td><strong style="color:var(--text-primary);">R$ {{h.preco | number:'1.4-4'}}</strong></td>
             </tr>
           </tbody>
         </table>
@@ -351,32 +351,7 @@ type ValidadeFilter = 'proximos' | 'vencidos' | 'todos';
       </div>
     </div>
   `,
-  styles: [`
-    /* Tabs */
-    .insumos-tabs {
-      display: flex; gap: 4px; margin-bottom: 20px;
-      border-bottom: 1px solid #1F1F1F;
-    }
-    .insumo-tab {
-      display: inline-flex; align-items: center; gap: 7px;
-      padding: 10px 18px; font-size: 13px; font-weight: 500;
-      color: #6B7280; background: none; border: none;
-      border-bottom: 2px solid transparent; margin-bottom: -1px;
-      cursor: pointer; transition: all 0.2s; font-family: inherit;
-    }
-    .insumo-tab:hover { color: #E5E7EB; }
-    .insumo-tab.tab-active { color: #F9FAFB; border-bottom-color: #DC2626; }
-    .insumo-tab i { font-size: 12px; }
-    .tab-badge {
-      background: rgba(220,38,38,0.15); color: #FCA5A5;
-      font-size: 10px; font-weight: 700; padding: 1px 6px;
-      border-radius: 10px; min-width: 18px; text-align: center;
-    }
-    .tab-badge-red { background: rgba(220,38,38,0.2); color: #FCA5A5; }
-
-    /* Validade filter cards */
-    .validade-filter-active { outline: 2px solid rgba(220,38,38,0.4); }
-  `]
+  styleUrls: ['./insumos.component.css']
 })
 export class InsumosComponent implements OnInit {
   @ViewChild('historicoChart') historicoRef!: ElementRef<HTMLCanvasElement>;

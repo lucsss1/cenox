@@ -59,7 +59,7 @@ import { Insumo } from '../../shared/models/models';
           </thead>
           <tbody>
             <tr *ngFor="let i of itensExibidos">
-              <td><strong style="color:#F3F4F6;">{{i.nome}}</strong></td>
+              <td><strong style="color:var(--text-primary);">{{i.nome}}</strong></td>
               <td>{{i.categoria || '&mdash;'}}</td>
               <td [style.color]="corValidade(i)"><strong>{{i.dataValidade}}</strong></td>
               <td>

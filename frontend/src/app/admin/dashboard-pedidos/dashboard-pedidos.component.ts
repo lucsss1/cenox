@@ -38,7 +38,7 @@ Chart.register(...registerables);
 
       <div class="card" style="padding:20px;">
         <div style="margin-bottom:16px;">
-          <h3 style="font-size:15px;font-weight:600;color:#F3F4F6;">Pedidos por Status</h3>
+          <h3 style="font-size:15px;font-weight:600;color:var(--text-primary);">Pedidos por Status</h3>
           <span style="font-size:12px;color:#6B7280;">Distribuicao atual</span>
         </div>
         <div style="max-width:400px;margin:0 auto;">

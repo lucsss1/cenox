@@ -54,12 +54,12 @@ import { Compra, Fornecedor, Insumo } from '../../shared/models/models';
           </thead>
           <tbody>
             <tr *ngFor="let c of comprasFiltradas">
-              <td style="color:#DC2626;font-weight:600;">#{{c.id.toString().padStart(4, '0')}}</td>
-              <td><strong style="color:#F3F4F6;">{{c.fornecedorNome}}</strong></td>
+              <td style="color:var(--primary);font-weight:600;font-family:var(--font-mono);">#{{c.id.toString().padStart(4, '0')}}</td>
+              <td><strong style="color:var(--text-primary);">{{c.fornecedorNome}}</strong></td>
               <td>{{c.dataCompra | date:'dd/MM/yyyy'}}</td>
               <td>{{c.notaFiscal || '&mdash;'}}</td>
               <td>{{c.itens.length}}</td>
-              <td><strong style="color:#F3F4F6;">R$ {{c.valorTotal | number:'1.2-2'}}</strong></td>
+              <td><strong style="color:var(--text-primary);">R$ {{c.valorTotal | number:'1.2-2'}}</strong></td>
               <td>
                 <span class="badge" [ngClass]="{
                   'badge-warning': c.status === 'RASCUNHO',
@@ -131,7 +131,7 @@ import { Compra, Fornecedor, Insumo } from '../../shared/models/models';
           </div>
 
           <div *ngIf="!editando">
-            <h4 style="margin:12px 0 8px;color:#F3F4F6;font-size:14px;">Itens do Pedido</h4>
+            <h4 style="margin:12px 0 8px;color:var(--text-primary);font-size:14px;font-weight:600;">Itens do Pedido</h4>
             <div formArrayName="itens">
               <div *ngFor="let item of itensArray.controls; let i=index" [formGroupName]="i"
                    style="display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:8px;margin-bottom:8px;align-items:end;">
@@ -169,9 +169,7 @@ import { Compra, Fornecedor, Insumo } from '../../shared/models/models';
       </div>
     </div>
   `,
-  styles: [`
-    .active-pill { background: rgba(255,255,255,0.06) !important; }
-  `]
+  styleUrls: ['./compras.component.css']
 })
 export class ComprasComponent implements OnInit {
   compras: Compra[] = [];

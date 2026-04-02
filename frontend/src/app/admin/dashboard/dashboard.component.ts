@@ -111,7 +111,7 @@ Chart.register(...registerables);
                 <td>
                   <span class="rank-number" [ngClass]="{'rank-1': i===0, 'rank-2': i===1}">{{i + 1}}</span>
                 </td>
-                <td><strong style="color:#F3F4F6;">{{t.pratoNome}}</strong></td>
+                <td><strong style="color:var(--text-primary);">{{t.pratoNome}}</strong></td>
                 <td>
                   <span style="display:inline-flex;align-items:center;gap:4px;">
                     <i class="fas fa-chart-line" style="color:var(--primary);font-size:11px;"></i>
@@ -135,7 +135,7 @@ Chart.register(...registerables);
             <thead><tr><th>Prato</th><th>Food Cost</th><th>Custo</th><th>Preco</th></tr></thead>
             <tbody>
               <tr *ngFor="let p of data.pratosFoodCostAlto">
-                <td><strong style="color:#F3F4F6;">{{p.nome}}</strong></td>
+                <td><strong style="color:var(--text-primary);">{{p.nome}}</strong></td>
                 <td><span class="badge badge-danger">{{p.foodCost | number:'1.1-1'}}%</span></td>
                 <td>R$ {{p.custoProducao | number:'1.2-2'}}</td>
                 <td>R$ {{p.precoVenda | number:'1.2-2'}}</td>
@@ -149,7 +149,7 @@ Chart.register(...registerables);
             <thead><tr><th>Insumo</th><th>Estoque</th><th>Minimo</th></tr></thead>
             <tbody>
               <tr *ngFor="let i of data.insumosEstoqueBaixo">
-                <td><strong style="color:#F3F4F6;">{{i.nome}}</strong></td>
+                <td><strong style="color:var(--text-primary);">{{i.nome}}</strong></td>
                 <td><span class="badge badge-danger">{{i.quantidadeEstoque | number:'1.3-3'}} {{i.unidadeMedida}}</span></td>
                 <td>{{i.estoqueMinimo | number:'1.3-3'}} {{i.unidadeMedida}}</td>
               </tr>
@@ -193,7 +193,7 @@ Chart.register(...registerables);
       display: flex; justify-content: space-between; align-items: flex-start;
       margin-bottom: 16px;
     }
-    .chart-header h3 { font-size: 15px; font-weight: 600; color: #F3F4F6; }
+    .chart-header h3 { font-size: 15px; font-weight: 600; color: var(--text-primary); }
     .chart-subtitle { font-size: 12px; color: #6B7280; }
     .chart-legend { display: flex; gap: 12px; align-items: center; }
     .legend-item {
@@ -209,7 +209,7 @@ Chart.register(...registerables);
       margin-bottom: 16px; flex-wrap: wrap; gap: 12px;
     }
     .top-title { display: flex; align-items: center; gap: 10px; }
-    .top-title h3 { font-size: 15px; font-weight: 600; color: #F3F4F6; }
+    .top-title h3 { font-size: 15px; font-weight: 600; color: var(--text-primary); }
     .top-filters {
       display: flex; gap: 8px; align-items: center;
     }
@@ -303,8 +303,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         datasets: [{
           label: 'Faturamento (R$)',
           data: valores,
-          borderColor: '#DC2626',
-          backgroundColor: 'rgba(220,38,38,0.08)',
+          borderColor: '#E8FF00',
+          backgroundColor: 'rgba(232,255,0,0.06)',
           fill: true,
           tension: 0.4,
           pointRadius: 0,

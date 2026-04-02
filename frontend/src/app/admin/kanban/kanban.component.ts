@@ -20,26 +20,52 @@ const COLUMNS: Col[] = [
   selector: 'app-kanban',
   standalone: true,
   imports: [CommonModule, FormsModule, RouterModule],
+  styleUrls: ['./kanban.component.css'],
   template: `
+    <!-- Header -->
     <div class="page-header">
       <div>
-        <h2><i class="fas fa-columns"></i> Kanban de Pedidos</h2>
-        <p class="page-subtitle">Atualiza automaticamente a cada 30s</p>
+        <h2><i class="fas fa-fire"></i> Pedidos</h2>
+        <p class="page-subtitle" *ngIf="activeView === 'board'">Atualiza automaticamente a cada 30s</p>
+        <p class="page-subtitle" *ngIf="activeView === 'historico'">Pedidos finalizados e cancelados</p>
       </div>
-      <div style="display:flex;gap:8px;align-items:center;">
-        <span *ngIf="newCount > 0" class="kanban-new-pill">
-          <i class="fas fa-bell"></i> {{newCount}} novo(s)
-        </span>
-        <button class="btn btn-secondary btn-sm" (click)="refresh()">
-          <i class="fas fa-sync-alt"></i> Atualizar
-        </button>
-        <button class="btn btn-secondary btn-sm" (click)="requestNotif()" *ngIf="notifStatus !== 'granted'">
-          <i class="fas fa-bell"></i> Notificações
-        </button>
+      <div class="header-actions">
+        <!-- View switcher -->
+        <div class="view-tabs">
+          <button class="view-tab" [class.active]="activeView === 'board'" (click)="setView('board')">
+            <i class="fas fa-columns"></i> Ao vivo
+          </button>
+          <button class="view-tab" [class.active]="activeView === 'historico'" (click)="setView('historico')">
+            <i class="fas fa-history"></i> Histórico
+          </button>
+        </div>
+
+        <!-- Board actions -->
+        <ng-container *ngIf="activeView === 'board'">
+          <span *ngIf="newCount > 0" class="kanban-new-pill">
+            <i class="fas fa-bell"></i> {{newCount}} novo(s)
+          </span>
+          <button class="btn btn-secondary btn-sm" (click)="refresh()">
+            <i class="fas fa-sync-alt"></i> Atualizar
+          </button>
+          <button class="btn btn-secondary btn-sm" (click)="requestNotif()" *ngIf="notifStatus !== 'granted'">
+            <i class="fas fa-bell"></i> Notificações
+          </button>
+        </ng-container>
+
+        <!-- History actions -->
+        <ng-container *ngIf="activeView === 'historico'">
+          <div class="hist-filters">
+            <button class="hf" [class.active]="histFiltro === ''"          (click)="histFiltro='';carregarHistorico(0)">Todos</button>
+            <button class="hf" [class.active]="histFiltro === 'ENTREGUE'"  (click)="histFiltro='ENTREGUE';carregarHistorico(0)">Entregues</button>
+            <button class="hf" [class.active]="histFiltro === 'CANCELADO'" (click)="histFiltro='CANCELADO';carregarHistorico(0)">Cancelados</button>
+          </div>
+        </ng-container>
       </div>
     </div>
 
-    <div class="kanban-board">
+    <!-- ═══ VIEW: BOARD ═══ -->
+    <div class="kanban-board" *ngIf="activeView === 'board'">
       <div class="kanban-col" [ngClass]="'kanban-col-' + col.status" *ngFor="let col of columns">
 
         <div class="kanban-col-header">
@@ -102,6 +128,66 @@ const COLUMNS: Col[] = [
       </div>
     </div>
 
+    <!-- ═══ VIEW: HISTÓRICO ═══ -->
+    <div class="hist-panel" *ngIf="activeView === 'historico'">
+
+      <!-- Loading skeleton -->
+      <div class="hist-skeleton" *ngIf="histLoading">
+        <div class="sk-row" *ngFor="let i of [1,2,3,4,5]"></div>
+      </div>
+
+      <!-- Table -->
+      <div class="hist-card" *ngIf="!histLoading">
+        <table class="hist-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Cliente</th>
+              <th>Itens</th>
+              <th>Total</th>
+              <th>Status</th>
+              <th>Data</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let p of histPedidos">
+              <td class="col-id">#{{p.id}}</td>
+              <td><strong>{{p.clienteNome}}</strong></td>
+              <td>
+                <div *ngFor="let i of p.itens" class="hist-item">{{i.quantidade}}x {{i.pratoNome}}</div>
+              </td>
+              <td class="col-mono">R$ {{p.total | number:'1.2-2'}}</td>
+              <td>
+                <span class="badge" [class.badge-success]="p.statusPedido === 'ENTREGUE'"
+                                    [class.badge-danger]="p.statusPedido === 'CANCELADO'">
+                  {{p.statusPedido}}
+                </span>
+                <div *ngIf="p.motivoCancelamento" class="cancel-reason">
+                  {{p.motivoCancelamento}}
+                </div>
+              </td>
+              <td class="col-date">{{p.createdAt | date:'dd/MM HH:mm'}}</td>
+            </tr>
+            <tr *ngIf="histPedidos.length === 0">
+              <td colspan="6" class="hist-empty">Nenhum pedido encontrado</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Pagination -->
+        <div class="hist-pag" *ngIf="histTotalPages > 1">
+          <span class="pag-info">{{histPedidos.length}} pedidos</span>
+          <div class="pag-buttons">
+            <button (click)="carregarHistorico(histPage - 1)" [disabled]="histPage === 0">&laquo;</button>
+            <button *ngFor="let pg of histPages"
+                    (click)="carregarHistorico(pg)"
+                    [class.active]="pg === histPage">{{pg + 1}}</button>
+            <button (click)="carregarHistorico(histPage + 1)" [disabled]="histPage === histTotalPages - 1">&raquo;</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Cancel modal -->
     <div class="modal-overlay" *ngIf="cancelModal" (click)="cancelModal=null">
       <div class="modal-content" (click)="$event.stopPropagation()">
@@ -122,8 +208,7 @@ const COLUMNS: Col[] = [
         </div>
       </div>
     </div>
-  `,
-  styles: []
+  `
 })
 export class KanbanComponent implements OnInit, OnDestroy {
   columns = COLUMNS;
@@ -133,6 +218,17 @@ export class KanbanComponent implements OnInit, OnDestroy {
   cancelMotivo = '';
   notifStatus = 'default';
   private sub: Subscription | null = null;
+
+  // UI state only
+  activeView: 'board' | 'historico' = 'board';
+
+  // History state
+  histPedidos: Pedido[] = [];
+  histLoading = false;
+  histFiltro = '';
+  histPage = 0;
+  histTotalPages = 0;
+  histPages: number[] = [];
 
   constructor(
     private realtime: OrderRealtimeService,
@@ -150,12 +246,35 @@ export class KanbanComponent implements OnInit, OnDestroy {
     this.realtime.stop();
   }
 
+  setView(v: 'board' | 'historico'): void {
+    this.activeView = v;
+    if (v === 'historico' && this.histPedidos.length === 0) {
+      this.carregarHistorico(0);
+    }
+  }
+
+  carregarHistorico(page: number): void {
+    this.histPage = page;
+    this.histLoading = true;
+    const obs = this.histFiltro
+      ? this.api.getPedidosPorStatus(this.histFiltro, page)
+      : this.api.getPedidos(page);
+    obs.subscribe({
+      next: (r) => {
+        this.histPedidos = (r as any).content;
+        this.histTotalPages = (r as any).totalPages;
+        this.histPages = Array.from({ length: (r as any).totalPages }, (_, i) => i);
+        this.histLoading = false;
+      },
+      error: () => { this.histLoading = false; }
+    });
+  }
+
   getByStatus(status: string): Pedido[] {
     return this.pedidos.filter(p => p.statusPedido === status);
   }
 
   get newCount(): number { return this.realtime['_newOrderIds$'].value.size; }
-
   isNew(id: number): boolean { return this.realtime['_newOrderIds$'].value.has(id); }
 
   isUrgent(p: Pedido): boolean {

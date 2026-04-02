@@ -63,7 +63,7 @@ Chart.register(...registerables);
             <tbody>
               <tr *ngFor="let t of data.topPratos; let i=index">
                 <td style="color:#F59E0B;font-weight:700;">{{i+1}}</td>
-                <td><strong style="color:#F3F4F6;">{{t.pratoNome}}</strong></td>
+                <td><strong style="color:var(--text-primary);">{{t.pratoNome}}</strong></td>
                 <td>{{t.quantidadeVendida}}</td>
               </tr>
               <tr *ngIf="data.topPratos.length === 0"><td colspan="3" style="text-align:center;color:#6B7280;">Sem dados</td></tr>
@@ -76,7 +76,7 @@ Chart.register(...registerables);
             <thead><tr><th>Prato</th><th>Vendas</th></tr></thead>
             <tbody>
               <tr *ngFor="let t of data.pioresPratos">
-                <td><strong style="color:#F3F4F6;">{{t.pratoNome}}</strong></td>
+                <td><strong style="color:var(--text-primary);">{{t.pratoNome}}</strong></td>
                 <td>{{t.quantidadeVendida}}</td>
               </tr>
               <tr *ngIf="data.pioresPratos.length === 0"><td colspan="2" style="text-align:center;color:#6B7280;">Sem dados</td></tr>
@@ -86,14 +86,7 @@ Chart.register(...registerables);
       </div>
     </div>
   `,
-  styles: [`
-    .filter-bar { display:flex;gap:8px;align-items:center;margin-bottom:20px;flex-wrap:wrap; }
-    .kpi-grid { display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:16px; }
-    @media(max-width:900px) { .kpi-grid { grid-template-columns:repeat(2,1fr); } }
-    .kpi-card { background:#111;border-radius:8px;padding:16px;border:1px solid #1A1A1A; }
-    .kpi-label { font-size:12px;color:#6B7280;margin-bottom:6px; }
-    .kpi-value { font-size:22px;font-weight:700;color:#F9FAFB; }
-  `]
+  styleUrls: ['./relatorio-financeiro.component.css']
 })
 export class RelatorioFinanceiroComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('chartCanvas') chartCanvas!: ElementRef<HTMLCanvasElement>;

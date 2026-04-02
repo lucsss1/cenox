@@ -48,15 +48,15 @@ import { Insumo } from '../../shared/models/models';
             placeholder="Ex: NF 12345, Fornecedor X..." maxlength="255">
         </div>
 
-        <div *ngIf="insumoSelecionado" style="background:rgba(220,38,38,0.05);border:1px solid rgba(220,38,38,0.15);border-radius:8px;padding:12px;margin-bottom:16px;">
+        <div *ngIf="insumoSelecionado" style="background:var(--primary-subtle);border:1px solid var(--primary-muted);border-radius:8px;padding:12px;margin-bottom:16px;">
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;font-size:13px;">
             <div>
               <span style="color:#6B7280;">Estoque atual</span><br>
-              <strong style="color:#F3F4F6;">{{insumoSelecionado.quantidadeEstoque | number:'1.0-3'}} {{insumoSelecionado.unidadeMedida}}</strong>
+              <strong style="color:var(--text-primary);">{{insumoSelecionado.quantidadeEstoque | number:'1.0-3'}} {{insumoSelecionado.unidadeMedida}}</strong>
             </div>
             <div>
               <span style="color:#6B7280;">Estoque minimo</span><br>
-              <strong style="color:#F3F4F6;">{{insumoSelecionado.estoqueMinimo | number:'1.0-3'}} {{insumoSelecionado.unidadeMedida}}</strong>
+              <strong style="color:var(--text-primary);">{{insumoSelecionado.estoqueMinimo | number:'1.0-3'}} {{insumoSelecionado.unidadeMedida}}</strong>
             </div>
             <div>
               <span style="color:#6B7280;">Apos entrada</span><br>
@@ -76,12 +76,12 @@ import { Insumo } from '../../shared/models/models';
 
     <!-- Ultimas entradas -->
     <div class="card" style="margin-top:20px;" *ngIf="ultimasEntradas.length > 0">
-      <h3 style="margin-bottom:12px;color:#F3F4F6;"><i class="fas fa-history" style="color:var(--primary);margin-right:8px;"></i>Entradas registradas nesta sessao</h3>
+      <h3 style="margin-bottom:12px;color:var(--text-primary);"><i class="fas fa-history" style="color:var(--primary);margin-right:8px;"></i>Entradas registradas nesta sessao</h3>
       <table>
         <thead><tr><th>Produto</th><th>Quantidade</th><th>Observacao</th></tr></thead>
         <tbody>
           <tr *ngFor="let e of ultimasEntradas">
-            <td><strong style="color:#F3F4F6;">{{e.nome}}</strong></td>
+            <td><strong style="color:var(--text-primary);">{{e.nome}}</strong></td>
             <td>{{e.quantidade | number:'1.0-3'}} {{e.unidade}}</td>
             <td>{{e.observacao || '&mdash;'}}</td>
           </tr>

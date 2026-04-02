@@ -26,7 +26,7 @@ import { Pedido } from '../../shared/models/models';
       <div *ngFor="let pedido of pedidos" class="card pedido-card">
         <div class="pedido-header">
           <div style="display:flex;align-items:center;gap:10px;">
-            <strong style="color:#F3F4F6;">Pedido #{{pedido.id}}</strong>
+            <strong style="color:var(--text-primary);">Pedido #{{pedido.id}}</strong>
             <span class="badge" [ngClass]="{
               'badge-warning': pedido.statusPedido === 'PENDENTE',
               'badge-info': pedido.statusPedido === 'EM_PREPARO',
@@ -91,44 +91,48 @@ import { Pedido } from '../../shared/models/models';
   styles: [`
     .meus-pedidos { max-width: 800px; margin: 0 auto; }
     .meus-pedidos h2 {
-      margin-bottom: 24px; color: #F9FAFB; font-weight: 700;
+      margin-bottom: 24px; color: var(--text-primary); font-weight: 700;
       display: flex; align-items: center; gap: 10px;
     }
-    .meus-pedidos h2 i { color: #DC2626; font-size: 18px; }
+    .meus-pedidos h2 i { color: var(--primary); font-size: 18px; }
     .pedido-card { margin-bottom: 12px; }
     .pedido-header {
       display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
     }
-    .pedido-data { font-size: 13px; color: #6B7280; }
-    .pedido-itens { border-top: 1px solid #1F1F1F; padding-top: 10px; }
+    .pedido-data { font-size: 13px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+    .pedido-itens { border-top: 1px solid var(--border); padding-top: 10px; }
     .pedido-item {
       display: flex; justify-content: space-between; padding: 5px 0;
-      font-size: 14px; color: #D1D5DB;
+      font-size: 14px; color: var(--text-secondary);
     }
     .pedido-footer {
       display: flex; justify-content: space-between; align-items: center;
-      border-top: 1px solid #1F1F1F; padding-top: 10px; margin-top: 10px;
+      border-top: 1px solid var(--border); padding-top: 10px; margin-top: 10px;
     }
-    .pedido-obs { font-size: 13px; color: #6B7280; }
-    .pedido-total { font-size: 17px; color: #4ADE80; }
+    .pedido-obs { font-size: 13px; color: var(--text-muted); }
+    .pedido-total {
+      font-size: 17px; color: var(--success-light);
+      font-family: 'JetBrains Mono', monospace; font-weight: 700;
+    }
 
     .btn-cancelar {
       display: inline-flex; align-items: center; gap: 6px;
-      padding: 6px 14px; border: 1px solid rgba(220,38,38,0.3);
-      background: rgba(220,38,38,0.06); border-radius: 8px;
+      padding: 8px 14px; min-height: 44px;
+      border: 1px solid rgba(220,38,38,0.3);
+      background: rgba(220,38,38,0.06); border-radius: var(--radius);
       color: #FCA5A5; font-size: 12px; font-weight: 500;
-      cursor: pointer; transition: all 0.2s; font-family: 'Inter', sans-serif;
+      cursor: pointer; transition: all 0.2s; font-family: inherit;
     }
     .btn-cancelar:hover {
-      background: rgba(220,38,38,0.12); border-color: rgba(220,38,38,0.5);
+      background: rgba(220,38,38,0.14); border-color: rgba(220,38,38,0.5);
       color: #FEE2E2;
     }
     .btn-cancelar i { font-size: 12px; }
 
     .cancel-modal {
-      background: #1A1A1A; border-radius: 16px; padding: 28px;
+      background: var(--bg-surface); border-radius: var(--radius-xl); padding: 28px;
       width: 440px; max-width: 90vw;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.5); border: 1px solid #2A2A2A;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.5); border: 1px solid var(--border-light);
     }
     .cancel-modal-header { text-align: center; margin-bottom: 20px; }
     .cancel-icon-circle {
@@ -137,12 +141,12 @@ import { Pedido } from '../../shared/models/models';
       align-items: center; justify-content: center;
       margin: 0 auto 14px;
     }
-    .cancel-icon-circle i { font-size: 24px; color: #DC2626; }
-    .cancel-modal-header h3 { font-size: 18px; font-weight: 700; color: #F9FAFB; margin-bottom: 6px; }
-    .cancel-modal-header p { font-size: 13px; color: #6B7280; line-height: 1.5; }
+    .cancel-icon-circle i { font-size: 24px; color: var(--danger); }
+    .cancel-modal-header h3 { font-size: 18px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; }
+    .cancel-modal-header p { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
     .cancel-modal-footer {
       display: flex; gap: 8px; justify-content: flex-end;
-      margin-top: 20px; padding-top: 16px; border-top: 1px solid #2A2A2A;
+      margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border);
     }
   `]
 })

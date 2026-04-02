@@ -52,7 +52,7 @@ import { Insumo, MovimentacaoEstoque } from '../../shared/models/models';
             <thead><tr><th>Produto</th><th>Validade</th><th>Estoque</th></tr></thead>
             <tbody>
               <tr *ngFor="let i of vencidos">
-                <td><strong style="color:#F3F4F6;">{{i.nome}}</strong></td>
+                <td><strong style="color:var(--text-primary);">{{i.nome}}</strong></td>
                 <td style="color:#EF4444;font-weight:600;">{{i.dataValidade}}</td>
                 <td>{{i.quantidadeEstoque | number:'1.0-3'}} {{i.unidadeMedida}}</td>
               </tr>
@@ -67,7 +67,7 @@ import { Insumo, MovimentacaoEstoque } from '../../shared/models/models';
             <thead><tr><th>Produto</th><th>Validade</th><th>Dias</th></tr></thead>
             <tbody>
               <tr *ngFor="let i of proximos">
-                <td><strong style="color:#F3F4F6;">{{i.nome}}</strong></td>
+                <td><strong style="color:var(--text-primary);">{{i.nome}}</strong></td>
                 <td style="color:#F59E0B;font-weight:600;">{{i.dataValidade}}</td>
                 <td>{{diasRestantes(i.dataValidade)}}</td>
               </tr>
@@ -82,7 +82,7 @@ import { Insumo, MovimentacaoEstoque } from '../../shared/models/models';
             <thead><tr><th>Produto</th><th>Estoque</th><th>Minimo</th></tr></thead>
             <tbody>
               <tr *ngFor="let i of estoqueBaixo">
-                <td><strong style="color:#F3F4F6;">{{i.nome}}</strong></td>
+                <td><strong style="color:var(--text-primary);">{{i.nome}}</strong></td>
                 <td><span class="badge badge-danger">{{i.quantidadeEstoque | number:'1.0-3'}} {{i.unidadeMedida}}</span></td>
                 <td>{{i.estoqueMinimo | number:'1.0-3'}} {{i.unidadeMedida}}</td>
               </tr>
@@ -97,7 +97,7 @@ import { Insumo, MovimentacaoEstoque } from '../../shared/models/models';
             <thead><tr><th>Produto</th><th>Qtd</th><th>Data</th><th>Obs</th></tr></thead>
             <tbody>
               <tr *ngFor="let e of ultimasEntradas">
-                <td><strong style="color:#F3F4F6;">{{e.insumoNome}}</strong></td>
+                <td><strong style="color:var(--text-primary);">{{e.insumoNome}}</strong></td>
                 <td style="color:#10B981;font-weight:600;">+{{e.quantidade | number:'1.0-3'}}</td>
                 <td style="font-size:12px;color:#6B7280;">{{formatDate(e.createdAt)}}</td>
                 <td style="font-size:12px;color:#6B7280;">{{e.motivo || '&mdash;'}}</td>
@@ -111,7 +111,7 @@ import { Insumo, MovimentacaoEstoque } from '../../shared/models/models';
       <!-- All OK message -->
       <div class="card" style="text-align:center;padding:30px;" *ngIf="vencidos.length === 0 && proximos.length === 0 && estoqueBaixo.length === 0">
         <i class="fas fa-check-circle" style="font-size:36px;color:#10B981;display:block;margin-bottom:12px;"></i>
-        <strong style="color:#F3F4F6;font-size:16px;">Estoque em ordem!</strong>
+        <strong style="color:var(--text-primary);font-size:16px;">Estoque em ordem!</strong>
         <p style="color:#6B7280;margin-top:4px;">Nenhum produto vencido, proximo do vencimento ou com estoque baixo.</p>
       </div>
     </div>

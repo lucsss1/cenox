@@ -39,7 +39,7 @@ import { CartItem } from '../../shared/models/models';
             </thead>
             <tbody>
               <tr *ngFor="let item of itens">
-                <td><strong style="color:#F3F4F6;">{{item.prato.nome}}</strong></td>
+                <td><strong style="color:var(--text-primary);">{{item.prato.nome}}</strong></td>
                 <td>R$ {{item.prato.precoVenda | number:'1.2-2'}}</td>
                 <td style="width:80px;">
                   <input type="number" class="form-control" min="1" [(ngModel)]="item.quantidade"
@@ -83,11 +83,11 @@ import { CartItem } from '../../shared/models/models';
       margin-bottom: 24px; color: #F9FAFB; font-weight: 700;
       display: flex; align-items: center; gap: 10px;
     }
-    .carrinho h2 i { color: #DC2626; font-size: 18px; }
+    .carrinho h2 i { color: var(--primary); font-size: 18px; }
     .cart-summary { margin-top: 16px; }
     .cart-total {
       display: flex; justify-content: space-between; align-items: center;
-      margin: 16px 0; padding-top: 16px; border-top: 2px solid #DC2626;
+      margin: 16px 0; padding-top: 16px; border-top: 2px solid var(--border-light);
     }
     .cart-total span:first-child { font-size: 16px; font-weight: 600; color: #9CA3AF; }
     .total-valor { font-size: 26px; font-weight: 700; color: #4ADE80; }

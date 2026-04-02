@@ -10,105 +10,196 @@ import { Prato, Categoria } from '../../shared/models/models';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   template: `
-    <div class="page-header">
-      <div>
-        <h2><i class="fas fa-hamburger"></i> Pratos</h2>
-        <p class="page-subtitle">{{pratos.length}} registros encontrados</p>
-      </div>
-      <button class="btn btn-primary" (click)="abrirModal()"><i class="fas fa-plus"></i> Novo Prato</button>
-    </div>
+<div class="pr-root">
 
-    <div class="card">
-      <div class="loading" *ngIf="loading"><div class="spinner"></div></div>
-      <div class="table-container" *ngIf="!loading">
-        <table>
-          <thead><tr><th>ID</th><th>Nome</th><th>Categoria</th><th>Preco</th><th>Custo</th><th>Food Cost</th><th>Ficha Tec.</th><th>Status</th><th>Acoes</th></tr></thead>
-          <tbody>
-            <tr *ngFor="let p of pratos">
-              <td style="color:#DC2626;font-weight:600;">#{{p.id}}</td>
-              <td><strong style="color:#F3F4F6;">{{p.nome}}</strong></td>
-              <td><span class="badge badge-secondary" style="font-size:10px;">{{p.categoriaNome}}</span></td>
-              <td>R$ {{p.precoVenda | number:'1.2-2'}}</td>
-              <td>{{p.custoProducao ? 'R$ ' + (p.custoProducao | number:'1.2-2') : '&mdash;'}}</td>
-              <td>
-                <span *ngIf="p.foodCost" [class]="p.foodCostAlto ? 'badge badge-danger' : 'badge badge-success'">
-                  {{p.foodCost | number:'1.1-1'}}%
-                </span>
-                <span *ngIf="!p.foodCost" style="color:#555;">&mdash;</span>
-              </td>
-              <td>
-                <span [class]="p.temFichaTecnica ? 'badge badge-success' : 'badge badge-danger'">
-                  {{p.temFichaTecnica ? 'Sim' : 'Nao'}}
-                </span>
-              </td>
-              <td><span [class]="p.status === 'ATIVO' ? 'badge badge-success' : 'badge badge-secondary'"><span class="badge-dot"></span> {{p.status}}</span></td>
-              <td>
-                <div style="display:flex;gap:6px;">
-                  <button class="btn-icon btn-icon-warning" (click)="editar(p)" title="Editar"><i class="fas fa-edit"></i></button>
-                  <button class="btn-icon btn-icon-success" *ngIf="p.status === 'INATIVO' && p.temFichaTecnica" (click)="ativar(p.id)" title="Ativar"><i class="fas fa-check"></i></button>
-                  <button class="btn-icon btn-icon-danger" *ngIf="p.status === 'ATIVO'" (click)="desativar(p.id)" title="Desativar"><i class="fas fa-ban"></i></button>
-                  <button class="btn-icon btn-icon-danger" *ngIf="p.status === 'INATIVO'" (click)="excluir(p.id)" title="Excluir"><i class="fas fa-trash"></i></button>
-                </div>
-              </td>
-            </tr>
-            <tr *ngIf="pratos.length === 0"><td colspan="9" style="text-align:center;color:#6B7280;padding:30px;">Nenhum prato encontrado</td></tr>
-          </tbody>
-        </table>
+  <!-- Page Header -->
+  <div class="pr-header">
+    <div class="pr-header__left">
+      <h1 class="pr-title">Cardápio</h1>
+      <span class="pr-count">{{ pratos.length }} produtos</span>
+    </div>
+    <button class="pr-btn-add" (click)="abrirModal()">
+      <i class="fas fa-plus"></i> Novo Produto
+    </button>
+  </div>
+
+  <!-- Loading skeleton -->
+  <div class="pr-skeleton-wrap" *ngIf="loading">
+    <div class="pr-layout">
+      <div class="sk-sidebar"></div>
+      <div class="sk-grid">
+        <div class="sk-card" *ngFor="let i of [1,2,3,4,5,6]"></div>
       </div>
-      <div style="display:flex;align-items:center;margin-top:16px;" *ngIf="!loading && totalPages > 1">
-        <span class="pagination-info">Exibindo {{pratos.length}} registros</span>
-        <div class="pagination" style="margin-top:0;">
-          <button (click)="carregar(currentPage - 1)" [disabled]="currentPage === 0">&laquo;</button>
-          <button *ngFor="let pg of pages" (click)="carregar(pg)" [class.active]="pg === currentPage">{{pg + 1}}</button>
-          <button (click)="carregar(currentPage + 1)" [disabled]="currentPage === totalPages - 1">&raquo;</button>
+    </div>
+  </div>
+
+  <div class="pr-layout" *ngIf="!loading">
+
+    <!-- Category filter sidebar -->
+    <aside class="pr-filter">
+      <div class="pr-filter__head">Categorias</div>
+      <button class="pr-filter__item" [class.active]="selectedCategoria === ''" (click)="selectedCategoria = ''">
+        <span>Todos</span>
+        <span class="pr-filter__count">{{ pratos.length }}</span>
+      </button>
+      <button class="pr-filter__item" *ngFor="let c of categorias"
+        [class.active]="selectedCategoria === c.id"
+        (click)="selectedCategoria = c.id">
+        <span>{{ c.nome }}</span>
+        <span class="pr-filter__count">{{ getCountByCategoria(c.id) }}</span>
+      </button>
+    </aside>
+
+    <!-- Products grid -->
+    <main class="pr-main">
+
+      <!-- Empty state -->
+      <div class="pr-empty" *ngIf="pratosFiltrados.length === 0">
+        <i class="fas fa-hamburger pr-empty__icon"></i>
+        <p class="pr-empty__title">Nenhum produto encontrado</p>
+        <p class="pr-empty__sub">Adicione o primeiro produto desta categoria.</p>
+        <button class="pr-btn-add" (click)="abrirModal()"><i class="fas fa-plus"></i> Novo Produto</button>
+      </div>
+
+      <div class="pr-grid" *ngIf="pratosFiltrados.length > 0">
+        <div class="pr-card" *ngFor="let p of pratosFiltrados" [class.pr-card--inactive]="p.status === 'INATIVO'">
+
+          <!-- Image area -->
+          <div class="pr-card__img">
+            <img *ngIf="p.imagemUrl" [src]="p.imagemUrl" [alt]="p.nome">
+            <span *ngIf="!p.imagemUrl" class="pr-card__initial">{{ p.nome.charAt(0) }}</span>
+            <span class="pr-card__status-badge" [class.active]="p.status === 'ATIVO'" [class.inactive]="p.status === 'INATIVO'">
+              {{ p.status === 'ATIVO' ? 'Disponível' : 'Indisponível' }}
+            </span>
+          </div>
+
+          <!-- Body -->
+          <div class="pr-card__body">
+            <div class="pr-card__top">
+              <span class="pr-card__cat">{{ p.categoriaNome }}</span>
+              <div class="pr-card__badges">
+                <span class="pr-badge pr-badge--danger" *ngIf="p.foodCostAlto">
+                  <i class="fas fa-exclamation-triangle"></i> FC Alto
+                </span>
+                <span class="pr-badge pr-badge--warning" *ngIf="!p.temFichaTecnica">
+                  <i class="fas fa-file-alt"></i> Sem Receita
+                </span>
+              </div>
+            </div>
+
+            <h3 class="pr-card__name">{{ p.nome }}</h3>
+
+            <div class="pr-card__metrics">
+              <div class="pr-card__metric">
+                <span class="pr-card__metric-label">Preço</span>
+                <span class="pr-card__metric-val">R$ {{ p.precoVenda | number:'1.2-2' }}</span>
+              </div>
+              <div class="pr-card__metric" *ngIf="p.foodCost">
+                <span class="pr-card__metric-label">Food Cost</span>
+                <span class="pr-card__metric-val" [class.high]="p.foodCostAlto">{{ p.foodCost | number:'1.1-1' }}%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Footer / actions -->
+          <div class="pr-card__footer">
+            <div class="pr-toggle"
+              [class.pr-toggle--on]="p.status === 'ATIVO'"
+              [class.pr-toggle--disabled]="p.status === 'INATIVO' && !p.temFichaTecnica"
+              (click)="p.status === 'ATIVO' ? desativar(p.id) : (p.temFichaTecnica ? ativar(p.id) : null)"
+              [title]="p.status === 'INATIVO' && !p.temFichaTecnica ? 'Adicione uma receita para ativar' : (p.status === 'ATIVO' ? 'Clique para desativar' : 'Clique para ativar')">
+              <span class="pr-toggle__track"><span class="pr-toggle__thumb"></span></span>
+              <span class="pr-toggle__label">{{ p.status === 'ATIVO' ? 'Disponível' : 'Indisponível' }}</span>
+            </div>
+            <div class="pr-card__actions">
+              <button class="pr-action" (click)="editar(p)" title="Editar"><i class="fas fa-edit"></i></button>
+              <button class="pr-action pr-action--danger" *ngIf="p.status === 'INATIVO'" (click)="excluir(p.id)" title="Excluir"><i class="fas fa-trash"></i></button>
+            </div>
+          </div>
+
         </div>
       </div>
-    </div>
 
-    <div class="modal-overlay" *ngIf="showModal" (click)="fecharModal()">
-      <div class="modal-content" (click)="$event.stopPropagation()">
-        <div class="modal-header">
-          <h3>{{editando ? 'Editar' : 'Novo'}} Prato</h3>
-          <button class="modal-close" (click)="fecharModal()">&times;</button>
+      <!-- Pagination -->
+      <div class="pr-pagination" *ngIf="totalPages > 1">
+        <button class="pr-page-btn" (click)="carregar(currentPage - 1)" [disabled]="currentPage === 0">‹</button>
+        <button class="pr-page-btn" *ngFor="let pg of pages" (click)="carregar(pg)" [class.active]="pg === currentPage">{{ pg + 1 }}</button>
+        <button class="pr-page-btn" (click)="carregar(currentPage + 1)" [disabled]="currentPage === totalPages - 1">›</button>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Create / Edit Modal -->
+  <div class="modal-overlay" *ngIf="showModal" (click)="fecharModal()">
+    <div class="pr-modal" (click)="$event.stopPropagation()">
+      <div class="pr-modal__head">
+        <h3 class="pr-modal__title">{{ editando ? 'Editar Produto' : 'Novo Produto' }}</h3>
+        <button class="pr-modal__close" (click)="fecharModal()">&times;</button>
+      </div>
+      <form [formGroup]="form" (ngSubmit)="salvar()" class="pr-modal__body">
+        <div class="pr-field">
+          <label class="pr-label">Nome</label>
+          <input type="text" class="pr-input" formControlName="nome" placeholder="Ex: X-Burguer Clássico">
         </div>
-        <form [formGroup]="form" (ngSubmit)="salvar()">
-          <div class="form-group">
-            <label>Nome</label>
-            <input type="text" class="form-control" formControlName="nome">
+        <div class="pr-field">
+          <label class="pr-label">Descrição</label>
+          <textarea class="pr-input pr-textarea" formControlName="descricao" rows="2" placeholder="Breve descrição do produto"></textarea>
+        </div>
+        <div class="pr-field-row">
+          <div class="pr-field">
+            <label class="pr-label">Preço de Venda (R$)</label>
+            <input type="number" class="pr-input" formControlName="precoVenda" step="0.01" min="0.01">
           </div>
-          <div class="form-group">
-            <label>Descricao</label>
-            <textarea class="form-control" formControlName="descricao" rows="2"></textarea>
+          <div class="pr-field">
+            <label class="pr-label">Tempo de Preparo (min)</label>
+            <input type="number" class="pr-input" formControlName="tempoPreparo" min="1">
           </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-            <div class="form-group">
-              <label>Preco de Venda (R$)</label>
-              <input type="number" class="form-control" formControlName="precoVenda" step="0.01">
-            </div>
-            <div class="form-group">
-              <label>Tempo Preparo (min)</label>
-              <input type="number" class="form-control" formControlName="tempoPreparo">
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Categoria</label>
-            <select class="form-control" formControlName="categoriaId">
-              <option value="">Selecione...</option>
-              <option *ngFor="let c of categorias" [value]="c.id">{{c.nome}}</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>URL da Imagem</label>
-            <input type="text" class="form-control" formControlName="imagemUrl">
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" (click)="fecharModal()">Cancelar</button>
-            <button type="submit" class="btn btn-primary" [disabled]="form.invalid">Salvar</button>
-          </div>
-        </form>
+        </div>
+        <div class="pr-field">
+          <label class="pr-label">Categoria</label>
+          <select class="pr-input pr-select" formControlName="categoriaId">
+            <option value="">Selecione uma categoria</option>
+            <option *ngFor="let c of categorias" [value]="c.id">{{ c.nome }}</option>
+          </select>
+        </div>
+        <div class="pr-field">
+          <label class="pr-label">URL da Imagem</label>
+          <input type="text" class="pr-input" formControlName="imagemUrl" placeholder="https://...">
+        </div>
+        <div class="pr-modal__footer">
+          <button type="button" class="pr-btn-ghost" (click)="fecharModal()">Cancelar</button>
+          <button type="submit" class="pr-btn-primary" [disabled]="form.invalid">Salvar Produto</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Confirm Desativar -->
+  <div class="modal-overlay" *ngIf="confirmDesativarId !== null" (click)="confirmDesativarId = null">
+    <div class="pr-confirm" (click)="$event.stopPropagation()">
+      <p class="pr-confirm__text">Desativar este produto? Ele não aparecerá para novos pedidos.</p>
+      <div class="pr-confirm__btns">
+        <button class="pr-btn-ghost" (click)="confirmDesativarId = null">Cancelar</button>
+        <button class="pr-btn-danger" (click)="confirmarDesativar()">Desativar</button>
       </div>
     </div>
-  `
+  </div>
+
+  <!-- Confirm Excluir -->
+  <div class="modal-overlay" *ngIf="confirmExcluirId !== null" (click)="confirmExcluirId = null">
+    <div class="pr-confirm" (click)="$event.stopPropagation()">
+      <p class="pr-confirm__text">Excluir permanentemente este produto? Esta ação não pode ser desfeita.</p>
+      <div class="pr-confirm__btns">
+        <button class="pr-btn-ghost" (click)="confirmExcluirId = null">Cancelar</button>
+        <button class="pr-btn-danger" (click)="confirmarExcluir()">Excluir</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+  `,
+  styleUrls: ['./pratos.component.css']
 })
 export class PratosComponent implements OnInit {
   pratos: Prato[] = [];
@@ -117,6 +208,11 @@ export class PratosComponent implements OnInit {
   currentPage = 0; totalPages = 0; pages: number[] = [];
   showModal = false; editando = false; editId = 0;
   form: FormGroup;
+
+  // UI state only
+  selectedCategoria: number | '' = '';
+  confirmDesativarId: number | null = null;
+  confirmExcluirId: number | null = null;
 
   constructor(private api: ApiService, private toast: ToastService, private fb: FormBuilder) {
     this.form = this.fb.group({
@@ -166,16 +262,37 @@ export class PratosComponent implements OnInit {
   }
 
   desativar(id: number): void {
-    if (!confirm('Desativar este prato?')) return;
+    this.confirmDesativarId = id;
+  }
+
+  excluir(id: number): void {
+    this.confirmExcluirId = id;
+  }
+
+  confirmarDesativar(): void {
+    if (!this.confirmDesativarId) return;
+    const id = this.confirmDesativarId;
+    this.confirmDesativarId = null;
     this.api.deletePrato(id).subscribe({
       next: () => { this.toast.success('Prato desativado!'); this.carregar(this.currentPage); }
     });
   }
 
-  excluir(id: number): void {
-    if (!confirm('Excluir permanentemente este prato?')) return;
+  confirmarExcluir(): void {
+    if (!this.confirmExcluirId) return;
+    const id = this.confirmExcluirId;
+    this.confirmExcluirId = null;
     this.api.deletePrato(id).subscribe({
-      next: () => { this.toast.success('Prato excluido!'); this.carregar(this.currentPage); }
+      next: () => { this.toast.success('Prato excluído!'); this.carregar(this.currentPage); }
     });
+  }
+
+  get pratosFiltrados(): Prato[] {
+    if (!this.selectedCategoria) return this.pratos;
+    return this.pratos.filter(p => p.categoriaId === this.selectedCategoria);
+  }
+
+  getCountByCategoria(catId: number): number {
+    return this.pratos.filter(p => p.categoriaId === catId).length;
   }
 }

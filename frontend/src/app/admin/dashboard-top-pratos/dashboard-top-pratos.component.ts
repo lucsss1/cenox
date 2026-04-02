@@ -43,7 +43,7 @@ import { TopPratos } from '../../shared/models/models';
             <td>
               <span class="rank-number" [ngClass]="{'rank-1': i===0, 'rank-2': i===1}">{{i + 1}}</span>
             </td>
-            <td><strong style="color:#F3F4F6;">{{t.pratoNome}}</strong></td>
+            <td><strong style="color:var(--text-primary);">{{t.pratoNome}}</strong></td>
             <td>
               <span style="display:inline-flex;align-items:center;gap:4px;">
                 <i class="fas fa-chart-line" style="color:var(--primary);font-size:11px;"></i>
