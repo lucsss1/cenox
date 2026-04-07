@@ -31,10 +31,7 @@ public class InsumoMapper {
                 .nome(request.getNome())
                 .unidadeMedida(request.getUnidadeMedida())
                 .estoqueMinimo(request.getEstoqueMinimo())
-                .custoMedio(request.getCustoMedio())
                 .categoria(request.getCategoria())
-                .dataEntradaEstoque(request.getDataEntradaEstoque())
-                .dataValidade(request.getDataValidade())
                 .build();
     }
 }
