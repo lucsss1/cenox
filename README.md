@@ -1,4 +1,4 @@
-# Comanda Digital
+# Cenox
 
 Sistema completo de gerenciamento de restaurante com cardapio digital, gestao de pedidos, estoque, fichas tecnicas e dashboard gerencial.
 
