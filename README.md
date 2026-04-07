@@ -31,8 +31,8 @@ Sistema completo de gerenciamento de restaurante com cardapio digital, gestao de
 
 1. Abrir o CMD e clonar o repositorio:
 ```bash
-git clone https://github.com/lucsss1/comanda-digital.git
-cd comanda-digital
+git clone https://github.com/lucsss1/cenox.git
+cd cenox
 ```
 
 ---
