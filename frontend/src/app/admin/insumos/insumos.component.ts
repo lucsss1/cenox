@@ -236,13 +236,9 @@ type ValidadeFilter = 'proximos' | 'vencidos' | 'todos';
               </select>
             </div>
           </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-            <div class="form-group"><label>Estoque Mínimo *</label><input type="number" class="form-control" formControlName="estoqueMinimo" step="0.001"></div>
-            <div class="form-group"><label>Custo Médio (R$)</label><input type="number" class="form-control" formControlName="custoMedio" step="0.01"></div>
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-            <div class="form-group"><label>Data de Entrada</label><input type="date" class="form-control" formControlName="dataEntradaEstoque"></div>
-            <div class="form-group"><label>Data de Validade</label><input type="date" class="form-control" formControlName="dataValidade"></div>
+          <div class="form-group">
+            <label>Estoque Mínimo *</label>
+            <input type="number" class="form-control" formControlName="estoqueMinimo" step="0.001">
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" (click)="fecharModal()">Cancelar</button>
@@ -409,8 +405,8 @@ export class InsumosComponent implements OnInit {
   constructor(private api: ApiService, private toast: ToastService, private fb: FormBuilder) {
     this.form = this.fb.group({
       nome: ['', Validators.required], unidadeMedida: ['', Validators.required],
-      estoqueMinimo: [0, [Validators.required, Validators.min(0)]], custoMedio: [null],
-      categoria: [''], dataEntradaEstoque: [null], dataValidade: [null], fornecedorId: [null]
+      estoqueMinimo: [0, [Validators.required, Validators.min(0)]],
+      categoria: [''], fornecedorId: [null]
     });
   }
 
@@ -473,9 +469,7 @@ export class InsumosComponent implements OnInit {
     this.editando = true; this.editId = i.id;
     this.form.patchValue({
       nome: i.nome, unidadeMedida: i.unidadeMedida, estoqueMinimo: i.estoqueMinimo,
-      custoMedio: i.custoMedio, categoria: i.categoria,
-      dataEntradaEstoque: i.dataEntradaEstoque, dataValidade: i.dataValidade,
-      fornecedorId: i.fornecedorId || null
+      categoria: i.categoria, fornecedorId: i.fornecedorId || null
     });
     this.showModal = true;
   }

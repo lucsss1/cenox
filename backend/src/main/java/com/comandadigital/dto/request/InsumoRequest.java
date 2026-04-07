@@ -8,7 +8,6 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 
 @Data
 public class InsumoRequest {
@@ -24,15 +23,8 @@ public class InsumoRequest {
     @PositiveOrZero(message = "Estoque minimo deve ser zero ou positivo")
     private BigDecimal estoqueMinimo;
 
-    @PositiveOrZero(message = "Custo medio deve ser zero ou positivo")
-    private BigDecimal custoMedio;
-
     @Size(max = 100, message = "Categoria deve ter no maximo 100 caracteres")
     private String categoria;
-
-    private LocalDate dataEntradaEstoque;
-
-    private LocalDate dataValidade;
 
     private Long fornecedorId;
 }
