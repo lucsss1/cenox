@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "itens_compra")
@@ -32,4 +33,8 @@ public class ItemCompra {
 
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal subtotal;
+
+    /** Data de validade do lote recebido nesta compra. Opcional. */
+    @Column(name = "data_validade")
+    private LocalDate dataValidade;
 }

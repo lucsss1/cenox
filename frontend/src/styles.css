@@ -340,11 +340,31 @@ textarea.form-control { resize: vertical; line-height: 1.5; }
   padding: 22px;
   border: 1px solid rgba(0, 0, 0, 0.07);
   transition: box-shadow 0.2s, transform 0.15s;
+  color: #1A1A1A;
+
+  /* Redefine dark-theme tokens for this light surface context.
+     Inline styles that use var(--text-primary) etc. resolve here. */
+  --text-primary:   #1A1A1A;
+  --text-secondary: #4A4A4A;
+  --text-muted:     #6B6B6B;
+  --text-faint:     #9A9A9A;
+  --primary:        #D4531A;   /* yellow #E8FF00 → brand orange, legível no bege */
+  --primary-on:     #FFFFFF;
 }
 .card-hover:hover {
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.10);
   transform: translateY(-1px);
 }
+
+.card td {
+  color: #1A1A1A;
+  border-bottom-color: rgba(0, 0, 0, 0.07);
+}
+.card th {
+  color: #6B6B6B;
+  border-bottom-color: rgba(0, 0, 0, 0.10);
+}
+.card tr:hover td { background: rgba(0, 0, 0, 0.03); }
 
 .card-header {
   font-size: 14px;
@@ -884,7 +904,7 @@ tr:last-child td { border-bottom: none; }
   display: flex;
   gap: 0;
   margin-bottom: 24px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
 }
 
 .section-tab,
@@ -895,7 +915,7 @@ tr:last-child td { border-bottom: none; }
   padding: 9px 18px;
   font-size: 13px;
   font-weight: 500;
-  color: var(--text-muted);
+  color: #6B6B6B;
   text-decoration: none;
   border-bottom: 2px solid transparent;
   margin-bottom: -1px;
@@ -908,10 +928,11 @@ tr:last-child td { border-bottom: none; }
   cursor: pointer;
   font-family: var(--font-family);
 }
-.section-tab:hover, .tab-link:hover { color: var(--text-secondary); }
+.section-tab:hover, .tab-link:hover { color: #2D2D2D; }
 .section-tab.tab-active, .tab-link.tab-active {
-  color: var(--text-primary);
-  border-bottom-color: var(--primary);
+  color: #1A1A1A;
+  border-bottom-color: #D4531A;
+  font-weight: 600;
 }
 .section-tab i, .tab-link i { font-size: 12px; opacity: 0.85; }
 

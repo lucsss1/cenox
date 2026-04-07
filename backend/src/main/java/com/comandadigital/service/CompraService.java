@@ -80,6 +80,7 @@ public class CompraService {
                     .quantidade(itemReq.getQuantidade())
                     .precoUnitario(itemReq.getPrecoUnitario())
                     .subtotal(subtotal)
+                    .dataValidade(itemReq.getDataValidade())
                     .build();
 
             itens.add(item);
@@ -132,6 +133,8 @@ public class CompraService {
     }
 
     private void processarRecebimento(Compra compra) {
+        LocalDate dataRecebimento = compra.getDataCompra() != null ? compra.getDataCompra() : LocalDate.now();
+
         for (ItemCompra item : compra.getItens()) {
             Insumo insumo = item.getInsumo();
 
@@ -146,12 +149,19 @@ public class CompraService {
                     " NF: " + (compra.getNotaFiscal() != null ? compra.getNotaFiscal() : "S/N")
             );
 
+            // Atualizar datas do insumo a partir do lote recebido
+            insumo.setDataEntradaEstoque(dataRecebimento);
+            if (item.getDataValidade() != null) {
+                insumo.setDataValidade(item.getDataValidade());
+            }
+            insumoRepository.save(insumo);
+
             // Registrar historico de preco
             HistoricoPreco historico = HistoricoPreco.builder()
                     .insumo(insumo)
                     .fornecedor(compra.getFornecedor())
                     .preco(item.getPrecoUnitario())
-                    .dataRegistro(compra.getDataCompra() != null ? compra.getDataCompra() : LocalDate.now())
+                    .dataRegistro(dataRecebimento)
                     .build();
             historicoPrecoRepository.save(historico);
 

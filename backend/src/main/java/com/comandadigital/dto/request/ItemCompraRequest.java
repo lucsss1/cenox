@@ -5,6 +5,7 @@ import jakarta.validation.constraints.Positive;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 @Data
 public class ItemCompraRequest {
@@ -19,4 +20,7 @@ public class ItemCompraRequest {
     @NotNull(message = "Preco unitario e obrigatorio")
     @Positive(message = "Preco unitario deve ser positivo")
     private BigDecimal precoUnitario;
+
+    /** Data de validade do lote. Opcional. */
+    private LocalDate dataValidade;
 }
