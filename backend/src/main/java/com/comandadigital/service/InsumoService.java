@@ -52,12 +52,7 @@ public class InsumoService {
         insumo.setNome(request.getNome());
         insumo.setUnidadeMedida(request.getUnidadeMedida());
         insumo.setEstoqueMinimo(request.getEstoqueMinimo());
-        if (request.getCustoMedio() != null) {
-            insumo.setCustoMedio(request.getCustoMedio());
-        }
         insumo.setCategoria(request.getCategoria());
-        insumo.setDataEntradaEstoque(request.getDataEntradaEstoque());
-        insumo.setDataValidade(request.getDataValidade());
         setFornecedor(insumo, request.getFornecedorId());
         insumo = repository.save(insumo);
         return mapper.toResponse(insumo);
