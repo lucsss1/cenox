@@ -15,7 +15,7 @@ Chart.register(...registerables);
   template: `
     <div class="filter-bar">
       <input type="date" class="form-control" style="width:auto;" [(ngModel)]="inicio">
-      <span style="color:#555;font-size:12px;">&mdash;</span>
+      <span style="color:#9A9A9A;font-size:12px;">&mdash;</span>
       <input type="date" class="form-control" style="width:auto;" [(ngModel)]="fim">
       <button class="btn btn-primary btn-sm" (click)="load()"><i class="fas fa-filter"></i> Aplicar</button>
     </div>
@@ -69,6 +69,31 @@ Chart.register(...registerables);
   `,
   styles: [`
     .filter-bar { display:flex;gap:8px;align-items:center;margin-bottom:20px;flex-wrap:wrap; }
+
+    .filter-bar .form-control {
+      background: #FFFFFF;
+      border: 1.5px solid #E0D8D0;
+      color: #1A1A1A;
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 13px;
+    }
+    .filter-bar .form-control:focus {
+      border-color: #D4531A;
+      box-shadow: 0 0 0 3px rgba(212,83,26,0.10);
+      outline: none;
+    }
+
+    .filter-bar .btn-primary {
+      background: #D4531A;
+      border-color: #D4531A;
+      color: #fff;
+    }
+    .filter-bar .btn-primary:hover {
+      background: #B84412;
+      border-color: #B84412;
+      box-shadow: 0 4px 12px rgba(212,83,26,0.28);
+    }
   `]
 })
 export class RelatorioEstoqueComponent implements OnInit, AfterViewInit, OnDestroy {

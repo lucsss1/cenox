@@ -40,6 +40,7 @@ import { FichaTecnica, Prato, Insumo } from '../../shared/models/models';
               <td>
                 <div style="display:flex;gap:6px;">
                   <button class="btn-icon" (click)="verDetalhes(f)" title="Detalhes"><i class="fas fa-eye"></i></button>
+                  <button class="btn-icon btn-icon-warning" (click)="editar(f)" title="Editar"><i class="fas fa-edit"></i></button>
                   <button class="btn-icon btn-icon-danger" (click)="excluir(f.id)" title="Desativar"><i class="fas fa-trash"></i></button>
                 </div>
               </td>
@@ -88,57 +89,102 @@ import { FichaTecnica, Prato, Insumo } from '../../shared/models/models';
 
     <!-- Modal Criar -->
     <div class="modal-overlay" *ngIf="showModal" (click)="fecharModal()">
-      <div class="modal-content" (click)="$event.stopPropagation()" style="max-width:700px;">
-        <div class="modal-header">
-          <h3>Nova Ficha Tecnica</h3>
-          <button class="modal-close" (click)="fecharModal()">&times;</button>
-        </div>
-        <form [formGroup]="form" (ngSubmit)="salvar()">
-          <div style="display:grid;grid-template-columns:2fr 1fr;gap:12px;">
-            <div class="form-group">
-              <label>Prato</label>
-              <select class="form-control" formControlName="pratoId">
-                <option value="">Selecione...</option>
-                <option *ngFor="let p of pratos" [value]="p.id">{{p.nome}} (R$ {{p.precoVenda | number:'1.2-2'}})</option>
-              </select>
+      <div class="modal-content ficha-modal" (click)="$event.stopPropagation()">
+
+        <!-- Header dramático escuro -->
+        <div class="ficha-modal-header">
+          <div class="ficha-header-shimmer"></div>
+          <div class="ficha-header-body">
+            <div class="ficha-header-icon"><i class="fas fa-file-alt"></i></div>
+            <div class="ficha-header-text">
+              <h3>{{editando ? 'Editar' : 'Nova'}} Ficha Técnica</h3>
+              <p>Defina os ingredientes e rendimento do prato</p>
             </div>
-            <div class="form-group">
-              <label>Rendimento (porcoes)</label>
-              <input type="number" class="form-control" formControlName="rendimento" min="1">
+            <button class="modal-close ficha-close" (click)="fecharModal()">&times;</button>
+          </div>
+        </div>
+
+        <form [formGroup]="form" (ngSubmit)="salvar()">
+
+          <!-- Seção 01: Identificação -->
+          <div class="ficha-section">
+            <div class="ficha-step-header">
+              <span class="ficha-step-num">01</span>
+              <span class="ficha-step-title">Identificação</span>
+            </div>
+
+            <div class="ficha-ident-grid">
+              <div class="form-group ficha-form-group">
+                <label>Prato</label>
+                <select class="form-control" formControlName="pratoId" [attr.disabled]="editando ? '' : null">
+                  <option value="">Selecione o prato...</option>
+                  <option *ngFor="let p of pratos" [value]="p.id">{{p.nome}} — R$ {{p.precoVenda | number:'1.2-2'}}</option>
+                </select>
+              </div>
+              <div class="form-group ficha-form-group">
+                <label>Rendimento</label>
+                <div class="ficha-rendimento-wrap">
+                  <input type="number" class="form-control" formControlName="rendimento" min="1">
+                  <span class="ficha-rendimento-badge">porç.</span>
+                </div>
+              </div>
             </div>
           </div>
 
-          <h4 style="margin:16px 0 8px;color:var(--text-primary);font-size:14px;">Ingredientes</h4>
-          <div formArrayName="itens">
-            <div *ngFor="let item of itensArray.controls; let i=index" [formGroupName]="i"
-                 style="display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:8px;margin-bottom:8px;align-items:end;">
-              <div class="form-group" style="margin:0;">
-                <label *ngIf="i===0">Insumo</label>
-                <select class="form-control" formControlName="insumoId">
-                  <option value="">Sel...</option>
-                  <option *ngFor="let ins of insumos" [value]="ins.id">{{ins.nome}} ({{ins.unidadeMedida}})</option>
-                </select>
-              </div>
-              <div class="form-group" style="margin:0;">
-                <label *ngIf="i===0">Qtd Bruta</label>
-                <input type="number" class="form-control" formControlName="quantidadeBruta" step="0.001">
-              </div>
-              <div class="form-group" style="margin:0;">
-                <label *ngIf="i===0">Fator Corr.</label>
-                <input type="number" class="form-control" formControlName="fatorCorrecao" step="0.01" min="1">
-              </div>
-              <button type="button" class="btn-icon btn-icon-danger" (click)="removerItem(i)" style="margin-bottom:2px;">
-                <i class="fas fa-times"></i>
+          <!-- Seção 02: Composição -->
+          <div class="ficha-section ficha-section-comp">
+            <div class="ficha-step-header">
+              <span class="ficha-step-num">02</span>
+              <span class="ficha-step-title">Composição</span>
+              <span class="ficha-count-badge" *ngIf="itensArray.length > 0">
+                {{itensArray.length}} ingrediente{{itensArray.length !== 1 ? 's' : ''}}
+              </span>
+              <button type="button" class="ficha-add-btn" (click)="adicionarItem()">
+                <i class="fas fa-plus"></i> Adicionar
               </button>
             </div>
+
+            <div class="ficha-col-header" *ngIf="itensArray.length > 0">
+              <span></span>
+              <span>Insumo</span>
+              <span>Qtd. Bruta</span>
+              <span>Fator Corr.</span>
+              <span></span>
+            </div>
+
+            <div formArrayName="itens" class="ficha-items-list">
+              <div *ngFor="let item of itensArray.controls; let i=index"
+                   [formGroupName]="i"
+                   class="ficha-item-row">
+                <div class="ficha-item-index">{{i + 1}}</div>
+                <select class="ficha-item-ctrl" formControlName="insumoId">
+                  <option value="">Selecione...</option>
+                  <option *ngFor="let ins of insumos" [value]="ins.id">{{ins.nome}} ({{ins.unidadeMedida}})</option>
+                </select>
+                <input type="number" class="ficha-item-ctrl" formControlName="quantidadeBruta" step="0.001" placeholder="0.000">
+                <input type="number" class="ficha-item-ctrl" formControlName="fatorCorrecao" step="0.01" min="1" placeholder="1.00">
+                <button type="button" class="ficha-remove-btn" (click)="removerItem(i)">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="ficha-empty-state" *ngIf="itensArray.length === 0">
+              <i class="fas fa-utensils"></i>
+              <p>Nenhum ingrediente adicionado</p>
+              <span>Clique em "Adicionar" para compor a receita</span>
+            </div>
           </div>
-          <button type="button" class="btn btn-secondary btn-sm" (click)="adicionarItem()"><i class="fas fa-plus"></i> Ingrediente</button>
 
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" (click)="fecharModal()">Cancelar</button>
-            <button type="submit" class="btn btn-primary" [disabled]="form.invalid || itensArray.length === 0">Salvar</button>
+            <button type="submit" class="btn btn-primary ficha-submit-btn" [disabled]="form.invalid || itensArray.length === 0">
+              <i class="fas fa-check"></i>
+              {{editando ? 'Salvar Alterações' : 'Criar Ficha'}}
+            </button>
           </div>
         </form>
+
       </div>
     </div>
   `
@@ -150,6 +196,7 @@ export class FichasTecnicasComponent implements OnInit {
   loading = true;
   currentPage = 0; totalPages = 0; pages: number[] = [];
   showModal = false; showDetalhes = false;
+  editando = false; editId = 0;
   fichaDetalhe: FichaTecnica | null = null;
   form: FormGroup;
 
@@ -178,6 +225,8 @@ export class FichasTecnicasComponent implements OnInit {
   }
 
   abrirModal(): void {
+    this.editando = false;
+    this.editId = 0;
     this.form.reset({ pratoId: '', rendimento: 1 });
     this.itensArray.clear();
     this.adicionarItem();
@@ -185,6 +234,23 @@ export class FichasTecnicasComponent implements OnInit {
   }
 
   fecharModal(): void { this.showModal = false; }
+
+  editar(f: FichaTecnica): void {
+    this.api.getFichaTecnica(f.id).subscribe(ficha => {
+      this.editando = true;
+      this.editId = ficha.id;
+      this.itensArray.clear();
+      this.form.patchValue({ pratoId: ficha.pratoId, rendimento: ficha.rendimento });
+      ficha.itens?.forEach(item => {
+        this.itensArray.push(this.fb.group({
+          insumoId: [item.insumoId, Validators.required],
+          quantidadeBruta: [item.quantidadeBruta, [Validators.required, Validators.min(0.001)]],
+          fatorCorrecao: [item.fatorCorrecao, [Validators.required, Validators.min(1)]]
+        }));
+      });
+      this.showModal = true;
+    });
+  }
 
   adicionarItem(): void {
     this.itensArray.push(this.fb.group({
@@ -203,8 +269,15 @@ export class FichasTecnicasComponent implements OnInit {
       pratoId: +this.form.value.pratoId,
       itens: this.form.value.itens.map((i: any) => ({ ...i, insumoId: +i.insumoId }))
     };
-    this.api.createFichaTecnica(val).subscribe({
-      next: () => { this.toast.success('Ficha tecnica criada!'); this.fecharModal(); this.carregar(this.currentPage); },
+    const obs = this.editando
+      ? this.api.updateFichaTecnica(this.editId, val)
+      : this.api.createFichaTecnica(val);
+    obs.subscribe({
+      next: () => {
+        this.toast.success(this.editando ? 'Ficha atualizada!' : 'Ficha tecnica criada!');
+        this.fecharModal();
+        this.carregar(this.currentPage);
+      },
       error: () => {}
     });
   }

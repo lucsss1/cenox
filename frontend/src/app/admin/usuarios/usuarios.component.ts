@@ -12,10 +12,13 @@ import { Usuario } from '../../shared/models/models';
   template: `
     <div class="page-header">
       <div>
-        <h2><i class="fas fa-users"></i> Usuarios</h2>
+        <h2 style="color:#1A1A1A;"><i class="fas fa-users" style="color:#D4531A;"></i> Usuarios</h2>
         <p class="page-subtitle">Gerenciamento de usuarios do sistema</p>
       </div>
-      <button class="btn btn-primary" (click)="abrirModal()"><i class="fas fa-plus"></i> Novo Usuario</button>
+      <button class="btn btn-primary" (click)="abrirModal()"
+              style="background:#D4531A;border-color:#D4531A;color:#fff;">
+        <i class="fas fa-plus"></i> Novo Usuario
+      </button>
     </div>
 
     <div class="card">

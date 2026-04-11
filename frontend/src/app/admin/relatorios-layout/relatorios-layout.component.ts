@@ -8,7 +8,7 @@ import { RouterModule, RouterLinkActive } from '@angular/router';
   template: `
     <div class="page-header">
       <div>
-        <h2><i class="fas fa-chart-bar"></i> Relatórios</h2>
+        <h2 style="color:#1A1A1A;"><i class="fas fa-chart-bar" style="color:#D4531A;"></i> Relatórios</h2>
         <p class="page-subtitle">Análise detalhada de desempenho</p>
       </div>
     </div>

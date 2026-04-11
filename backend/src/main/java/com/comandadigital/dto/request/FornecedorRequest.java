@@ -1,6 +1,7 @@
 package com.comandadigital.dto.request;
 
 import com.comandadigital.enums.StatusFornecedor;
+import com.comandadigital.validation.ValidCnpj;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -14,7 +15,7 @@ public class FornecedorRequest {
     private String nomeEmpresa;
 
     @NotBlank(message = "CNPJ e obrigatorio")
-    @Size(max = 18, message = "CNPJ deve ter no maximo 18 caracteres")
+    @ValidCnpj
     private String cnpj;
 
     @Email(message = "Email invalido")
