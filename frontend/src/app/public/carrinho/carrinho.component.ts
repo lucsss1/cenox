@@ -39,13 +39,13 @@ import { CartItem } from '../../shared/models/models';
             </thead>
             <tbody>
               <tr *ngFor="let item of itens">
-                <td><strong style="color:var(--text-primary);">{{item.prato.nome}}</strong></td>
-                <td>R$ {{item.prato.precoVenda | number:'1.2-2'}}</td>
+                <td><strong style="color:var(--text-dark);">{{item.prato.nome}}</strong></td>
+                <td style="color:var(--text-body);">R$ {{item.prato.precoVenda | number:'1.2-2'}}</td>
                 <td style="width:80px;">
                   <input type="number" class="form-control" min="1" [(ngModel)]="item.quantidade"
                     (change)="atualizar()" style="width:60px;padding:6px 8px;">
                 </td>
-                <td><strong style="color:#4ADE80;">R$ {{item.prato.precoVenda * item.quantidade | number:'1.2-2'}}</strong></td>
+                <td><strong style="color:var(--brand);">R$ {{item.prato.precoVenda * item.quantidade | number:'1.2-2'}}</strong></td>
                 <td style="width:150px;">
                   <input type="text" class="form-control" [(ngModel)]="item.observacao"
                     placeholder="Sem cebola..." style="padding:6px 8px;font-size:12px;">
@@ -78,21 +78,116 @@ import { CartItem } from '../../shared/models/models';
     </div>
   `,
   styles: [`
-    .carrinho { max-width: 900px; margin: 0 auto; }
-    .carrinho h2 {
-      margin-bottom: 24px; color: #F9FAFB; font-weight: 700;
-      display: flex; align-items: center; gap: 10px;
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
+
+    :host {
+      --brand:        #D4531A;
+      --brand-hover:  #B84412;
+      --brand-shadow: rgba(212, 83, 26, 0.28);
+      --brand-subtle: rgba(212, 83, 26, 0.08);
+      --brand-muted:  rgba(212, 83, 26, 0.18);
+      --card-bg:      #FFFFFF;
+      --input-bg:     #F5F0EB;
+      --text-dark:    #1A1A1A;
+      --text-body:    #4A4A4A;
+      --text-muted:   #9A9A9A;
+      --border:       #E0D8D0;
+      font-family: 'Poppins', sans-serif;
+      display: block;
+      background: #EDE8E0;
+      min-height: calc(100vh - 58px);
+      padding-bottom: 64px;
     }
-    .carrinho h2 i { color: var(--primary); font-size: 18px; }
+
+    /* ── Override global BRIGADE classes ─────────── */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    table { border-color: var(--border); }
+    th {
+      background: var(--input-bg);
+      color: var(--text-muted);
+      border-color: var(--border);
+      font-family: 'Poppins', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+    }
+    td {
+      color: var(--text-body);
+      border-color: var(--border);
+      font-family: 'Poppins', sans-serif;
+    }
+    .form-control {
+      background: var(--input-bg);
+      border: 1.5px solid var(--border);
+      color: var(--text-dark);
+      font-family: 'Poppins', sans-serif;
+    }
+    .form-control:focus {
+      border-color: var(--brand);
+      box-shadow: 0 0 0 3px var(--brand-subtle);
+    }
+    .form-control::placeholder { color: var(--text-muted); }
+    label { color: var(--text-body); font-family: 'Poppins', sans-serif; }
+
+    .empty-state-icon {
+      background: var(--input-bg);
+      border: 1.5px solid var(--border);
+    }
+    .empty-state-icon i { color: var(--brand); }
+    .empty-state h3 { color: var(--text-dark); font-family: 'Poppins', sans-serif; }
+    .empty-state p { color: var(--text-muted); }
+
+    .btn-primary {
+      background: var(--brand);
+      border-color: var(--brand);
+      color: #fff;
+    }
+    .btn-primary:hover {
+      background: var(--brand-hover);
+      box-shadow: 0 4px 16px var(--brand-shadow);
+    }
+    .btn-success {
+      background: var(--brand);
+      border-color: var(--brand);
+      color: #fff;
+      font-family: 'Poppins', sans-serif;
+    }
+    .btn-success:hover:not(:disabled) {
+      background: var(--brand-hover);
+      box-shadow: 0 4px 16px var(--brand-shadow);
+    }
+    .btn-icon-danger {
+      background: rgba(212, 83, 26, 0.08);
+      border: 1px solid rgba(212, 83, 26, 0.20);
+      color: var(--brand);
+    }
+    .btn-icon-danger:hover {
+      background: rgba(212, 83, 26, 0.16);
+      border-color: var(--brand);
+    }
+
+    /* ── Component styles ────────────────────────── */
+    .carrinho { max-width: 900px; margin: 0 auto; padding: 32px 24px 0; font-family: 'Poppins', sans-serif; }
+    .carrinho h2 {
+      margin-bottom: 24px; color: var(--text-dark); font-weight: 700;
+      display: flex; align-items: center; gap: 10px;
+      font-family: 'Poppins', sans-serif; font-size: 24px;
+    }
+    .carrinho h2 i { color: var(--brand); font-size: 18px; }
     .cart-summary { margin-top: 16px; }
     .cart-total {
       display: flex; justify-content: space-between; align-items: center;
-      margin: 16px 0; padding-top: 16px; border-top: 2px solid var(--border-light);
+      margin: 16px 0; padding-top: 16px; border-top: 2px solid var(--border);
     }
-    .cart-total span:first-child { font-size: 16px; font-weight: 600; color: #9CA3AF; }
-    .total-valor { font-size: 26px; font-weight: 700; color: #4ADE80; }
+    .cart-total span:first-child { font-size: 16px; font-weight: 600; color: var(--text-muted); }
+    .total-valor { font-size: 26px; font-weight: 700; color: var(--brand); font-family: 'Poppins', sans-serif; }
     .btn-block { width: 100%; justify-content: center; padding: 14px; font-size: 16px; }
-    .btn-success.btn-block:hover { box-shadow: 0 0 20px rgba(22,163,74,0.3); }
+    .btn-success.btn-block:hover { box-shadow: 0 4px 20px var(--brand-shadow); }
   `]
 })
 export class CarrinhoComponent {

@@ -8,6 +8,7 @@ import com.comandadigital.exception.DuplicateResourceException;
 import com.comandadigital.exception.ResourceNotFoundException;
 import com.comandadigital.mapper.FornecedorMapper;
 import com.comandadigital.repository.FornecedorRepository;
+import com.comandadigital.validation.CnpjValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -45,8 +46,10 @@ public class FornecedorService {
 
     @Transactional
     public FornecedorResponse criar(FornecedorRequest request) {
-        if (repository.existsByCnpj(request.getCnpj())) {
-            throw new DuplicateResourceException("CNPJ ja cadastrado: " + request.getCnpj());
+        String cnpjFormatado = CnpjValidator.formatar(request.getCnpj());
+        request.setCnpj(cnpjFormatado);
+        if (repository.existsByCnpj(cnpjFormatado)) {
+            throw new DuplicateResourceException("CNPJ ja cadastrado: " + cnpjFormatado);
         }
         Fornecedor fornecedor = mapper.toEntity(request);
         fornecedor = repository.save(fornecedor);
@@ -57,7 +60,7 @@ public class FornecedorService {
     public FornecedorResponse atualizar(Long id, FornecedorRequest request) {
         Fornecedor fornecedor = findActiveById(id);
         fornecedor.setNomeEmpresa(request.getNomeEmpresa());
-        fornecedor.setCnpj(request.getCnpj());
+        fornecedor.setCnpj(CnpjValidator.formatar(request.getCnpj()));
         fornecedor.setEmail(request.getEmail());
         fornecedor.setTelefone(request.getTelefone());
         fornecedor.setEndereco(request.getEndereco());

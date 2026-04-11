@@ -1,9 +1,26 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { ApiService } from '../../shared/services/api.service';
 import { ToastService } from '../../shared/services/toast.service';
 import { Fornecedor, CatalogoFornecedor, Insumo } from '../../shared/models/models';
+
+function cnpjValidator(control: AbstractControl): ValidationErrors | null {
+  const raw = (control.value || '').replace(/[^\d]/g, '');
+  if (!raw) return null;
+  if (raw.length !== 14) return { cnpjInvalido: true };
+  if (/^(\d)\1+$/.test(raw)) return { cnpjInvalido: true };
+  const calcDigit = (digits: string, weights: number[]): number => {
+    const sum = weights.reduce((acc, w, i) => acc + parseInt(digits[i]) * w, 0);
+    const rem = sum % 11;
+    return rem < 2 ? 0 : 11 - rem;
+  };
+  const d1 = calcDigit(raw, [5,4,3,2,9,8,7,6,5,4,3,2]);
+  if (parseInt(raw[12]) !== d1) return { cnpjInvalido: true };
+  const d2 = calcDigit(raw, [6,5,4,3,2,9,8,7,6,5,4,3,2]);
+  if (parseInt(raw[13]) !== d2) return { cnpjInvalido: true };
+  return null;
+}
 
 @Component({
   selector: 'app-fornecedores',
@@ -69,7 +86,16 @@ import { Fornecedor, CatalogoFornecedor, Insumo } from '../../shared/models/mode
         <form [formGroup]="form" (ngSubmit)="salvar()">
           <div class="form-group"><label>Nome da Empresa</label><input type="text" class="form-control" formControlName="nomeEmpresa"></div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-            <div class="form-group"><label>CNPJ</label><input type="text" class="form-control" formControlName="cnpj" placeholder="00.000.000/0000-00"></div>
+            <div class="form-group">
+              <label>CNPJ</label>
+              <input type="text" class="form-control" formControlName="cnpj"
+                     placeholder="00.000.000/0000-00"
+                     maxlength="18"
+                     (input)="mascaraCnpj($event)"
+                     [class.input-error]="form.get('cnpj')?.invalid && form.get('cnpj')?.touched">
+              <span class="field-error" *ngIf="form.get('cnpj')?.touched && form.get('cnpj')?.errors?.['required']">CNPJ e obrigatorio</span>
+              <span class="field-error" *ngIf="form.get('cnpj')?.touched && form.get('cnpj')?.errors?.['cnpjInvalido']">CNPJ invalido</span>
+            </div>
             <div class="form-group"><label>Responsavel Comercial</label><input type="text" class="form-control" formControlName="responsavelComercial"></div>
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
@@ -174,7 +200,7 @@ export class FornecedoresComponent implements OnInit {
 
   constructor(private api: ApiService, private toast: ToastService, private fb: FormBuilder) {
     this.form = this.fb.group({
-      nomeEmpresa: ['', Validators.required], cnpj: ['', Validators.required],
+      nomeEmpresa: ['', Validators.required], cnpj: ['', [Validators.required, cnpjValidator]],
       email: [''], telefone: [''], endereco: [''],
       responsavelComercial: [''], statusFornecedor: ['EM_AVALIACAO']
     });
@@ -276,6 +302,17 @@ export class FornecedoresComponent implements OnInit {
     this.api.deleteCatalogo(id).subscribe({
       next: () => { this.toast.success('Item removido!'); this.recarregarCatalogo(); }
     });
+  }
+
+  mascaraCnpj(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    let v = input.value.replace(/\D/g, '').substring(0, 14);
+    if (v.length > 12) v = v.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5');
+    else if (v.length > 8) v = v.replace(/^(\d{2})(\d{3})(\d{3})(\d{0,4})/, '$1.$2.$3/$4');
+    else if (v.length > 5) v = v.replace(/^(\d{2})(\d{3})(\d{0,3})/, '$1.$2.$3');
+    else if (v.length > 2) v = v.replace(/^(\d{2})(\d{0,3})/, '$1.$2');
+    input.value = v;
+    this.form.get('cnpj')?.setValue(v, { emitEvent: false });
   }
 
   formatStatus(status: string): string {
