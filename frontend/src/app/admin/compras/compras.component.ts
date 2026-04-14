@@ -107,64 +107,104 @@ import { Compra, Fornecedor, Insumo } from '../../shared/models/models';
 
     <div class="modal-overlay" *ngIf="showModal" (click)="fecharModal()">
       <div class="modal-content" (click)="$event.stopPropagation()" style="max-width:700px;">
-        <div class="modal-header">
-          <h3>{{editando ? 'Editar' : 'Novo'}} Pedido de Compra</h3>
-          <button class="modal-close" (click)="fecharModal()">&times;</button>
+
+        <div class="ficha-modal-header">
+          <div class="ficha-header-shimmer"></div>
+          <div class="ficha-header-body">
+            <div class="ficha-header-icon"><i class="fas fa-shopping-bag"></i></div>
+            <div class="ficha-header-text">
+              <h3>{{editando ? 'Editar' : 'Novo'}} Pedido de Compra</h3>
+              <p>Registre entradas de insumos de fornecedores homologados</p>
+            </div>
+            <button class="modal-close ficha-close" (click)="fecharModal()">&times;</button>
+          </div>
         </div>
+
         <form [formGroup]="form" (ngSubmit)="salvar()">
-          <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px;">
-            <div class="form-group">
-              <label>Fornecedor</label>
-              <select class="form-control" formControlName="fornecedorId">
-                <option value="">Selecione...</option>
-                <option *ngFor="let f of fornecedores" [value]="f.id">{{f.nomeEmpresa}}</option>
-              </select>
+
+          <div class="ficha-section">
+            <div class="ficha-step-header">
+              <span class="ficha-step-num">01</span>
+              <span class="ficha-step-title">Pedido</span>
             </div>
-            <div class="form-group">
-              <label>Data</label>
-              <input type="date" class="form-control" formControlName="dataCompra">
-            </div>
-            <div class="form-group">
-              <label>Nota Fiscal</label>
-              <input type="text" class="form-control" formControlName="notaFiscal">
+            <div class="ficha-grid-3">
+              <div class="form-group ficha-form-group">
+                <label>Fornecedor</label>
+                <select class="form-control" formControlName="fornecedorId">
+                  <option value="">Selecione...</option>
+                  <option *ngFor="let f of fornecedores" [value]="f.id">{{f.nomeEmpresa}}</option>
+                </select>
+              </div>
+              <div class="form-group ficha-form-group">
+                <label>Data</label>
+                <input type="date" class="form-control" formControlName="dataCompra">
+              </div>
+              <div class="form-group ficha-form-group">
+                <label>Nota Fiscal</label>
+                <input type="text" class="form-control" formControlName="notaFiscal">
+              </div>
             </div>
           </div>
 
-          <div *ngIf="!editando">
-            <h4 style="margin:12px 0 8px;color:var(--text-primary);font-size:14px;font-weight:600;">Itens do Pedido</h4>
+          <div class="ficha-section ficha-section-comp" *ngIf="!editando">
+            <div class="ficha-step-header">
+              <span class="ficha-step-num">02</span>
+              <span class="ficha-step-title">Itens</span>
+              <span class="ficha-count-badge" *ngIf="itensArray.length > 0">
+                {{itensArray.length}} item{{itensArray.length !== 1 ? 'ns' : ''}}
+              </span>
+              <button type="button" class="ficha-add-btn" (click)="adicionarItem()">
+                <i class="fas fa-plus"></i> Adicionar
+              </button>
+            </div>
+
+            <div class="ficha-col-header" *ngIf="itensArray.length > 0">
+              <span></span>
+              <span>Insumo</span>
+              <span>Quantidade</span>
+              <span>Preço Unit.</span>
+              <span></span>
+            </div>
+
             <div formArrayName="itens">
-              <div *ngFor="let item of itensArray.controls; let i=index" [formGroupName]="i"
-                   style="display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:8px;margin-bottom:8px;align-items:end;">
-                <div class="form-group" style="margin:0;">
-                  <label *ngIf="i===0">Insumo</label>
-                  <select class="form-control" formControlName="insumoId">
-                    <option value="">Sel...</option>
-                    <option *ngFor="let ins of insumos" [value]="ins.id">{{ins.nome}} ({{ins.unidadeMedida}})</option>
-                  </select>
-                </div>
-                <div class="form-group" style="margin:0;">
-                  <label *ngIf="i===0">Quantidade</label>
-                  <input type="number" class="form-control" formControlName="quantidade" step="0.001">
-                </div>
-                <div class="form-group" style="margin:0;">
-                  <label *ngIf="i===0">Preco Unit.</label>
-                  <input type="number" class="form-control" formControlName="precoUnitario" step="0.01">
-                </div>
-                <button type="button" class="btn-icon btn-icon-danger" (click)="removerItem(i)" style="margin-bottom:2px;">
+              <div *ngFor="let item of itensArray.controls; let i=index"
+                   [formGroupName]="i"
+                   class="ficha-item-row">
+                <div class="ficha-item-index">{{i + 1}}</div>
+                <select class="ficha-item-ctrl" formControlName="insumoId">
+                  <option value="">Selecione...</option>
+                  <option *ngFor="let ins of insumos" [value]="ins.id">{{ins.nome}} ({{ins.unidadeMedida}})</option>
+                </select>
+                <input type="number" class="ficha-item-ctrl" formControlName="quantidade" step="0.001" placeholder="0.000">
+                <input type="number" class="ficha-item-ctrl" formControlName="precoUnitario" step="0.01" placeholder="0.00">
+                <button type="button" class="ficha-remove-btn" (click)="removerItem(i)">
                   <i class="fas fa-times"></i>
                 </button>
               </div>
             </div>
-            <button type="button" class="btn btn-secondary btn-sm" (click)="adicionarItem()"><i class="fas fa-plus"></i> Item</button>
+
+            <div class="ficha-empty-state" *ngIf="itensArray.length === 0">
+              <i class="fas fa-box-open"></i>
+              <p>Nenhum item adicionado</p>
+              <span>Clique em "Adicionar" para incluir insumos</span>
+            </div>
           </div>
-          <p *ngIf="editando" style="margin:12px 0;color:#6B7280;font-size:13px;">
-            <i class="fas fa-info-circle"></i> Os itens nao podem ser editados. Para corrigir, cancele e crie um novo pedido.
-          </p>
+
+          <div class="ficha-section" *ngIf="editando">
+            <p style="margin:0;color:var(--text-m);font-size:13px;display:flex;align-items:center;gap:8px;">
+              <i class="fas fa-info-circle" style="color:var(--brand);"></i>
+              Os itens nao podem ser editados. Para corrigir, cancele e crie um novo pedido.
+            </p>
+          </div>
 
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" (click)="fecharModal()">Cancelar</button>
-            <button type="submit" class="btn btn-primary" [disabled]="form.invalid || (!editando && itensArray.length === 0)">{{editando ? 'Salvar' : 'Criar Rascunho'}}</button>
+            <button type="submit" class="btn btn-primary" [disabled]="form.invalid || (!editando && itensArray.length === 0)">
+              <i class="fas fa-check"></i>
+              {{editando ? 'Salvar Alterações' : 'Criar Rascunho'}}
+            </button>
           </div>
+
         </form>
       </div>
     </div>
