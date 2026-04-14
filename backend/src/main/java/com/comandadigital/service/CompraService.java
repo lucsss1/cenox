@@ -5,6 +5,7 @@ import com.comandadigital.dto.request.ItemCompraRequest;
 import com.comandadigital.dto.response.CompraResponse;
 import com.comandadigital.entity.*;
 import com.comandadigital.enums.StatusCompra;
+import com.comandadigital.enums.StatusFornecedor;
 import com.comandadigital.exception.BusinessException;
 import com.comandadigital.exception.ResourceNotFoundException;
 import com.comandadigital.mapper.CompraMapper;
@@ -55,6 +56,14 @@ public class CompraService {
     public CompraResponse criar(CompraRequest request) {
         Fornecedor fornecedor = fornecedorService.findActiveById(request.getFornecedorId());
 
+        if (fornecedor.getStatusFornecedor() != StatusFornecedor.HOMOLOGADO) {
+            throw new BusinessException(
+                "Nao e possivel registrar compras para fornecedores com status: " +
+                fornecedor.getStatusFornecedor().name() +
+                ". Apenas fornecedores HOMOLOGADOS podem ser utilizados."
+            );
+        }
+
         Compra compra = Compra.builder()
                 .fornecedor(fornecedor)
                 .dataCompra(request.getDataCompra())
@@ -103,6 +112,15 @@ public class CompraService {
         }
 
         Fornecedor fornecedor = fornecedorService.findActiveById(request.getFornecedorId());
+
+        if (fornecedor.getStatusFornecedor() != StatusFornecedor.HOMOLOGADO) {
+            throw new BusinessException(
+                "Nao e possivel registrar compras para fornecedores com status: " +
+                fornecedor.getStatusFornecedor().name() +
+                ". Apenas fornecedores HOMOLOGADOS podem ser utilizados."
+            );
+        }
+
         compra.setFornecedor(fornecedor);
         compra.setDataCompra(request.getDataCompra());
         compra.setNotaFiscal(request.getNotaFiscal());
