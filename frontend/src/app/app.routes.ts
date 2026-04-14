@@ -24,7 +24,10 @@ export const routes: Routes = [
       },
 
       // ── Pedidos ──────────────────────────────────────────────────────────
-      { path: 'pedidos', redirectTo: 'kanban', pathMatch: 'full' },
+      {
+        path: 'pedidos',
+        loadComponent: () => import('./admin/pedidos/pedidos.component').then(m => m.PedidosAdminComponent)
+      },
       {
         path: 'kanban',
         loadComponent: () => import('./admin/kanban/kanban.component').then(m => m.KanbanComponent)
