@@ -100,6 +100,7 @@ export const routes: Routes = [
 
       // ── Legacy redirects (preserve old bookmarks & links) ─────────────────
       { path: 'dashboard',         redirectTo: 'overview',                 pathMatch: 'full' },
+      { path: 'pedidos',           redirectTo: 'kanban',                   pathMatch: 'full' },
       { path: 'categorias',        redirectTo: 'cardapio/categorias',      pathMatch: 'full' },
       { path: 'pratos',            redirectTo: 'cardapio/pratos',          pathMatch: 'full' },
       { path: 'fichas-tecnicas',   redirectTo: 'cardapio/receitas',        pathMatch: 'full' },
