@@ -70,7 +70,7 @@ Chart.register(...registerables);
             <span class="zstat__label">Alertas</span>
           </div>
           <div class="zone-agora__cta">
-            <a routerLink="/admin/kanban" class="btn btn-primary btn-sm">
+            <a routerLink="/admin/pedidos" class="btn btn-primary btn-sm">
               Ver pedidos em aberto <i class="fas fa-arrow-right"></i>
             </a>
           </div>
@@ -240,8 +240,11 @@ Chart.register(...registerables);
           </div>
 
           <div class="card-footer-action">
+            <a routerLink="/admin/pedidos" class="btn btn-ghost btn-sm">
+              <i class="fas fa-arrow-right"></i> Pedidos
+            </a>
             <a routerLink="/admin/kanban" class="btn btn-ghost btn-sm">
-              <i class="fas fa-columns"></i> Ver no Kanban
+              <i class="fas fa-columns"></i> Kanban
             </a>
           </div>
         </div>
