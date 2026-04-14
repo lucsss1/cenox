@@ -133,44 +133,72 @@ import { Prato, Categoria } from '../../shared/models/models';
   <!-- Create / Edit Modal -->
   <div class="modal-overlay" *ngIf="showModal" (click)="fecharModal()">
     <div class="pr-modal" (click)="$event.stopPropagation()">
-      <div class="pr-modal__head">
-        <h3 class="pr-modal__title">{{ editando ? 'Editar Produto' : 'Novo Produto' }}</h3>
-        <button class="pr-modal__close" (click)="fecharModal()">&times;</button>
+
+      <div class="ficha-modal-header">
+        <div class="ficha-header-shimmer"></div>
+        <div class="ficha-header-body">
+          <div class="ficha-header-icon"><i class="fas fa-utensils"></i></div>
+          <div class="ficha-header-text">
+            <h3>{{editando ? 'Editar' : 'Novo'}} Produto</h3>
+            <p>Configure o prato para o seu cardápio</p>
+          </div>
+          <button class="pr-modal__close ficha-close" (click)="fecharModal()">&times;</button>
+        </div>
       </div>
-      <form [formGroup]="form" (ngSubmit)="salvar()" class="pr-modal__body">
-        <div class="pr-field">
-          <label class="pr-label">Nome</label>
-          <input type="text" class="pr-input" formControlName="nome" placeholder="Ex: X-Burguer Clássico">
-        </div>
-        <div class="pr-field">
-          <label class="pr-label">Descrição</label>
-          <textarea class="pr-input pr-textarea" formControlName="descricao" rows="2" placeholder="Breve descrição do produto"></textarea>
-        </div>
-        <div class="pr-field-row">
-          <div class="pr-field">
-            <label class="pr-label">Preço de Venda (R$)</label>
-            <input type="number" class="pr-input" formControlName="precoVenda" step="0.01" min="0.01">
+
+      <form [formGroup]="form" (ngSubmit)="salvar()">
+
+        <div class="ficha-section">
+          <div class="ficha-step-header">
+            <span class="ficha-step-num">01</span>
+            <span class="ficha-step-title">Identificação</span>
           </div>
-          <div class="pr-field">
-            <label class="pr-label">Tempo de Preparo (min)</label>
-            <input type="number" class="pr-input" formControlName="tempoPreparo" min="1">
+          <div class="pr-field ficha-form-group">
+            <label class="pr-label">Nome</label>
+            <input type="text" class="pr-input" formControlName="nome" placeholder="Ex: X-Burguer Clássico">
+          </div>
+          <div class="pr-field ficha-form-group" style="margin-top:12px;">
+            <label class="pr-label">Descrição</label>
+            <textarea class="pr-input pr-textarea" formControlName="descricao" rows="2" placeholder="Breve descrição do produto"></textarea>
           </div>
         </div>
-        <div class="pr-field">
-          <label class="pr-label">Categoria</label>
-          <select class="pr-input pr-select" formControlName="categoriaId">
-            <option value="">Selecione uma categoria</option>
-            <option *ngFor="let c of categorias" [value]="c.id">{{ c.nome }}</option>
-          </select>
+
+        <div class="ficha-section">
+          <div class="ficha-step-header">
+            <span class="ficha-step-num">02</span>
+            <span class="ficha-step-title">Precificação & Detalhes</span>
+          </div>
+          <div class="ficha-grid-2">
+            <div class="pr-field ficha-form-group">
+              <label class="pr-label">Preço de Venda (R$)</label>
+              <input type="number" class="pr-input" formControlName="precoVenda" step="0.01" min="0.01">
+            </div>
+            <div class="pr-field ficha-form-group">
+              <label class="pr-label">Tempo de Preparo (min)</label>
+              <input type="number" class="pr-input" formControlName="tempoPreparo" min="1">
+            </div>
+          </div>
+          <div class="pr-field ficha-form-group" style="margin-top:12px;">
+            <label class="pr-label">Categoria</label>
+            <select class="pr-input pr-select" formControlName="categoriaId">
+              <option value="">Selecione uma categoria</option>
+              <option *ngFor="let c of categorias" [value]="c.id">{{ c.nome }}</option>
+            </select>
+          </div>
+          <div class="pr-field ficha-form-group" style="margin-top:12px;">
+            <label class="pr-label">URL da Imagem</label>
+            <input type="text" class="pr-input" formControlName="imagemUrl" placeholder="https://...">
+          </div>
         </div>
-        <div class="pr-field">
-          <label class="pr-label">URL da Imagem</label>
-          <input type="text" class="pr-input" formControlName="imagemUrl" placeholder="https://...">
-        </div>
-        <div class="pr-modal__footer">
+
+        <div style="background:#FFFFFF;border-top:1px solid var(--border-card);padding:16px 24px;display:flex;gap:8px;justify-content:flex-end;">
           <button type="button" class="pr-btn-ghost" (click)="fecharModal()">Cancelar</button>
-          <button type="submit" class="pr-btn-primary" [disabled]="form.invalid">Salvar Produto</button>
+          <button type="submit" class="pr-btn-primary" [disabled]="form.invalid">
+            <i class="fas fa-check" style="margin-right:5px;"></i>
+            {{editando ? 'Salvar Alterações' : 'Criar Produto'}}
+          </button>
         </div>
+
       </form>
     </div>
   </div>
