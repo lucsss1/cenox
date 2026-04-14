@@ -53,25 +53,43 @@ import { Categoria } from '../../shared/models/models';
 
     <div class="modal-overlay" *ngIf="showModal" (click)="fecharModal()">
       <div class="modal-content" (click)="$event.stopPropagation()">
-        <div class="modal-header">
-          <h3>{{editando ? 'Editar' : 'Nova'}} Categoria</h3>
-          <button class="modal-close" (click)="fecharModal()">&times;</button>
-        </div>
-        <form [formGroup]="form" (ngSubmit)="salvar()">
-          <div class="form-group">
-            <label>Nome</label>
-            <input type="text" class="form-control" formControlName="nome">
-            <span class="error-msg" *ngIf="form.get('nome')?.invalid && form.get('nome')?.touched">Nome obrigatorio</span>
+
+        <div class="ficha-modal-header">
+          <div class="ficha-header-shimmer"></div>
+          <div class="ficha-header-body">
+            <div class="ficha-header-icon"><i class="fas fa-tags"></i></div>
+            <div class="ficha-header-text">
+              <h3>{{editando ? 'Editar' : 'Nova'}} Categoria</h3>
+              <p>Organize os pratos do seu cardápio</p>
+            </div>
+            <button class="modal-close ficha-close" (click)="fecharModal()">&times;</button>
           </div>
-          <div class="form-group">
-            <label>Descricao</label>
-            <input type="text" class="form-control" formControlName="descricao">
+        </div>
+
+        <form [formGroup]="form" (ngSubmit)="salvar()">
+          <div class="ficha-section">
+            <div class="ficha-step-header">
+              <span class="ficha-step-num">01</span>
+              <span class="ficha-step-title">Identificação</span>
+            </div>
+            <div class="form-group ficha-form-group">
+              <label>Nome</label>
+              <input type="text" class="form-control" formControlName="nome">
+              <span class="error-msg" *ngIf="form.get('nome')?.invalid && form.get('nome')?.touched">Nome obrigatorio</span>
+            </div>
+            <div class="form-group ficha-form-group" style="margin-top:12px;">
+              <label>Descricao</label>
+              <input type="text" class="form-control" formControlName="descricao">
+            </div>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" (click)="fecharModal()">Cancelar</button>
-            <button type="submit" class="btn btn-primary" [disabled]="form.invalid">Salvar</button>
+            <button type="submit" class="btn btn-primary" [disabled]="form.invalid">
+              <i class="fas fa-check"></i> {{editando ? 'Salvar Alterações' : 'Criar Categoria'}}
+            </button>
           </div>
         </form>
+
       </div>
     </div>
   `
