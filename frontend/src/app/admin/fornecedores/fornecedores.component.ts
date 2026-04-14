@@ -79,44 +79,86 @@ function cnpjValidator(control: AbstractControl): ValidationErrors | null {
     <!-- Modal Criar/Editar Fornecedor -->
     <div class="modal-overlay" *ngIf="showModal" (click)="fecharModal()">
       <div class="modal-content" (click)="$event.stopPropagation()">
-        <div class="modal-header">
-          <h3>{{editando ? 'Editar' : 'Novo'}} Fornecedor</h3>
-          <button class="modal-close" (click)="fecharModal()">&times;</button>
+
+        <div class="ficha-modal-header">
+          <div class="ficha-header-shimmer"></div>
+          <div class="ficha-header-body">
+            <div class="ficha-header-icon"><i class="fas fa-truck"></i></div>
+            <div class="ficha-header-text">
+              <h3>{{editando ? 'Editar' : 'Novo'}} Fornecedor</h3>
+              <p>Cadastre e gerencie seus fornecedores</p>
+            </div>
+            <button class="modal-close ficha-close" (click)="fecharModal()">&times;</button>
+          </div>
         </div>
+
         <form [formGroup]="form" (ngSubmit)="salvar()">
-          <div class="form-group"><label>Nome da Empresa</label><input type="text" class="form-control" formControlName="nomeEmpresa"></div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-            <div class="form-group">
-              <label>CNPJ</label>
-              <input type="text" class="form-control" formControlName="cnpj"
-                     placeholder="00.000.000/0000-00"
-                     maxlength="18"
-                     (input)="mascaraCnpj($event)"
-                     [class.input-error]="form.get('cnpj')?.invalid && form.get('cnpj')?.touched">
-              <span class="field-error" *ngIf="form.get('cnpj')?.touched && form.get('cnpj')?.errors?.['required']">CNPJ e obrigatorio</span>
-              <span class="field-error" *ngIf="form.get('cnpj')?.touched && form.get('cnpj')?.errors?.['cnpjInvalido']">CNPJ invalido</span>
+
+          <div class="ficha-section">
+            <div class="ficha-step-header">
+              <span class="ficha-step-num">01</span>
+              <span class="ficha-step-title">Empresa</span>
             </div>
-            <div class="form-group"><label>Responsavel Comercial</label><input type="text" class="form-control" formControlName="responsavelComercial"></div>
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-            <div class="form-group"><label>Email</label><input type="email" class="form-control" formControlName="email"></div>
-            <div class="form-group"><label>Telefone</label><input type="text" class="form-control" formControlName="telefone"></div>
-          </div>
-          <div style="display:grid;grid-template-columns:2fr 1fr;gap:12px;">
-            <div class="form-group"><label>Endereco</label><input type="text" class="form-control" formControlName="endereco"></div>
-            <div class="form-group">
-              <label>Status</label>
-              <select class="form-control" formControlName="statusFornecedor">
-                <option value="EM_AVALIACAO">Em Avaliacao</option>
-                <option value="HOMOLOGADO">Homologado</option>
-                <option value="BLOQUEADO">Bloqueado</option>
-              </select>
+            <div class="form-group ficha-form-group">
+              <label>Nome da Empresa</label>
+              <input type="text" class="form-control" formControlName="nomeEmpresa">
+            </div>
+            <div class="ficha-grid-2" style="margin-top:12px;">
+              <div class="form-group ficha-form-group">
+                <label>CNPJ</label>
+                <input type="text" class="form-control" formControlName="cnpj"
+                       placeholder="00.000.000/0000-00"
+                       maxlength="18"
+                       (input)="mascaraCnpj($event)"
+                       [class.input-error]="form.get('cnpj')?.invalid && form.get('cnpj')?.touched">
+                <span class="field-error" *ngIf="form.get('cnpj')?.touched && form.get('cnpj')?.errors?.['required']">CNPJ e obrigatorio</span>
+                <span class="field-error" *ngIf="form.get('cnpj')?.touched && form.get('cnpj')?.errors?.['cnpjInvalido']">CNPJ invalido</span>
+              </div>
+              <div class="form-group ficha-form-group">
+                <label>Responsavel Comercial</label>
+                <input type="text" class="form-control" formControlName="responsavelComercial">
+              </div>
             </div>
           </div>
+
+          <div class="ficha-section">
+            <div class="ficha-step-header">
+              <span class="ficha-step-num">02</span>
+              <span class="ficha-step-title">Contato & Classificação</span>
+            </div>
+            <div class="ficha-grid-2">
+              <div class="form-group ficha-form-group">
+                <label>Email</label>
+                <input type="email" class="form-control" formControlName="email">
+              </div>
+              <div class="form-group ficha-form-group">
+                <label>Telefone</label>
+                <input type="text" class="form-control" formControlName="telefone">
+              </div>
+            </div>
+            <div class="ficha-grid-2" style="margin-top:12px;">
+              <div class="form-group ficha-form-group">
+                <label>Endereco</label>
+                <input type="text" class="form-control" formControlName="endereco">
+              </div>
+              <div class="form-group ficha-form-group">
+                <label>Status</label>
+                <select class="form-control" formControlName="statusFornecedor">
+                  <option value="EM_AVALIACAO">Em Avaliacao</option>
+                  <option value="HOMOLOGADO">Homologado</option>
+                  <option value="BLOQUEADO">Bloqueado</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" (click)="fecharModal()">Cancelar</button>
-            <button type="submit" class="btn btn-primary" [disabled]="form.invalid">Salvar</button>
+            <button type="submit" class="btn btn-primary" [disabled]="form.invalid">
+              <i class="fas fa-check"></i> {{editando ? 'Salvar Alterações' : 'Cadastrar Fornecedor'}}
+            </button>
           </div>
+
         </form>
       </div>
     </div>
@@ -124,58 +166,69 @@ function cnpjValidator(control: AbstractControl): ValidationErrors | null {
     <!-- Modal Catalogo do Fornecedor -->
     <div class="modal-overlay" *ngIf="showCatalogoModal" (click)="showCatalogoModal=false">
       <div class="modal-content" (click)="$event.stopPropagation()" style="max-width:700px;">
-        <div class="modal-header">
-          <h3><i class="fas fa-list-alt" style="color:var(--primary);margin-right:8px;"></i> Catalogo - {{catalogoFornecedorNome}}</h3>
-          <button class="modal-close" (click)="showCatalogoModal=false">&times;</button>
+
+        <div class="ficha-modal-header">
+          <div class="ficha-header-shimmer"></div>
+          <div class="ficha-header-body">
+            <div class="ficha-header-icon"><i class="fas fa-list-alt"></i></div>
+            <div class="ficha-header-text">
+              <h3>Catálogo — {{catalogoFornecedorNome}}</h3>
+              <p>Gerencie os insumos fornecidos por este parceiro</p>
+            </div>
+            <button class="modal-close ficha-close" (click)="showCatalogoModal=false">&times;</button>
+          </div>
         </div>
 
-        <div style="display:grid;grid-template-columns:2fr 1fr 1fr auto auto;gap:8px;align-items:end;margin-bottom:16px;">
-          <div class="form-group" style="margin-bottom:0;">
-            <label>Insumo</label>
-            <select class="form-control" [(ngModel)]="catInsumoId">
-              <option [ngValue]="0">Selecione...</option>
-              <option *ngFor="let ins of insumosDisponiveis" [ngValue]="ins.id">{{ins.nome}} ({{ins.unidadeMedida}})</option>
-            </select>
+        <div style="padding:20px 24px;">
+          <div style="display:grid;grid-template-columns:2fr 1fr 1fr auto auto;gap:8px;align-items:end;margin-bottom:16px;">
+            <div class="form-group ficha-form-group">
+              <label>Insumo</label>
+              <select class="form-control" [(ngModel)]="catInsumoId">
+                <option [ngValue]="0">Selecione...</option>
+                <option *ngFor="let ins of insumosDisponiveis" [ngValue]="ins.id">{{ins.nome}} ({{ins.unidadeMedida}})</option>
+              </select>
+            </div>
+            <div class="form-group ficha-form-group">
+              <label>Preco (R$)</label>
+              <input type="number" class="form-control" [(ngModel)]="catPreco" step="0.0001" min="0.0001">
+            </div>
+            <div class="form-group ficha-form-group">
+              <label>Unid. Venda</label>
+              <select class="form-control" [(ngModel)]="catUnidade">
+                <option value="">Selecione...</option>
+                <option value="KG">KG</option><option value="G">G</option>
+                <option value="L">L</option><option value="ML">ML</option><option value="UN">UN</option>
+                <option value="CX">CX</option><option value="PCT">PCT</option>
+              </select>
+            </div>
+            <button class="btn btn-primary btn-sm" style="height:38px;" [disabled]="!catInsumoId || !catPreco || !catUnidade"
+                    (click)="catEditId ? atualizarCatalogo() : adicionarCatalogo()">
+              <i [class]="catEditId ? 'fas fa-check' : 'fas fa-plus'"></i> {{catEditId ? 'Salvar' : 'Add'}}
+            </button>
+            <button *ngIf="catEditId" class="btn btn-secondary btn-sm" style="height:38px;" (click)="cancelarEdicaoCatalogo()">
+              <i class="fas fa-times"></i>
+            </button>
           </div>
-          <div class="form-group" style="margin-bottom:0;">
-            <label>Preco (R$)</label>
-            <input type="number" class="form-control" [(ngModel)]="catPreco" step="0.0001" min="0.0001">
-          </div>
-          <div class="form-group" style="margin-bottom:0;">
-            <label>Unid. Venda</label>
-            <select class="form-control" [(ngModel)]="catUnidade">
-              <option value="">Selecione...</option>
-              <option value="KG">KG</option><option value="G">G</option>
-              <option value="L">L</option><option value="ML">ML</option><option value="UN">UN</option>
-              <option value="CX">CX</option><option value="PCT">PCT</option>
-            </select>
-          </div>
-          <button class="btn btn-primary btn-sm" style="height:38px;" [disabled]="!catInsumoId || !catPreco || !catUnidade"
-                  (click)="catEditId ? atualizarCatalogo() : adicionarCatalogo()">
-            <i [class]="catEditId ? 'fas fa-check' : 'fas fa-plus'"></i> {{catEditId ? 'Salvar' : 'Add'}}
-          </button>
-          <button *ngIf="catEditId" class="btn btn-secondary btn-sm" style="height:38px;" (click)="cancelarEdicaoCatalogo()">
-            <i class="fas fa-times"></i>
-          </button>
+
+          <table *ngIf="catalogoItens.length > 0">
+            <thead><tr><th>Insumo</th><th>Preco</th><th>Unid. Venda</th><th>Acoes</th></tr></thead>
+            <tbody>
+              <tr *ngFor="let c of catalogoItens">
+                <td><strong style="color:var(--text-primary);">{{c.insumoNome}}</strong></td>
+                <td>R$ {{c.preco | number:'1.4-4'}}</td>
+                <td>{{c.unidadeVenda}}</td>
+                <td>
+                  <div style="display:flex;gap:6px;">
+                    <button class="btn-icon btn-icon-warning" (click)="editarCatalogo(c)" title="Editar"><i class="fas fa-edit"></i></button>
+                    <button class="btn-icon btn-icon-danger" (click)="excluirCatalogo(c.id)" title="Remover"><i class="fas fa-trash"></i></button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <p *ngIf="catalogoItens.length === 0" style="text-align:center;color:#6B7280;padding:20px;">Nenhum produto cadastrado no catalogo deste fornecedor</p>
         </div>
 
-        <table *ngIf="catalogoItens.length > 0">
-          <thead><tr><th>Insumo</th><th>Preco</th><th>Unid. Venda</th><th>Acoes</th></tr></thead>
-          <tbody>
-            <tr *ngFor="let c of catalogoItens">
-              <td><strong style="color:var(--text-primary);">{{c.insumoNome}}</strong></td>
-              <td>R$ {{c.preco | number:'1.4-4'}}</td>
-              <td>{{c.unidadeVenda}}</td>
-              <td>
-                <div style="display:flex;gap:6px;">
-                  <button class="btn-icon btn-icon-warning" (click)="editarCatalogo(c)" title="Editar"><i class="fas fa-edit"></i></button>
-                  <button class="btn-icon btn-icon-danger" (click)="excluirCatalogo(c.id)" title="Remover"><i class="fas fa-trash"></i></button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-        <p *ngIf="catalogoItens.length === 0" style="text-align:center;color:#6B7280;padding:20px;">Nenhum produto cadastrado no catalogo deste fornecedor</p>
       </div>
     </div>
   `,
