@@ -90,12 +90,14 @@ A orquestração está definida no `CLAUDE.md` na raiz do projeto. Nunca acione 
 - Revisar copy, labels, mensagens de erro e empty states
 - Checar se DTOs do backend retornam tudo que a UI precisa (review cross-agent)
 - Gerar um relatório de saúde UX do sistema
+- **Estruturar o design de uma nova feature** via processo de Design Thinking (antes de qualquer código)
 
 **O que ele faz:**
 - Avalia interfaces contra 7 frameworks: eficiência operacional, hierarquia de informação, prevenção de erros, feedback/estados, consistência, acessibilidade e contexto de dispositivo
 - Emite relatórios com severidade 🔴 Crítico / 🟡 Importante / 🔵 Melhoria
 - Testa cenários extremos: 40 pedidos no KDS, conexão instável, mão enluvada, tela com reflexo
 - Compara com referências do mercado (Square KDS, Toast POS, iFood Gestor, etc.)
+- **Conduz Design Thinking** em 5 fases: Empatizar, Definir (HMW + POV), Idear, Prototipar (briefing conceitual) e Validar (critérios de aceitação)
 - **Não implementa código** — aponta problemas e propõe soluções concretas para o Frontend Agent executar
 
 **Ferramentas disponíveis:** `Read`, `Glob`, `Grep` (somente leitura — não escreve código)
