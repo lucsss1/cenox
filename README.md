@@ -130,7 +130,7 @@ Se preferir rodar sem Docker, siga as instrucoes abaixo.
 
 ### Rodando o Backend
 
-No CMD, ir para a pasta `comanda-digital/backend` e executar:
+No CMD, ir para a pasta `cenox/backend` e executar:
 
 ```bash
 mvn clean install -DskipTests
@@ -143,7 +143,7 @@ Backend disponivel em: **http://localhost:8080**
 
 ### Rodando o Frontend
 
-No CMD, ir para a pasta `comanda-digital/frontend` e executar:
+No CMD, ir para a pasta `cenox/frontend` e executar:
 
 ```bash
 npm install
@@ -215,7 +215,7 @@ Frontend disponivel em: **http://localhost:4200**
 ## Estrutura do Projeto
 
 ```
-comanda-digital/
+cenox/
 ├── docker-compose.yml       # Orquestrador dos containers
 ├── .env.example             # Modelo de variaveis de ambiente
 ├── backend/
